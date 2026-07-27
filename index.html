@@ -849,6 +849,12 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
 
 /* Toast do módulo é redundante (roteado para o toast global) — mantém oculto para não gerar faixa lateral. */
 #ef_toast{ display:none !important; }
+.chamada-switch{position:relative; display:inline-block; width:46px; height:26px; flex:0 0 auto;}
+.chamada-switch input{opacity:0; width:0; height:0;}
+.chamada-slider{position:absolute; cursor:pointer; inset:0; background:var(--bg-1); border:1px solid var(--line); border-radius:999px; transition:.2s;}
+.chamada-slider:before{content:""; position:absolute; height:18px; width:18px; left:3px; top:3px; background:var(--text-2); border-radius:50%; transition:.2s;}
+.chamada-switch input:checked + .chamada-slider{background:rgba(61,232,160,.25); border-color:var(--green);}
+.chamada-switch input:checked + .chamada-slider:before{transform:translateX(20px); background:var(--green);}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -1077,6 +1083,7 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
       <div class="tabs-row" style="margin-bottom:14px;">
         <div class="tab-pill active" id="tabEquipesGerencial" onclick="mudarAbaEquipes('gerencial')">📋 Visão Gerencial</div>
         <div class="tab-pill" id="tabEquipesRemanejar" onclick="mudarAbaEquipes('remanejar')">🔄 Remanejar</div>
+        <div class="tab-pill" id="tabEquipesChamada" onclick="mudarAbaEquipes('chamada')">✅ Chamada obrigatória</div>
       </div>
       <!-- ABA: Visão Gerencial -->
       <div id="paneEquipesGerencial">
@@ -1089,11 +1096,45 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
       </div>
       <!-- ABA: Remanejar -->
       <div id="paneEquipesRemanejar" style="display:none;">
-        <div class="remanejar-hint">
-          <b>Segure</b> o nome de um colaborador por 0,5s e <b>arraste</b> para outra equipe. Solte sobre a equipe destino para confirmar.
+        <div class="tabs-row" style="margin-bottom:12px;">
+          <div class="tab-pill active" id="modoRemanejarArrastar" onclick="mudarModoRemanejar('arrastar')">🖐 Arrastar</div>
+          <div class="tab-pill" id="modoRemanejarClique" onclick="mudarModoRemanejar('clique')">👆 Selecionar equipes</div>
         </div>
-        <div class="search-row"><input type="text" id="remanejarSearch" placeholder="Filtrar por bateria (A, B, C, Caldeiras, Oficina)…" oninput="renderAdminRemanejar()"></div>
-        <div id="remanejarLista"></div>
+
+        <!-- MODO: Arrastar (original, intacto) -->
+        <div id="remanejarModoArrastar">
+          <div class="remanejar-hint">
+            <b>Segure</b> o nome de um colaborador por 0,5s e <b>arraste</b> para outra equipe. Solte sobre a equipe destino para confirmar.
+          </div>
+          <div class="search-row"><input type="text" id="remanejarSearch" placeholder="Filtrar por bateria (A, B, C, Caldeiras, Oficina)…" oninput="renderAdminRemanejar()"></div>
+          <div id="remanejarLista"></div>
+        </div>
+
+        <!-- MODO: Clique-clique (origem/destino lado a lado) -->
+        <div id="remanejarModoClique" style="display:none;">
+          <div class="remanejar-hint">
+            Escolha a equipe de <b>origem</b> e a de <b>destino</b>, marque os colaboradores na origem e clique em <b>Mover →</b>. A mudança é permanente e ajusta a árvore.
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+            <div class="field" style="margin:0;">
+              <label style="font-size:10px;">Origem</label>
+              <select id="remanejarOrigemSel" onchange="renderRemanejarClique()"></select>
+            </div>
+            <div class="field" style="margin:0;">
+              <label style="font-size:10px;">Destino</label>
+              <select id="remanejarDestinoSel" onchange="renderRemanejarClique()"></select>
+            </div>
+          </div>
+          <div id="remanejarCliquePaineis"></div>
+        </div>
+      </div>
+      <!-- ABA: Chamada obrigatória -->
+      <div id="paneEquipesChamada" style="display:none;">
+        <div class="remanejar-hint">
+          Escolha quais equipes <b>fazem chamada</b>. Equipes desligadas deixam de contar nos indicadores e não aparecem nas telas de chamada. Por padrão, todas fazem chamada.
+        </div>
+        <div class="search-row"><input type="text" id="chamadaObrigSearch" placeholder="Filtrar equipe…" oninput="renderAdminChamadaObrig()"></div>
+        <div id="chamadaObrigLista"></div>
       </div>
     </div>
   </div>
@@ -1280,13 +1321,14 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
             <div class="field" style="margin:0;">
               <label style="font-size:10px;">Início</label>
-              <input type="date" id="feriasInicio">
+              <input type="date" id="feriasInicio" oninput="atualizarPreviewFerias()">
             </div>
             <div class="field" style="margin:0;">
-              <label style="font-size:10px;">Fim (Inclusive)</label>
-              <input type="date" id="feriasFim">
+              <label style="font-size:10px;">Quantidade de dias</label>
+              <input type="number" id="feriasDias" min="1" step="1" placeholder="ex.: 30" oninput="atualizarPreviewFerias()">
             </div>
           </div>
+          <div id="feriasPreview" style="font-size:11px; color:var(--text-2); margin-top:8px;"></div>
           <button class="btn btn-primary btn-sm" style="margin-top:10px; width:100%; box-shadow: 0 4px 10px rgba(0, 196, 255, 0.2);" onclick="salvarFerias()">Lançar Férias no Sistema</button>
         </div>
       </div>
@@ -1330,10 +1372,6 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
     <div class="sub">REFRAMAX · Ternium · Gestão de Equipe</div>
   </div>
   <div class="header-actions">
-    <button class="btn" id="ef_btnImport">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
-      Importar Excel
-    </button>
     <button class="btn" id="ef_btnAdd">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
       Novo Colaborador
@@ -1528,6 +1566,7 @@ let lideresUsuariosCache = [];
 let chamadasHomeCache = [];
 let solicitacoesPendentesCache = [];
 let movDiariasCache = [];
+let dashRegsHoje = [];
 let adminChamadasDiaCache = [];
 let lanchesPainelCache = []; 
 let currentAdminTeamLider = null;
@@ -1827,7 +1866,7 @@ function rerenderScreenAtiva(){
   const id = ativa.id;
   if(id==='screen-hub') renderHub();
   else if(id==='screen-home') renderHomeList();
-  else if(id==='screen-admin-home'){ renderAdminHome(); if(abaEquipesAtiva==='remanejar') renderAdminRemanejar(); }
+  else if(id==='screen-admin-home'){ renderAdminHome(); if(abaEquipesAtiva==='remanejar'){ if(remanejarModo==='clique'){ popularSelectsRemanejarClique(); renderRemanejarClique(); } else { renderAdminRemanejar(); } } }
   else if(id==='screen-admin-team' && currentAdminTeamLider) renderAdminTeamDetail(document.getElementById('adminTeamData').value);
   else if(id==='screen-admin-dashboard') { const el=document.getElementById('dashEfetivo'); if(el) el.textContent = colaboradoresCache.length; const rem=document.getElementById('dashRemanejados'); if(rem) rem.textContent = colaboradoresCache.filter(c=>c.alocacaoTipo && c.alocacaoTipo!=='permanente').length; }
   else if(id==='screen-admin-equipes') renderAdminEquipes();
@@ -1913,7 +1952,10 @@ function renderHub(){
 
 // ================= CHAMADA =================
 function getMinhaEquipe(){
-  const base = colaboradoresCache.filter(c=>String(c.liderMatricula)===String(session.matricula) || c.equipe === session.equipe);
+  const base = colaboradoresCache.filter(c=>
+    (String(c.liderMatricula)===String(session.matricula) || c.equipe === session.equipe)
+    && equipeFazChamada(c.equipe)   // equipe sem obrigatoriedade não aparece na chamada
+  );
   const jaNoTime = new Set(base.map(c=>String(c.matricula)));
   // Data corrente da chamada (tela home) ou hoje.
   const inputData = document.getElementById('homeData');
@@ -2108,11 +2150,20 @@ function abrirModalStatus(colaborador){
   document.getElementById('marcarFeriasCheck').checked = false;
   document.getElementById('feriasDatasInputs').style.display = 'none';
   document.getElementById('feriasInicio').value = colaborador.feriasInicio || '';
-  document.getElementById('feriasFim').value = colaborador.feriasFim || '';
+  // Deriva a quantidade de dias a partir das datas salvas (dia de início conta - padrão CLT).
+  let diasSalvos = '';
+  if(colaborador.feriasInicio && colaborador.feriasFim){
+    const di = new Date(colaborador.feriasInicio + 'T00:00:00');
+    const df = new Date(colaborador.feriasFim + 'T00:00:00');
+    const dd = Math.round((df - di) / 86400000) + 1;
+    if(dd > 0) diasSalvos = dd;
+  }
+  document.getElementById('feriasDias').value = diasSalvos;
   if(colaborador.feriasInicio && colaborador.feriasFim) {
      document.getElementById('marcarFeriasCheck').checked = true;
      document.getElementById('feriasDatasInputs').style.display = 'block';
   }
+  atualizarPreviewFerias();
 
   document.getElementById('modalStatus').classList.add('active');
 }
@@ -2124,24 +2175,49 @@ function fecharModalStatus(){
 }
 window.fecharModalStatus = fecharModalStatus;
 
+// Calcula fim (inclusivo, dia de início conta) e retorno (dia seguinte ao fim).
+function calcularFimRetornoFerias(inicioISO, dias){
+  const n = parseInt(dias, 10);
+  if(!inicioISO || !n || n < 1) return null;
+  const di = new Date(inicioISO + 'T00:00:00');
+  const df = new Date(di); df.setDate(df.getDate() + (n - 1));   // dia de início conta
+  const ret = new Date(df); ret.setDate(ret.getDate() + 1);       // retorna no dia seguinte ao fim
+  const iso = d => d.toISOString().slice(0,10);
+  return { fim: iso(df), retorno: iso(ret) };
+}
+window.calcularFimRetornoFerias = calcularFimRetornoFerias;
+
+function atualizarPreviewFerias(){
+  const el = document.getElementById('feriasPreview');
+  if(!el) return;
+  const ini = document.getElementById('feriasInicio').value;
+  const dias = document.getElementById('feriasDias').value;
+  const r = calcularFimRetornoFerias(ini, dias);
+  if(!r){ el.textContent = ''; return; }
+  el.innerHTML = `Último dia de férias: <b style="color:var(--text-1)">${fmtDataPtBr(r.fim)}</b> · Retorno: <b style="color:var(--cyan)">${fmtDataPtBr(r.retorno)}</b>`;
+}
+window.atualizarPreviewFerias = atualizarPreviewFerias;
+
 async function salvarFerias() {
   if(!currentPersonModal) return;
   
   const fInicio = document.getElementById('feriasInicio').value;
-  const fFim = document.getElementById('feriasFim').value;
+  const dias = document.getElementById('feriasDias').value;
   
-  if(!fInicio || !fFim) {
-    toast('Preencha a data de início e de fim para salvar.', 'err');
+  if(!fInicio || !dias || parseInt(dias,10) < 1) {
+    toast('Preencha a data de início e a quantidade de dias.', 'err');
     return;
   }
+  const r = calcularFimRetornoFerias(fInicio, dias);
+  if(!r){ toast('Dados de férias inválidos.', 'err'); return; }
   
   try {
-    // Apenas salva as datas, sem modificar situacao
-    await updateDoc(doc(db, 'colaboradores', currentPersonModal.matricula), {
+    // Salva início e fim calculado; retorno é derivado (dia seguinte ao fim).
+    await updateDoc(doc(db, 'colaboradores', String(currentPersonModal.matricula)), {
       feriasInicio: fInicio,
-      feriasFim: fFim
+      feriasFim: r.fim
     });
-    toast('Período de férias lançado com sucesso! O colaborador só ficará ausente durante o período informado.', 'ok');
+    toast('Período de férias lançado! Retorno em ' + fmtDataPtBr(r.retorno) + '.', 'ok');
     fecharModalStatus();
   } catch (e) {
     console.error(e);
@@ -2270,6 +2346,7 @@ function attachAdminDiaListener(data){
 function buildAdminTree(){
   const porArea = {};
   equipesCache.forEach(eq=>{
+    if(!equipeFazChamada(eq.nome)) return; // equipes sem obrigatoriedade não aparecem na chamada
     const areaChave = eq.atuacao || 'COQUERIA REFRAMAX';
     porArea[areaChave] = porArea[areaChave] || [];
     porArea[areaChave].push(eq);
@@ -2812,31 +2889,32 @@ async function renderDashboard(){
 
     <div class="section-title">Chamada de Hoje</div>
     <div class="dash-grid">
-      <div class="dash-card dc-green">
+      <div class="dash-card dc-green" style="cursor:pointer;" onclick="toggleDashLista('presente')">
         <div class="dc-ic">✅</div>
         <div class="dc-num" id="dashPresentes">0</div>
         <div class="dc-label">Presentes</div>
         <div class="dc-sub" id="dashPresentesPct">—</div>
       </div>
-      <div class="dash-card dc-red">
+      <div class="dash-card dc-red" style="cursor:pointer;" onclick="toggleDashLista('falta')">
         <div class="dc-ic">✕</div>
         <div class="dc-num" id="dashFaltas">0</div>
         <div class="dc-label">Faltas</div>
         <div class="dc-sub" id="dashFaltasPct">—</div>
       </div>
-      <div class="dash-card dc-gold">
+      <div class="dash-card dc-gold" style="cursor:pointer;" onclick="toggleDashLista('atestado')">
         <div class="dc-ic">📄</div>
         <div class="dc-num" id="dashAtestados">0</div>
         <div class="dc-label">Atestados</div>
         <div class="dc-sub">Afastados hoje</div>
       </div>
-      <div class="dash-card dc-cyan">
+      <div class="dash-card dc-cyan" style="cursor:pointer;" onclick="toggleDashLista('pendente')">
         <div class="dc-ic">⏳</div>
         <div class="dc-num" id="dashPendentes">0</div>
         <div class="dc-label">Pendentes</div>
         <div class="dc-sub">Sem chamada</div>
       </div>
     </div>
+    <div id="dashListaNomes" style="display:none; margin-top:-4px; margin-bottom:8px; background:var(--bg-2); border:1px solid var(--line); border-radius:12px; padding:12px;"></div>
 
     <div class="section-title">Operacional</div>
     <div class="dash-grid">
@@ -2857,6 +2935,11 @@ async function renderDashboard(){
     <div class="rank-card">
       <h3>🥪 Rank de Lanches por Equipe · Hoje</h3>
       <div id="rankLanches"><div class="rank-empty">Carregando…</div></div>
+    </div>
+
+    <div class="rank-card">
+      <h3>⏳ Equipes que ainda não concluíram a chamada · Hoje</h3>
+      <div id="rankPendentesEquipe"><div class="rank-empty">Carregando…</div></div>
     </div>
 
     <div class="rank-card">
@@ -2887,7 +2970,10 @@ async function renderDashboard(){
 }
 
 function atualizarCardsDashboard(regs){
-  const total = colaboradoresCache.filter(c=>c.equipe && c.equipe.trim()!=='').length;
+  dashRegsHoje = regs;
+  // Considera apenas colaboradores de equipes obrigadas a fazer chamada.
+  const contaChamada = c => c.equipe && c.equipe.trim()!=='' && equipeFazChamada(c.equipe);
+  const total = colaboradoresCache.filter(contaChamada).length;
   const efetivoTotal = colaboradoresCache.length;
   const presentes = regs.filter(r=>r.status==='presente').length;
   const faltas = regs.filter(r=>r.status==='falta').length;
@@ -2937,7 +3023,81 @@ function atualizarCardsDashboard(regs){
       }).join('');
     }
   }
+
+  // Equipes que ainda NÃO concluíram a chamada de hoje
+  const registradosPorMat = new Set(regs.map(r=>String(r.matricula)));
+  const equipesInfo = {};
+  colaboradoresCache.forEach(c=>{
+    if(!c.equipe || !c.equipe.trim()) return;
+    if(!equipeFazChamada(c.equipe)) return; // equipe sem obrigatoriedade não conta
+    const eq = c.equipe;
+    equipesInfo[eq] = equipesInfo[eq] || {equipe:eq, total:0, feitos:0};
+    equipesInfo[eq].total++;
+    if(registradosPorMat.has(String(c.matricula))) equipesInfo[eq].feitos++;
+  });
+  const pendEquipes = Object.values(equipesInfo)
+    .filter(e => e.feitos < e.total)
+    .sort((a,b)=> (b.total-b.feitos)-(a.total-a.feitos) || a.equipe.localeCompare(b.equipe));
+  const boxP = document.getElementById('rankPendentesEquipe');
+  if(boxP){
+    if(!pendEquipes.length){
+      boxP.innerHTML = `<div class="rank-empty">Todas as equipes concluíram a chamada. ✓</div>`;
+    } else {
+      boxP.innerHTML = pendEquipes.map(e=>{
+        const faltam = e.total - e.feitos;
+        return `<div class="rank-row">
+          <div class="rank-name">${e.equipe}</div>
+          <div class="rank-val v-red">${faltam} pendente${faltam>1?'s':''}</div>
+        </div>
+        <div class="rank-row" style="padding:0 0 6px 8px; border-bottom:none;">
+          <div style="font-size:10.5px; color:var(--text-2);">${e.feitos} de ${e.total} lançados</div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // Se uma lista de nomes estiver aberta, re-renderiza com os dados novos
+  if(dashListaAtiva) renderDashListaNomes(dashListaAtiva);
 }
+
+// Alterna a lista de nomes abaixo dos cards do dashboard
+let dashListaAtiva = null;
+function toggleDashLista(tipo){
+  if(dashListaAtiva === tipo){ dashListaAtiva = null; const box=document.getElementById('dashListaNomes'); if(box) box.style.display='none'; return; }
+  dashListaAtiva = tipo;
+  renderDashListaNomes(tipo);
+}
+window.toggleDashLista = toggleDashLista;
+
+function renderDashListaNomes(tipo){
+  const box = document.getElementById('dashListaNomes');
+  if(!box) return;
+  const nomeDe = mat => colaboradoresCache.find(x=>String(x.matricula)===String(mat)) || null;
+  let itens = [], titulo = '';
+  if(tipo==='pendente'){
+    titulo = 'Pendentes (sem chamada)';
+    const registrados = new Set(dashRegsHoje.map(r=>String(r.matricula)));
+    itens = colaboradoresCache
+      .filter(c=>c.equipe && c.equipe.trim()!=='' && equipeFazChamada(c.equipe) && !registrados.has(String(c.matricula)))
+      .map(c=>({nome:c.nome, equipe:c.equipe, grupo:c.grupo}));
+  } else {
+    titulo = tipo==='presente' ? 'Presentes' : (tipo==='falta' ? 'Faltas' : 'Atestados');
+    itens = dashRegsHoje.filter(r=>r.status===tipo).map(r=>{
+      const c = nomeDe(r.matricula) || {};
+      return {nome: c.nome || r.nome || String(r.matricula), equipe: c.equipe || r.equipe || '—', grupo: c.grupo || ''};
+    });
+  }
+  itens.sort((a,b)=> (a.equipe||'').localeCompare(b.equipe||'') || (a.nome||'').localeCompare(b.nome||''));
+  const linhas = itens.length
+    ? itens.map(it=>`<div style="display:flex; justify-content:space-between; gap:10px; padding:6px 4px; border-bottom:1px solid var(--line);">
+        <div><div style="font-size:12.5px; color:var(--text-1);">${it.nome}</div><div style="font-size:10.5px; color:var(--text-2);">${it.grupo||''}</div></div>
+        <div style="font-size:11px; color:var(--text-2); text-align:right; align-self:center;">${it.equipe}</div>
+      </div>`).join('')
+    : `<div class="rank-empty">Ninguém nesta categoria hoje.</div>`;
+  box.innerHTML = `<div style="font-size:12px; font-weight:700; color:var(--text-1); margin-bottom:8px; text-transform:uppercase; letter-spacing:.04em;">${titulo} (${itens.length})</div>${linhas}`;
+  box.style.display = 'block';
+}
+window.renderDashListaNomes = renderDashListaNomes;
 
 function atualizarLanchesDashboard(pedidos){
   const setTxt = (id,v)=>{ const el=document.getElementById(id); if(el) el.textContent = v; };
@@ -2983,9 +3143,12 @@ function mudarAbaEquipes(aba){
   abaEquipesAtiva = aba;
   document.getElementById('tabEquipesGerencial').classList.toggle('active', aba==='gerencial');
   document.getElementById('tabEquipesRemanejar').classList.toggle('active', aba==='remanejar');
+  const tabCh = document.getElementById('tabEquipesChamada'); if(tabCh) tabCh.classList.toggle('active', aba==='chamada');
   document.getElementById('paneEquipesGerencial').style.display = aba==='gerencial' ? '' : 'none';
   document.getElementById('paneEquipesRemanejar').style.display = aba==='remanejar' ? '' : 'none';
+  const paneCh = document.getElementById('paneEquipesChamada'); if(paneCh) paneCh.style.display = aba==='chamada' ? '' : 'none';
   if(aba==='remanejar') renderAdminRemanejar();
+  if(aba==='chamada') renderAdminChamadaObrig();
 }
 window.mudarAbaEquipes = mudarAbaEquipes;
 
@@ -3043,6 +3206,164 @@ function renderAdminRemanejar(){
   ativarDragRemanejar();
 }
 window.renderAdminRemanejar = renderAdminRemanejar;
+
+// Uma equipe faz chamada por padrão; só não faz se fazChamada === false explicitamente.
+function equipeFazChamada(nomeEquipe){
+  if(!nomeEquipe) return true;
+  const eq = equipesCache.find(e => e.nome === nomeEquipe);
+  return !(eq && eq.fazChamada === false);
+}
+window.equipeFazChamada = equipeFazChamada;
+
+function renderAdminChamadaObrig(){
+  const container = document.getElementById('chamadaObrigLista');
+  if(!container) return;
+  const busca = (document.getElementById('chamadaObrigSearch').value||'').toLowerCase().trim();
+  if(!equipesCache.length){
+    container.innerHTML = `<div class="empty">Nenhuma equipe cadastrada.</div>`;
+    return;
+  }
+  const lista = equipesCache
+    .filter(eq => !busca || (eq.nome||'').toLowerCase().includes(busca) || (eq.atuacao||'').toLowerCase().includes(busca))
+    .sort((a,b)=> (a.nome||'').localeCompare(b.nome||''));
+  if(!lista.length){
+    container.innerHTML = `<div class="empty">Nenhuma equipe encontrada.</div>`;
+    return;
+  }
+  container.innerHTML = lista.map(eq=>{
+    const faz = eq.fazChamada !== false;
+    const membros = colaboradoresCache.filter(c=>c.equipe===eq.nome).length;
+    return `<div class="rank-row" style="align-items:center;">
+      <div style="flex:1;">
+        <div class="rank-name" style="color:${faz?'var(--text-1)':'var(--text-2)'};">${eq.nome}</div>
+        <div style="font-size:10.5px; color:var(--text-2);">${eq.atuacao||'—'} · ${membros} colaborador${membros!==1?'es':''}</div>
+      </div>
+      <label class="chamada-switch">
+        <input type="checkbox" ${faz?'checked':''} onchange="toggleEquipeChamada('${(eq.nome||'').replace(/'/g,"\\'")}', this.checked)">
+        <span class="chamada-slider"></span>
+      </label>
+    </div>`;
+  }).join('');
+}
+window.renderAdminChamadaObrig = renderAdminChamadaObrig;
+
+async function toggleEquipeChamada(nomeEquipe, faz){
+  try{
+    await setDoc(doc(db,'equipes', nomeEquipe), { nome: nomeEquipe, fazChamada: !!faz }, {merge:true});
+    toast(faz ? `"${nomeEquipe}" passará a fazer chamada.` : `"${nomeEquipe}" não fará mais chamada.`, 'ok');
+  }catch(e){ console.error(e); toast('Erro ao salvar: ' + (e && e.message ? e.message : e), 'err'); renderAdminChamadaObrig(); }
+}
+window.toggleEquipeChamada = toggleEquipeChamada;
+
+// ============ REMANEJAR: MODO CLIQUE-CLIQUE (origem/destino lado a lado) ============
+let remanejarModo = 'arrastar';
+let remanejarSelecionados = new Set(); // matrículas marcadas na origem
+
+function mudarModoRemanejar(modo){
+  remanejarModo = modo;
+  const ta = document.getElementById('modoRemanejarArrastar');
+  const tc = document.getElementById('modoRemanejarClique');
+  if(ta) ta.classList.toggle('active', modo==='arrastar');
+  if(tc) tc.classList.toggle('active', modo==='clique');
+  const pa = document.getElementById('remanejarModoArrastar');
+  const pc = document.getElementById('remanejarModoClique');
+  if(pa) pa.style.display = modo==='arrastar' ? '' : 'none';
+  if(pc) pc.style.display = modo==='clique' ? '' : 'none';
+  if(modo==='arrastar'){ renderAdminRemanejar(); }
+  else { popularSelectsRemanejarClique(); renderRemanejarClique(); }
+}
+window.mudarModoRemanejar = mudarModoRemanejar;
+
+function popularSelectsRemanejarClique(){
+  const selO = document.getElementById('remanejarOrigemSel');
+  const selD = document.getElementById('remanejarDestinoSel');
+  if(!selO || !selD) return;
+  const nomes = equipesCache.map(e=>e.nome).filter(Boolean).sort((a,b)=>a.localeCompare(b));
+  const opts = ['<option value="">— selecione —</option>'].concat(nomes.map(n=>`<option value="${n.replace(/"/g,'&quot;')}">${n}</option>`)).join('');
+  const oldO = selO.value, oldD = selD.value;
+  selO.innerHTML = opts; selD.innerHTML = opts;
+  if(oldO) selO.value = oldO;
+  if(oldD) selD.value = oldD;
+}
+
+function toggleSelRemanejar(mat){
+  mat = String(mat);
+  if(remanejarSelecionados.has(mat)) remanejarSelecionados.delete(mat);
+  else remanejarSelecionados.add(mat);
+  renderRemanejarClique();
+}
+window.toggleSelRemanejar = toggleSelRemanejar;
+
+function renderRemanejarClique(){
+  const box = document.getElementById('remanejarCliquePaineis');
+  if(!box) return;
+  const origem = document.getElementById('remanejarOrigemSel').value;
+  const destino = document.getElementById('remanejarDestinoSel').value;
+
+  const cardsDe = (nomeEquipe, isOrigem) => {
+    const membros = colaboradoresCache.filter(c=>c.equipe===nomeEquipe)
+      .sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+    if(!membros.length) return `<div class="rank-empty">Sem colaboradores.</div>`;
+    return membros.map(c=>{
+      const mat = String(c.matricula);
+      const sel = isOrigem && remanejarSelecionados.has(mat);
+      const iniciais = (c.nome||'?').slice(0,2).toUpperCase();
+      return `<div class="person-drag" style="cursor:${isOrigem?'pointer':'default'}; ${sel?'outline:2px solid var(--cyan); background:rgba(0,196,255,.08);':''}" ${isOrigem?`onclick="toggleSelRemanejar('${mat}')"`:''}>
+        <div class="avatar">${iniciais}</div>
+        <div class="p-info">
+          <div class="nome">${sel?'☑ ':''}${c.nome||'—'}</div>
+          <div class="func">${c.grupo||c.funcao||''} · Mat. ${mat}</div>
+        </div>
+      </div>`;
+    }).join('');
+  };
+
+  const nSel = remanejarSelecionados.size;
+  const podeMover = origem && destino && origem!==destino && nSel>0;
+  box.innerHTML = `
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; align-items:start;">
+      <div class="rank-card" style="margin:0;">
+        <h3 style="margin-top:0;">Origem: ${origem||'—'} ${origem?`<span style="font-size:11px; color:var(--text-2);">(${colaboradoresCache.filter(c=>c.equipe===origem).length})</span>`:''}</h3>
+        <div>${origem? cardsDe(origem, true) : '<div class="rank-empty">Selecione a equipe de origem.</div>'}</div>
+      </div>
+      <div class="rank-card" style="margin:0;">
+        <h3 style="margin-top:0;">Destino: ${destino||'—'} ${destino?`<span style="font-size:11px; color:var(--text-2);">(${colaboradoresCache.filter(c=>c.equipe===destino).length})</span>`:''}</h3>
+        <div>${destino? cardsDe(destino, false) : '<div class="rank-empty">Selecione a equipe de destino.</div>'}</div>
+      </div>
+    </div>
+    <button class="btn btn-primary" style="width:100%; margin-top:12px; ${podeMover?'':'opacity:.5; pointer-events:none;'}" onclick="moverSelecionadosClique()">
+      Mover ${nSel>0?nSel:''} selecionado${nSel!==1?'s':''} → ${destino||'destino'}
+    </button>`;
+}
+window.renderRemanejarClique = renderRemanejarClique;
+
+async function moverSelecionadosClique(){
+  const origem = document.getElementById('remanejarOrigemSel').value;
+  const destino = document.getElementById('remanejarDestinoSel').value;
+  if(!origem || !destino || origem===destino){ toast('Escolha origem e destino diferentes.', 'err'); return; }
+  const mats = Array.from(remanejarSelecionados);
+  if(!mats.length){ toast('Selecione ao menos um colaborador.', 'err'); return; }
+  const eqDest = equipesCache.find(e=>e.nome===destino);
+  if(!eqDest){ toast('Equipe destino não encontrada.', 'err'); return; }
+  if(!confirm(`Mover ${mats.length} colaborador(es) de "${origem}" para "${destino}"?`)) return;
+  try{
+    const batch = writeBatch(db);
+    mats.forEach(m=>{
+      batch.update(doc(db,'colaboradores', String(m)), {
+        equipe: destino,
+        rastreabilidade: destino,
+        liderMatricula: eqDest.liderMatricula || null,
+        alocacaoTipo: 'permanente',
+        alocadoEm: serverTimestamp()
+      });
+    });
+    await batch.commit();
+    toast(`${mats.length} colaborador(es) movido(s) para ${destino}.`, 'ok');
+    remanejarSelecionados.clear();
+    renderRemanejarClique();
+  } catch(e){ console.error(e); toast('Erro ao mover: ' + (e && e.message ? e.message : e), 'err'); }
+}
+window.moverSelecionadosClique = moverSelecionadosClique;
 
 let dragRemanejarState = null;
 let dragLongPressTimer = null;
@@ -3340,7 +3661,7 @@ async function processarUploadEfetivo(file){
       const equipe      = pick(n,'EQUIPE');                      // 2º nível (rastreabilidade)
       const atuacao     = pick(n,'ATUACAO');
       const tipoKpi     = pick(n,'TIPO DE KPI','TIPO KPI');
-      const codContrato = pick(n,'DENTRO DE CUSTO','COD. CONTRATO','COD CONTRATO');
+      const codContrato = pick(n,'DENTRO DE CUSTO','CENTRO DE CUSTO','COD. CONTRATO','COD CONTRATO');
       const respCampo   = pick(n,'RESPONSAVEL CAMPO');
       const responsavel = pick(n,'RESPONSAVEL');
       const gestor      = pick(n,'GESTOR','COORDENADOR');
@@ -4004,7 +4325,9 @@ document.getElementById('ef_btnSavePerson').addEventListener('click', () => {
 });
 
 /* -------- Import Excel -------- */
-document.getElementById('ef_btnImport').addEventListener('click', () => {
+/* Botão removido da aba Equipes: a importação agora é exclusiva de Configurações. */
+const _efBtnImport = document.getElementById('ef_btnImport');
+if (_efBtnImport) _efBtnImport.addEventListener('click', () => {
   // Import unificado: alimenta a base única no Firebase (mesma ação de Configurações).
   // Restrito a administradores.
   if (!window.session || window.session.role !== 'admin') {
@@ -4098,22 +4421,42 @@ document.getElementById('ef_btnConfirmImport').addEventListener('click', () => {
 
 /* -------- Export Excel -------- */
 document.getElementById('ef_btnExport').addEventListener('click', () => {
-  const headerMap = {
-    'CC': 'cc', 'GRUPO': 'grupo', 'MATRICULA': 'matricula', 'NOME': 'nome',
-    'CLASSIFICAÇÃO': 'classificacao', 'C.C': 'ccTipo', 'RASTREABILIDADE': 'rastreabilidade',
-    'ATUAÇÃO': 'atuacao', 'EQUIPE': 'equipe', 'CONTRATO': 'contrato', 'TIPO DE KPI': 'tipoKpi',
-    'COD. CONTRATO': 'codContrato', 'RESPONSÁVEL CAMPO': 'respCampo', 'RESPONSÁVEL': 'responsavel',
-    'COORDENADOR': 'coordenador', 'POSIÇÃO TERNIUM': 'posTernium', 'ADMISSÃO': 'admissao',
-    'MAT. TERNIUM': 'matTernium', 'CPF': 'cpf'
+  // Exporta seguindo EXATAMENTE as colunas e a ordem da planilha de inserção,
+  // para servir de modelo ao usuário que for importar dados no sistema.
+  const COLUNAS = [
+    'MATRICULA','NOME','CONTRATO','GRUPO','CLASSIFICAÇÃO','C.C','EQUIPE ','ATUAÇÃO',
+    'TIPO DE KPI','CENTRO DE CUSTO ','RESPONSÁVEL CAMPO','RESPONSÁVEL','GESTOR',
+    'POSIÇÃO TERNIUM','ADMISSÃO','MAT. TERNIUM','CPF '
+  ];
+  // Cada coluna -> campo correspondente no registro do colaborador.
+  const valorDe = (p, col) => {
+    switch(col){
+      case 'MATRICULA':        return p.matricula ?? '';
+      case 'NOME':             return p.nome ?? '';
+      case 'CONTRATO':         return p.contrato ?? p.cc ?? '';
+      case 'GRUPO':            return p.grupo ?? '';
+      case 'CLASSIFICAÇÃO':    return p.classificacao ?? p.funcao ?? '';
+      case 'C.C':              return p.ccTipo ?? '';
+      case 'EQUIPE ':          return p.equipe ?? '';
+      case 'ATUAÇÃO':          return p.atuacao ?? '';
+      case 'TIPO DE KPI':      return p.tipoKpi ?? '';
+      case 'CENTRO DE CUSTO ': return p.codContrato ?? '';
+      case 'RESPONSÁVEL CAMPO':return p.respCampo ?? '';
+      case 'RESPONSÁVEL':      return p.responsavel ?? '';
+      case 'GESTOR':           return p.gestor ?? p.coordenador ?? '';
+      case 'POSIÇÃO TERNIUM':  return p.posTernium ?? '';
+      case 'ADMISSÃO':         return p.admissao ?? '';
+      case 'MAT. TERNIUM':     return p.matTernium ?? '';
+      case 'CPF ':             return p.cpf ?? '';
+      default: return '';
+    }
   };
-  const rows = people.map(p => {
-    const o = {};
-    Object.entries(headerMap).forEach(([h, k]) => { o[h] = p[k] ?? ''; });
-    return o;
-  });
-  const ws = XLSX.utils.json_to_sheet(rows);
+  const aoa = [COLUNAS].concat(
+    (people||[]).map(p => COLUNAS.map(col => valorDe(p, col)))
+  );
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'EFETIVO');
+  XLSX.utils.book_append_sheet(wb, ws, 'BASE 2 ATUALIZAR AQUI');
   const d = new Date();
   const stamp = `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}`;
   XLSX.writeFile(wb, `EFETIVO_COQUERIA_${stamp}.xlsx`);

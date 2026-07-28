@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>REFRAMAX — Central</title>
+<meta name="theme-color" content="#070d18">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Central">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='36' fill='%23070d18'/%3E%3Ctext x='96' y='120' font-size='90' font-family='Arial,sans-serif' font-weight='bold' fill='%2300c4ff' text-anchor='middle'%3EC%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -870,6 +876,13 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
         <p id="loginSubtitle">Digite sua matrícula para continuar</p>
       </div>
 
+      <button id="btnInstalarApp" onclick="instalarApp()" style="display:none; width:100%; margin-bottom:14px; padding:12px; border-radius:12px; border:none; background:linear-gradient(135deg,#00c4ff,#0090cc); color:#04121f; font-weight:700; font-size:14px; cursor:pointer; box-shadow:0 6px 16px rgba(0,196,255,.3);">
+        📲 Instalar aplicativo
+      </button>
+      <div id="dicaInstalariOS" style="display:none; margin-bottom:14px; padding:12px; border-radius:12px; background:var(--bg-2); border:1px solid var(--line); font-size:12px; color:var(--text-2); line-height:1.5;">
+        Para instalar no iPhone: toque em <b>Compartilhar</b> (ícone de caixa com seta) e depois em <b>“Adicionar à Tela de Início”</b>.
+      </div>
+
       <div id="loginStep1">
         <div class="field">
           <label>Matrícula</label>
@@ -943,6 +956,13 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
       </div>
 
       <div class="hub-grid" id="hubGrid"></div>
+
+      <button id="btnInstalarAppHub" onclick="instalarApp()" style="display:none; width:100%; margin-top:16px; padding:13px; border-radius:12px; border:none; background:linear-gradient(135deg,#00c4ff,#0090cc); color:#04121f; font-weight:700; font-size:14px; cursor:pointer; box-shadow:0 6px 16px rgba(0,196,255,.3);">
+        📲 Instalar aplicativo no dispositivo
+      </button>
+      <div id="dicaInstalariOSHub" style="display:none; margin-top:16px; padding:12px; border-radius:12px; background:var(--bg-2); border:1px solid var(--line); font-size:12px; color:var(--text-2); line-height:1.5;">
+        Para instalar no iPhone: toque em <b>Compartilhar</b> (ícone de caixa com seta) e depois em <b>“Adicionar à Tela de Início”</b>.
+      </div>
     </div>
   </div>
 
@@ -957,6 +977,7 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
       <button class="btn btn-gold btn-sm" onclick="goScreen('mao-obra')">＋ Incluir Mão de Obra</button>
     </div>
     <div class="screen-body" style="padding:18px;">
+      <button class="btn btn-sm" style="width:100%; margin-bottom:10px;" onclick="recarregarBase()">🔄 Atualizar lista</button>
       <input type="date" id="homeData" onchange="renderHome()" style="width:100%; padding:11px 12px; border-radius:10px; border:1px solid var(--line); background:var(--bg-2); color:var(--text-0); margin-bottom:14px;">
       <div class="kpi-row">
         <div class="kpi presente"><div class="n" id="kpiPresente">0</div><div class="l">Presentes</div></div>
@@ -1084,6 +1105,7 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
         <div class="tab-pill active" id="tabEquipesGerencial" onclick="mudarAbaEquipes('gerencial')">📋 Visão Gerencial</div>
         <div class="tab-pill" id="tabEquipesRemanejar" onclick="mudarAbaEquipes('remanejar')">🔄 Remanejar</div>
         <div class="tab-pill" id="tabEquipesChamada" onclick="mudarAbaEquipes('chamada')">✅ Chamada obrigatória</div>
+        <div class="tab-pill" id="tabEquipesLider" onclick="mudarAbaEquipes('lider')">👤 Líder</div>
       </div>
       <!-- ABA: Visão Gerencial -->
       <div id="paneEquipesGerencial">
@@ -1135,6 +1157,14 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
         </div>
         <div class="search-row"><input type="text" id="chamadaObrigSearch" placeholder="Filtrar equipe…" oninput="renderAdminChamadaObrig()"></div>
         <div id="chamadaObrigLista"></div>
+      </div>
+      <!-- ABA: Líder -->
+      <div id="paneEquipesLider" style="display:none;">
+        <div class="remanejar-hint">
+          Defina o <b>líder de cada equipe</b>. Pode ser qualquer colaborador (não precisa ter função de líder) e um mesmo líder pode acumular várias equipes. Marque <b>Permanente</b> ou <b>Temporário</b>; no temporário, informe a data de término — ao vencer, a equipe volta automaticamente ao líder titular da planilha.
+        </div>
+        <div class="search-row"><input type="text" id="liderEquipeSearch" placeholder="Filtrar equipe…" oninput="renderAdminLider()"></div>
+        <div id="liderEquipeLista"></div>
       </div>
     </div>
   </div>
@@ -1284,6 +1314,114 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
     </div>
   </div>
 
+  <!-- ================= MÓDULO RH ================= -->
+  <div class="screen" id="screen-rh">
+    <div class="topbar">
+      <div class="icon-btn" onclick="goScreen('hub')">‹</div>
+      <div class="brand-text" style="text-align:center;">
+        <div class="k1">RECURSOS HUMANOS</div>
+        <div class="k2">Novatos · Demitidos · Férias · Afastados</div>
+      </div>
+      <div style="width:38px;"></div>
+    </div>
+    <div class="screen-body" style="padding:18px;">
+      <div class="tabs-row" style="margin-bottom:14px;">
+        <div class="tab-pill active" id="tabRhLancar" onclick="mudarAbaRh('lancar')">📝 Lançamentos</div>
+        <div class="tab-pill" id="tabRhNovato" onclick="mudarAbaRh('novato')">➕ Novo colaborador</div>
+        <div class="tab-pill" id="tabRhUpload" onclick="mudarAbaRh('upload')">📄 Importar planilha</div>
+      </div>
+
+      <!-- ABA: Lançamentos (status manual) -->
+      <div id="paneRhLancar">
+        <div class="remanejar-hint">
+          Busque um colaborador e lance o status: <b>Férias</b>, <b>Afastado</b>, <b>Demitido</b> ou <b>Ativo</b>. A data do evento é registrada como <b>Data Status</b>. Demissão feita aqui é imediata (RH/Admin).
+        </div>
+        <div class="search-row"><input type="text" id="rhSearch" placeholder="Buscar por nome ou matrícula…" oninput="renderRhLancar()"></div>
+        <div class="list" id="rhLancarLista"></div>
+      </div>
+
+      <!-- ABA: Novo colaborador (recém-contratado) -->
+      <div id="paneRhNovato" style="display:none;">
+        <div class="remanejar-hint">
+          Cadastre o recém-contratado. <b>Grupo e Equipe não são obrigatórios</b> — a área define depois, quando o líder atribuir o colaborador na chamada. Ele entra com status <b>ADMITIDO</b> e só aparece para o líder após a atribuição.
+        </div>
+        <div class="field"><label>Matrícula *</label><input type="text" id="rhNovMat"></div>
+        <div class="field"><label>Nome *</label><input type="text" id="rhNovNome"></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div class="field"><label>Contrato</label><input type="text" id="rhNovContrato"></div>
+          <div class="field"><label>Classificação (função)</label><input type="text" id="rhNovClass"></div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div class="field"><label>C.C (Diretos/Indiretos)</label><input type="text" id="rhNovCC"></div>
+          <div class="field"><label>Tipo de KPI</label><input type="text" id="rhNovKpi"></div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div class="field"><label>Centro de Custo</label><input type="text" id="rhNovCentro"></div>
+          <div class="field"><label>Atuação</label><input type="text" id="rhNovAtuacao"></div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div class="field"><label>Admissão</label><input type="date" id="rhNovAdmissao"></div>
+          <div class="field"><label>Data Status</label><input type="date" id="rhNovDataStatus"></div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div class="field"><label>Mat. Ternium</label><input type="text" id="rhNovMatTernium"></div>
+          <div class="field"><label>CPF</label><input type="text" id="rhNovCpf"></div>
+        </div>
+        <div class="field"><label>Status</label>
+          <select id="rhNovStatus">
+            <option value="ADMITIDO" selected>ADMITIDO</option>
+            <option value="ATIVO">ATIVO</option>
+            <option value="AFASTADO">AFASTADO</option>
+            <option value="FÉRIAS">FÉRIAS</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="salvarNovatoRh()">Cadastrar colaborador</button>
+      </div>
+
+      <!-- ABA: Importar planilha -->
+      <div id="paneRhUpload" style="display:none;">
+        <div class="remanejar-hint">
+          Envie a planilha padrão (mesmo modelo da base, com as colunas <b>STATUS</b> e <b>DATA STATUS</b>). Novatos podem vir sem Grupo/Equipe. O sistema atualiza a base existente e adiciona os novos.
+        </div>
+        <div id="rhUploadArea" style="border:1.5px dashed var(--line); border-radius:12px; padding:26px; text-align:center; cursor:pointer;" onclick="document.getElementById('rhFileInput').click()">
+          <div style="font-size:30px;">📄</div>
+          <div style="margin-top:8px; color:var(--text-1); font-weight:600;">Clique para escolher a planilha (.xlsx)</div>
+          <div style="font-size:11px; color:var(--text-2); margin-top:4px;">Aba "BASE 2 ATUALIZAR AQUI"</div>
+        </div>
+        <input type="file" id="rhFileInput" accept=".xlsx,.xls" style="display:none;">
+        <div id="rhUploadResumo" style="margin-top:14px;"></div>
+        <div id="rhUploadLoading" style="display:none; align-items:center; gap:8px; margin-top:12px; color:var(--text-2);">Processando planilha…</div>
+        <button class="btn" style="width:100%; margin-top:14px;" onclick="baixarModeloRh()">⬇️ Baixar modelo de planilha</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL LANÇAMENTO DE STATUS (RH) -->
+  <div class="modal-overlay" id="modalRhStatus">
+    <div class="modal-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title" id="rhStatusNome">—</div>
+      <div class="sheet-sub" id="rhStatusMeta" style="color:var(--text-2); font-size:12px; margin-bottom:12px;">—</div>
+      <div class="field"><label>Novo status</label>
+        <select id="rhStatusSel" onchange="onChangeRhStatus()">
+          <option value="ATIVO">ATIVO</option>
+          <option value="FÉRIAS">FÉRIAS</option>
+          <option value="AFASTADO">AFASTADO</option>
+          <option value="DEMITIDO">DEMITIDO</option>
+        </select>
+      </div>
+      <div class="field"><label>Data do evento (Data Status)</label><input type="date" id="rhStatusData"></div>
+      <div id="rhStatusFeriasWrap" style="display:none;">
+        <div class="field"><label>Dias de férias</label><input type="number" id="rhStatusFeriasDias" min="1" placeholder="ex.: 30" oninput="onChangeRhStatus()"></div>
+        <div id="rhStatusFeriasPreview" style="font-size:11px; color:var(--text-2); margin-bottom:6px;"></div>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:10px;">
+        <button class="btn" style="flex:1;" onclick="fecharModalRhStatus()">Cancelar</button>
+        <button class="btn btn-primary" style="flex:1;" onclick="salvarStatusRh()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= MODAL ALOCAÇÃO (mão de obra) ================= -->
   <div class="modal-overlay" id="modalAlocacao">
     <div class="modal-sheet">
@@ -1336,6 +1474,10 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
       <div class="field" style="margin-top:12px;">
         <label>Observação (opcional)</label>
         <textarea id="statusObs" placeholder="Ex: chegou às 8h15, atraso justificável…"></textarea>
+      </div>
+
+      <div style="margin-top:12px; padding-top:12px; border-top:1px dashed var(--line);">
+        <button class="btn btn-danger" style="width:100%;" onclick="solicitarDemissao()">🚫 Solicitar demissão (requer aprovação do gestor)</button>
       </div>
     </div>
   </div>
@@ -1775,32 +1917,72 @@ function iniciarSessao(udata){
 function attachGlobalListeners(){
   if(globalListenersAttached) return;
   globalListenersAttached = true;
-  unsub.colaboradores = onSnapshot(collection(db,'colaboradores'), (snap)=>{
-    colaboradoresCache = snap.docs.map(d=>d.data());
-    lideresCache = colaboradoresCache.filter(c => String(c.grupo || '').trim().toUpperCase() === 'LÍDER' || String(c.grupo || '').trim().toUpperCase() === 'LIDER');
-    atualizarEquipeDaSessao();
-    efetivoSyncFirebase();
-    rerenderScreenAtiva();
-  });
-  unsub.equipes = onSnapshot(collection(db,'equipes'), (snap)=>{
-    equipesCache = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    atualizarEquipeDaSessao();
-    rerenderScreenAtiva();
-  });
-  unsub.lideresUsuarios = onSnapshot(query(collection(db,'usuarios'), where('role','==','lider'), where('statusConta','==','aprovado')), (snap)=>{
-    lideresUsuariosCache = snap.docs.map(d=>d.data());
-    rerenderScreenAtiva();
-  });
-  // Solicitações de movimentação PENDENTES (para o time do dia do líder e badge "aguardando aprovação")
+
+  // Leitura ÚNICA das coleções pesadas/estáveis (economia de cota).
+  // colaboradores/equipes/lideresUsuarios são lidos ao abrir e re-lidos sob demanda
+  // (botão "atualizar" ou após uma ação da própria sessão), em vez de onSnapshot contínuo.
+  carregarBaseInicial();
+
+  // Migração de status e expiração de líderes: uma vez por sessão, fora de listeners.
+  _rodarManutencaoUnicaVez();
+
+  // Mantidos em tempo real apenas os fluxos pequenos e sensíveis ao dia:
+  // solicitações pendentes (badge de aprovação) e movimentações diárias (apoio/hora extra).
   unsub.solicPendentes = onSnapshot(query(collection(db,'solicitacoes_movimentacao'), where('status','==','pendente')), (snap)=>{
     solicitacoesPendentesCache = snap.docs.map(d=>({id:d.id, ...d.data()}));
     rerenderScreenAtiva();
   });
-  // Movimentações DIÁRIAS (Apoio / Hora extra) — provisórias, sem aprovação, entram no time do dia
   unsub.movDiarias = onSnapshot(collection(db,'movimentacoes_diarias'), (snap)=>{
     movDiariasCache = snap.docs.map(d=>({id:d.id, ...d.data()}));
     rerenderScreenAtiva();
   });
+}
+
+// Leitura única (getDocs) das coleções pesadas. Para líder, filtra só a equipe dele.
+async function carregarBaseInicial(){
+  try{
+    // Colaboradores: líder carrega só a própria equipe; admin/rh/efetivo carregam tudo.
+    let colabDocs;
+    if(session && session.role === 'lider' && session.equipe){
+      const qs = await getDocs(query(collection(db,'colaboradores'), where('equipe','==', session.equipe)));
+      colabDocs = qs.docs;
+    } else {
+      const qs = await getDocs(collection(db,'colaboradores'));
+      colabDocs = qs.docs;
+    }
+    colaboradoresCache = colabDocs.map(d=>d.data());
+    lideresCache = colaboradoresCache.filter(c => String(c.grupo || '').trim().toUpperCase() === 'LÍDER' || String(c.grupo || '').trim().toUpperCase() === 'LIDER');
+
+    // Equipes (leitura única)
+    const eqs = await getDocs(collection(db,'equipes'));
+    equipesCache = eqs.docs.map(d=>({id:d.id, ...d.data()}));
+
+    // Líderes usuários (leitura única)
+    const lus = await getDocs(query(collection(db,'usuarios'), where('role','==','lider'), where('statusConta','==','aprovado')));
+    lideresUsuariosCache = lus.docs.map(d=>d.data());
+
+    atualizarEquipeDaSessao();
+    efetivoSyncFirebase();
+    rerenderScreenAtiva();
+  }catch(e){ console.warn('Falha ao carregar base inicial:', e); }
+}
+window.carregarBaseInicial = carregarBaseInicial;
+
+// Recarrega a base sob demanda (botão "atualizar"). Reaproveita a leitura única.
+async function recarregarBase(){
+  await carregarBaseInicial();
+  toast('Dados atualizados.', 'ok');
+}
+window.recarregarBase = recarregarBase;
+
+let _manutencaoFeita = false;
+async function _rodarManutencaoUnicaVez(){
+  if(_manutencaoFeita) return;
+  _manutencaoFeita = true;
+  try{
+    if(typeof migrarStatusInicial==='function') await migrarStatusInicial();
+    if(typeof aplicarExpiracaoLideresTemporarios==='function') await aplicarExpiracaoLideresTemporarios();
+  }catch(e){ console.warn('Manutenção inicial falhou:', e); }
 }
 
 // ================= PONTE: FIREBASE -> MÓDULO EFETIVO =================
@@ -1866,11 +2048,12 @@ function rerenderScreenAtiva(){
   const id = ativa.id;
   if(id==='screen-hub') renderHub();
   else if(id==='screen-home') renderHomeList();
-  else if(id==='screen-admin-home'){ renderAdminHome(); if(abaEquipesAtiva==='remanejar'){ if(remanejarModo==='clique'){ popularSelectsRemanejarClique(); renderRemanejarClique(); } else { renderAdminRemanejar(); } } }
+  else if(id==='screen-admin-home'){ renderAdminHome(); if(abaEquipesAtiva==='remanejar'){ if(remanejarModo==='clique'){ popularSelectsRemanejarClique(); renderRemanejarClique(); } else { renderAdminRemanejar(); } } else if(abaEquipesAtiva==='chamada'){ renderAdminChamadaObrig(); } else if(abaEquipesAtiva==='lider'){ renderAdminLider(); } }
   else if(id==='screen-admin-team' && currentAdminTeamLider) renderAdminTeamDetail(document.getElementById('adminTeamData').value);
   else if(id==='screen-admin-dashboard') { const el=document.getElementById('dashEfetivo'); if(el) el.textContent = colaboradoresCache.length; const rem=document.getElementById('dashRemanejados'); if(rem) rem.textContent = colaboradoresCache.filter(c=>c.alocacaoTipo && c.alocacaoTipo!=='permanente').length; }
   else if(id==='screen-admin-equipes') renderAdminEquipes();
   else if(id==='screen-mao-obra') renderMaoObra();
+  else if(id==='screen-rh'){ if(typeof renderRhLancar==='function') renderRhLancar(); }
   else if(id==='screen-efetivo'){ /* dados aplicados via efetivoSyncFirebase() */ }
   else if(id==='screen-config') renderConfig();
   else if(id==='screen-lanche-painel') renderPainelLanche();
@@ -1917,7 +2100,7 @@ function renderHub(){
   if(!session) return;
   document.getElementById('hubDataAtual').textContent = fmtDataLonga(new Date());
   document.getElementById('hubSaudacao').textContent = 'Olá, ' + session.nome.split(' ')[0];
-  const roleLabels = {admin:'Administrador', lider:'Líder de equipe', suprimentos:'Suprimentos', colaborador:'Colaborador'};
+  const roleLabels = {admin:'Administrador', lider:'Líder de equipe', suprimentos:'Suprimentos', colaborador:'Colaborador', rh:'Recursos Humanos'};
   document.getElementById('hubRoleTag').textContent = roleLabels[session.role] || session.role;
 
   const cards = [];
@@ -1927,6 +2110,9 @@ function renderHub(){
   }
   if(session.role === 'suprimentos' || session.role === 'admin'){
     cards.push({ic:'📦', label:'Painel de Lanches', sub:'Gerenciar pedidos', screen:'lanche-painel', accent:'accent-gold'});
+  }
+  if(session.role === 'rh' || session.role === 'admin'){
+    cards.push({ic:'🧑\u200d💼', label:'RH', sub:'Novatos · demitidos · férias · afastados', screen:'rh', accent:'accent-purple'});
   }
   if(session.role === 'admin'){
     cards.push({ic:'👥', label:'Equipes', sub:'Efetivo · árvore genealógica', screen:'efetivo', accent:'accent-cyan'});
@@ -1955,6 +2141,7 @@ function getMinhaEquipe(){
   const base = colaboradoresCache.filter(c=>
     (String(c.liderMatricula)===String(session.matricula) || c.equipe === session.equipe)
     && equipeFazChamada(c.equipe)   // equipe sem obrigatoriedade não aparece na chamada
+    && statusPermiteChamada(c)      // DEMITIDO não aparece
   );
   const jaNoTime = new Set(base.map(c=>String(c.matricula)));
   // Data corrente da chamada (tela home) ou hoje.
@@ -2013,14 +2200,15 @@ window.renderHome = renderHome;
 
 function attachHomeListener(data){
   if(unsub.home) unsub.home();
-  unsub.home = onSnapshot(
-    query(collection(db,'chamadas'), where('data','==',data)),
-    (snap)=>{ 
-      const tudo = snap.docs.map(d=>d.data());
-      chamadasHomeCache = tudo.filter(r => r.equipe === session.equipe || r.liderMatricula === session.matricula);
-      renderHomeList(); 
-    }
-  );
+  // Filtra no servidor por data E equipe (economia): antes lia as chamadas de todas as equipes.
+  const base = session.equipe
+    ? query(collection(db,'chamadas'), where('data','==',data), where('equipe','==', session.equipe))
+    : query(collection(db,'chamadas'), where('data','==',data));
+  unsub.home = onSnapshot(base, (snap)=>{
+    const tudo = snap.docs.map(d=>d.data());
+    chamadasHomeCache = tudo.filter(r => r.equipe === session.equipe || r.liderMatricula === session.matricula);
+    renderHomeList();
+  });
 }
 
 function renderHomeList(){
@@ -2174,6 +2362,44 @@ function fecharModalStatus(){
   currentPersonModal = null;
 }
 window.fecharModalStatus = fecharModalStatus;
+
+// Líder solicita demissão -> vai para Aprovações; só vira DEMITIDO após o admin aprovar.
+async function solicitarDemissao(){
+  if(!currentPersonModal) return;
+  const c = currentPersonModal;
+  // Admin/RH demitem direto (sem aprovação).
+  if(session.role==='admin' || session.role==='rh'){
+    if(!confirm(`Demitir ${c.nome} agora? O colaborador sairá das listas.`)) return;
+    try{
+      await updateDoc(doc(db,'colaboradores', String(c.matricula)), { status:'DEMITIDO', dataStatus: hojeISOLocal() });
+      toast('Colaborador demitido.', 'ok');
+      fecharModalStatus();
+      if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
+    }catch(e){ console.error(e); toast('Erro ao demitir: ' + (e && e.message ? e.message : e), 'err'); }
+    return;
+  }
+  // Líder: cria solicitação de demissão para o gestor aprovar.
+  if(!confirm(`Solicitar demissão de ${c.nome}? O gestor precisará aprovar.`)) return;
+  try{
+    const payload = {
+      colaboradorMatricula: String(c.matricula),
+      colaboradorNome: c.nome || '',
+      colaboradorFuncao: c.funcao || c.classificacao || '',
+      equipeDestino: c.equipe || session.equipe || null,
+      liderMatricula: String(session.matricula || ''),
+      liderNome: session.nome || '',
+      tipoAlocacao: 'demissao',
+      tipoLabel: 'Demissão',
+      status: 'pendente',
+      criadoEm: serverTimestamp()
+    };
+    Object.keys(payload).forEach(k => { if(payload[k] === undefined) payload[k] = null; });
+    await addDoc(collection(db,'solicitacoes_movimentacao'), payload);
+    toast('Solicitação de demissão enviada. Aguardando aprovação do gestor.', 'ok');
+    fecharModalStatus();
+  }catch(e){ console.error(e); toast('Erro ao solicitar demissão: ' + (e && e.message ? e.message : e), 'err'); }
+}
+window.solicitarDemissao = solicitarDemissao;
 
 // Calcula fim (inclusivo, dia de início conta) e retorno (dia seguinte ao fim).
 function calcularFimRetornoFerias(inicioISO, dias){
@@ -2780,6 +3006,7 @@ function renderAprovacoes(){
             <select id="role_${u.matricula}">
               <option value="colaborador" ${u.role=='colaborador'?'selected':''}>Colaborador</option>
               <option value="lider" ${u.role=='lider'?'selected':''}>Líder</option>
+              <option value="rh" ${u.role=='rh'?'selected':''}>Recursos Humanos</option>
               <option value="suprimentos" ${u.role=='suprimentos'?'selected':''}>Suprimentos / Almoxarifado</option>
               <option value="admin" ${u.role=='admin'?'selected':''}>Administrador</option>
             </select>
@@ -2827,6 +3054,17 @@ async function aprovarSolicitacaoMaoObra(id){
     const snap = await getDoc(ref);
     if(!snap.exists()){ toast('Solicitação não encontrada.', 'err'); return; }
     const s = snap.data();
+    if(s.tipoAlocacao === 'demissao'){
+      // Demissão aprovada: colaborador sai das listas.
+      await updateDoc(doc(db,'colaboradores',String(s.colaboradorMatricula)), {
+        status: 'DEMITIDO',
+        dataStatus: hojeISOLocal()
+      });
+      await updateDoc(ref, { status:'aprovado', aprovadoPor: session.matricula, aprovadoEm: serverTimestamp() });
+      toast('Demissão aprovada.', 'ok');
+      if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
+      return;
+    }
     // Aplica o remanejamento PERMANENTE no colaborador (altera a árvore de efetivo e equipes)
     // Regra de negócio: "Remanejado" aprovado incorpora o colaborador de forma permanente à equipe.
     const alocacaoFinal = (s.tipoAlocacao === 'remanejado') ? 'permanente' : s.tipoAlocacao;
@@ -2844,6 +3082,7 @@ async function aprovarSolicitacaoMaoObra(id){
       aprovadoEm: serverTimestamp()
     });
     toast('Inclusão aprovada.', 'ok');
+    if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
   } catch(e){ console.error(e); toast('Erro ao aprovar.', 'err'); }
 }
 window.aprovarSolicitacaoMaoObra = aprovarSolicitacaoMaoObra;
@@ -2972,7 +3211,7 @@ async function renderDashboard(){
 function atualizarCardsDashboard(regs){
   dashRegsHoje = regs;
   // Considera apenas colaboradores de equipes obrigadas a fazer chamada.
-  const contaChamada = c => c.equipe && c.equipe.trim()!=='' && equipeFazChamada(c.equipe);
+  const contaChamada = c => c.equipe && c.equipe.trim()!=='' && equipeFazChamada(c.equipe) && statusPermiteChamada(c);
   const total = colaboradoresCache.filter(contaChamada).length;
   const efetivoTotal = colaboradoresCache.length;
   const presentes = regs.filter(r=>r.status==='presente').length;
@@ -3030,6 +3269,7 @@ function atualizarCardsDashboard(regs){
   colaboradoresCache.forEach(c=>{
     if(!c.equipe || !c.equipe.trim()) return;
     if(!equipeFazChamada(c.equipe)) return; // equipe sem obrigatoriedade não conta
+    if(!statusPermiteChamada(c)) return;    // DEMITIDO não conta
     const eq = c.equipe;
     equipesInfo[eq] = equipesInfo[eq] || {equipe:eq, total:0, feitos:0};
     equipesInfo[eq].total++;
@@ -3078,7 +3318,7 @@ function renderDashListaNomes(tipo){
     titulo = 'Pendentes (sem chamada)';
     const registrados = new Set(dashRegsHoje.map(r=>String(r.matricula)));
     itens = colaboradoresCache
-      .filter(c=>c.equipe && c.equipe.trim()!=='' && equipeFazChamada(c.equipe) && !registrados.has(String(c.matricula)))
+      .filter(c=>c.equipe && c.equipe.trim()!=='' && equipeFazChamada(c.equipe) && statusPermiteChamada(c) && !registrados.has(String(c.matricula)))
       .map(c=>({nome:c.nome, equipe:c.equipe, grupo:c.grupo}));
   } else {
     titulo = tipo==='presente' ? 'Presentes' : (tipo==='falta' ? 'Faltas' : 'Atestados');
@@ -3144,11 +3384,14 @@ function mudarAbaEquipes(aba){
   document.getElementById('tabEquipesGerencial').classList.toggle('active', aba==='gerencial');
   document.getElementById('tabEquipesRemanejar').classList.toggle('active', aba==='remanejar');
   const tabCh = document.getElementById('tabEquipesChamada'); if(tabCh) tabCh.classList.toggle('active', aba==='chamada');
+  const tabLi = document.getElementById('tabEquipesLider'); if(tabLi) tabLi.classList.toggle('active', aba==='lider');
   document.getElementById('paneEquipesGerencial').style.display = aba==='gerencial' ? '' : 'none';
   document.getElementById('paneEquipesRemanejar').style.display = aba==='remanejar' ? '' : 'none';
   const paneCh = document.getElementById('paneEquipesChamada'); if(paneCh) paneCh.style.display = aba==='chamada' ? '' : 'none';
+  const paneLi = document.getElementById('paneEquipesLider'); if(paneLi) paneLi.style.display = aba==='lider' ? '' : 'none';
   if(aba==='remanejar') renderAdminRemanejar();
   if(aba==='chamada') renderAdminChamadaObrig();
+  if(aba==='lider') renderAdminLider();
 }
 window.mudarAbaEquipes = mudarAbaEquipes;
 
@@ -3251,9 +3494,171 @@ async function toggleEquipeChamada(nomeEquipe, faz){
   try{
     await setDoc(doc(db,'equipes', nomeEquipe), { nome: nomeEquipe, fazChamada: !!faz }, {merge:true});
     toast(faz ? `"${nomeEquipe}" passará a fazer chamada.` : `"${nomeEquipe}" não fará mais chamada.`, 'ok');
+    if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
+    renderAdminChamadaObrig();
   }catch(e){ console.error(e); toast('Erro ao salvar: ' + (e && e.message ? e.message : e), 'err'); renderAdminChamadaObrig(); }
 }
 window.toggleEquipeChamada = toggleEquipeChamada;
+
+// ================= LÍDER DA EQUIPE (permanente / temporário) =================
+function hojeISOLocal(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
+function renderAdminLider(){
+  const container = document.getElementById('liderEquipeLista');
+  if(!container) return;
+  const busca = (document.getElementById('liderEquipeSearch').value||'').toLowerCase().trim();
+  if(!equipesCache.length){ container.innerHTML = `<div class="empty">Nenhuma equipe cadastrada.</div>`; return; }
+  // opções de colaboradores (qualquer um pode ser líder)
+  const pessoas = colaboradoresCache.slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+  const nomeMat = mat => { const c = colaboradoresCache.find(x=>String(x.matricula)===String(mat)); return c ? `${c.nome} (Mat. ${c.matricula})` : (mat||'—'); };
+  const lista = equipesCache
+    .filter(eq => !busca || (eq.nome||'').toLowerCase().includes(busca) || (eq.atuacao||'').toLowerCase().includes(busca))
+    .sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+  if(!lista.length){ container.innerHTML = `<div class="empty">Nenhuma equipe encontrada.</div>`; return; }
+
+  container.innerHTML = lista.map(eq=>{
+    const tipo = eq.liderTipo === 'temporario' ? 'temporario' : 'permanente';
+    const opts = ['<option value="">— sem líder —</option>'].concat(
+      pessoas.map(p=>`<option value="${String(p.matricula)}" ${String(p.matricula)===String(eq.liderMatricula||'')?'selected':''}>${(p.nome||'—')} · ${p.grupo||''}</option>`)
+    ).join('');
+    const idSafe = (eq.nome||'').replace(/[^a-zA-Z0-9]/g,'_');
+    const tempInfo = (tipo==='temporario' && eq.liderFim)
+      ? `<div style="font-size:10.5px; color:var(--gold); margin-top:4px;">Temporário até ${fmtDataPtBr(eq.liderFim)} · titular: ${nomeMat(eq.liderTitular)}</div>`
+      : '';
+    return `<div class="rank-card" style="margin:0 0 10px 0;">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+        <div style="flex:1; min-width:180px;">
+          <div class="rank-name">${eq.nome}</div>
+          <div style="font-size:10.5px; color:var(--text-2);">${eq.atuacao||'—'} · líder atual: ${nomeMat(eq.liderMatricula)}</div>
+          ${tempInfo}
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr; gap:8px; margin-top:8px;">
+        <div class="field" style="margin:0;">
+          <label style="font-size:10px;">Escolher líder</label>
+          <select id="liderSel_${idSafe}">${opts}</select>
+        </div>
+        <div style="display:flex; gap:14px; align-items:center; flex-wrap:wrap;">
+          <label style="font-size:11px; display:flex; align-items:center; gap:5px; cursor:pointer;">
+            <input type="radio" name="liderTipo_${idSafe}" value="permanente" ${tipo==='permanente'?'checked':''} onchange="onChangeLiderTipo('${idSafe}')"> Permanente
+          </label>
+          <label style="font-size:11px; display:flex; align-items:center; gap:5px; cursor:pointer;">
+            <input type="radio" name="liderTipo_${idSafe}" value="temporario" ${tipo==='temporario'?'checked':''} onchange="onChangeLiderTipo('${idSafe}')"> Temporário
+          </label>
+          <div class="field" id="liderFimWrap_${idSafe}" style="margin:0; ${tipo==='temporario'?'':'display:none;'}">
+            <input type="date" id="liderFim_${idSafe}" value="${eq.liderFim||''}" min="${hojeISOLocal()}">
+          </div>
+        </div>
+        <button class="btn btn-primary btn-sm" style="width:100%;" onclick="salvarLiderEquipe('${(eq.nome||'').replace(/'/g,"\\'")}','${idSafe}')">Salvar líder</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+window.renderAdminLider = renderAdminLider;
+
+function onChangeLiderTipo(idSafe){
+  const tipo = (document.querySelector(`input[name="liderTipo_${idSafe}"]:checked`)||{}).value;
+  const wrap = document.getElementById('liderFimWrap_'+idSafe);
+  if(wrap) wrap.style.display = tipo==='temporario' ? '' : 'none';
+}
+window.onChangeLiderTipo = onChangeLiderTipo;
+
+async function salvarLiderEquipe(nomeEquipe, idSafe){
+  const sel = document.getElementById('liderSel_'+idSafe);
+  const novoLider = sel ? sel.value : '';
+  const tipo = (document.querySelector(`input[name="liderTipo_${idSafe}"]:checked`)||{}).value || 'permanente';
+  const eq = equipesCache.find(e=>e.nome===nomeEquipe) || {};
+
+  const dados = { nome: nomeEquipe, liderMatricula: novoLider || null, liderTipo: tipo };
+  if(tipo==='temporario'){
+    const fim = document.getElementById('liderFim_'+idSafe) ? document.getElementById('liderFim_'+idSafe).value : '';
+    if(!fim){ toast('Informe a data de término do líder temporário.', 'err'); return; }
+    dados.liderFim = fim;
+    // Guarda o titular da planilha para restaurar ao vencer (só na 1ª vez que vira temporário).
+    dados.liderTitular = (eq.liderTipo==='temporario' && eq.liderTitular!==undefined)
+      ? (eq.liderTitular||null)
+      : (eq.liderMatricula || null);
+  } else {
+    // Permanente: limpa marcação temporária.
+    dados.liderFim = null;
+    dados.liderTitular = null;
+  }
+  try{
+    await setDoc(doc(db,'equipes', nomeEquipe), dados, {merge:true});
+    // Reflete o líder também nos colaboradores dessa equipe (mesma semântica do remanejar/importação).
+    const membros = colaboradoresCache.filter(c=>c.equipe===nomeEquipe);
+    if(membros.length){
+      const batch = writeBatch(db);
+      membros.forEach(c=> batch.update(doc(db,'colaboradores', String(c.matricula)), { liderMatricula: novoLider || null }));
+      await batch.commit();
+    }
+    toast(tipo==='temporario' ? 'Líder temporário definido.' : 'Líder definido.', 'ok');
+    if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
+    renderAdminLider();
+  }catch(e){ console.error(e); toast('Erro ao salvar líder: ' + (e && e.message ? e.message : e), 'err'); renderAdminLider(); }
+}
+window.salvarLiderEquipe = salvarLiderEquipe;
+
+// Restaura automaticamente o titular quando o líder temporário vence (roda ao carregar as equipes).
+let _expiracaoLideresEmCurso = false;
+async function aplicarExpiracaoLideresTemporarios(){
+  if(_expiracaoLideresEmCurso) return;
+  const hoje = hojeISOLocal();
+  const vencidas = equipesCache.filter(e => e.liderTipo==='temporario' && e.liderFim && e.liderFim < hoje);
+  if(!vencidas.length) return;
+  _expiracaoLideresEmCurso = true;
+  try{
+    for(const eq of vencidas){
+      const titular = eq.liderTitular || null;
+      await setDoc(doc(db,'equipes', eq.nome), { nome: eq.nome, liderMatricula: titular, liderTipo:'permanente', liderFim:null, liderTitular:null }, {merge:true});
+      const membros = colaboradoresCache.filter(c=>c.equipe===eq.nome);
+      if(membros.length){
+        const batch = writeBatch(db);
+        membros.forEach(c=> batch.update(doc(db,'colaboradores', String(c.matricula)), { liderMatricula: titular }));
+        await batch.commit();
+      }
+    }
+  }catch(e){ console.warn('Falha ao expirar líderes temporários:', e); }
+  finally{ _expiracaoLideresEmCurso = false; }
+}
+window.aplicarExpiracaoLideresTemporarios = aplicarExpiracaoLideresTemporarios;
+
+// ================= STATUS DO COLABORADOR (RH) =================
+// Status possíveis: ATIVO, ADMITIDO, DEMITIDO, FÉRIAS, AFASTADO.
+// Regra: base existente sem status -> ATIVO (migração no 1º acesso, feita pelo admin).
+let _migracaoStatusEmCurso = false;
+async function migrarStatusInicial(){
+  if(_migracaoStatusEmCurso) return;
+  if(!session || session.role !== 'admin') return; // só admin escreve a migração
+  const semStatus = colaboradoresCache.filter(c => !c.status || String(c.status).trim()==='');
+  if(!semStatus.length) return;
+  _migracaoStatusEmCurso = true;
+  try{
+    const hoje = hojeISOLocal();
+    for(let i=0;i<semStatus.length;i+=400){
+      const batch = writeBatch(db);
+      semStatus.slice(i,i+400).forEach(c=>{
+        batch.update(doc(db,'colaboradores', String(c.matricula)), {
+          status: 'ATIVO',
+          dataStatus: c.dataStatus || hoje
+        });
+      });
+      await batch.commit();
+    }
+  }catch(e){ console.warn('Falha na migração de status:', e); }
+  finally{ _migracaoStatusEmCurso = false; }
+}
+window.migrarStatusInicial = migrarStatusInicial;
+
+// Normaliza rótulo de status (remove acento/espaço/caixa) para comparações.
+function normStatus(s){ return String(s||'').trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+
+// Colaborador aparece nas listas de chamada? DEMITIDO nunca aparece.
+// (FÉRIAS/AFASTADO seguem a regra atual: continuam listados, tratados por período.)
+function statusPermiteChamada(c){
+  return normStatus(c.status) !== 'DEMITIDO';
+}
+window.statusPermiteChamada = statusPermiteChamada;
 
 // ============ REMANEJAR: MODO CLIQUE-CLIQUE (origem/destino lado a lado) ============
 let remanejarModo = 'arrastar';
@@ -3348,18 +3753,24 @@ async function moverSelecionadosClique(){
   if(!confirm(`Mover ${mats.length} colaborador(es) de "${origem}" para "${destino}"?`)) return;
   try{
     const batch = writeBatch(db);
+    const hoje = hojeISOLocal();
     mats.forEach(m=>{
-      batch.update(doc(db,'colaboradores', String(m)), {
+      const c = colaboradoresCache.find(x=>String(x.matricula)===String(m)) || {};
+      const upd = {
         equipe: destino,
         rastreabilidade: destino,
         liderMatricula: eqDest.liderMatricula || null,
         alocacaoTipo: 'permanente',
         alocadoEm: serverTimestamp()
-      });
+      };
+      // Novato (ADMITIDO) atribuído a uma equipe passa a ATIVO.
+      if(normStatus(c.status)==='ADMITIDO'){ upd.status='ATIVO'; upd.dataStatus=hoje; }
+      batch.update(doc(db,'colaboradores', String(m)), upd);
     });
     await batch.commit();
     toast(`${mats.length} colaborador(es) movido(s) para ${destino}.`, 'ok');
     remanejarSelecionados.clear();
+    if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
     renderRemanejarClique();
   } catch(e){ console.error(e); toast('Erro ao mover: ' + (e && e.message ? e.message : e), 'err'); }
 }
@@ -3482,48 +3893,216 @@ async function onDragEnd(ev){
     if(!colab){ toast('Colaborador não encontrado.', 'err'); return; }
     if(!confirm(`Mover ${colab.nome} para ${equipeDestino}?`)) return;
     try{
-      await updateDoc(doc(db,'colaboradores', String(s.matricula)), {
+      const updA = {
         equipe: equipeDestino,
         rastreabilidade: equipeDestino,
         liderMatricula: eq.liderMatricula || null,
         alocacaoTipo: 'permanente',
         alocadoEm: serverTimestamp()
-      });
+      };
+      if(normStatus(colab.status)==='ADMITIDO'){ updA.status='ATIVO'; updA.dataStatus=hojeISOLocal(); }
+      await updateDoc(doc(db,'colaboradores', String(s.matricula)), updA);
       toast(`${colab.nome.split(' ')[0]} → ${equipeDestino}`, 'ok');
+      if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
     } catch(e){ console.error(e); toast('Erro ao remanejar.', 'err'); }
   }
 }
 
 // ================= MÃO DE OBRA SEM EQUIPE =================
-function renderMaoObra(){
-  if(unsub.maoObra) unsub.maoObra();
-  unsub.maoObra = onSnapshot(
-    collection(db,'colaboradores'),
-    (snap)=>{
-      const busca = (document.getElementById('maoObraSearch').value||'').toLowerCase().trim();
-      let pessoas = snap.docs.map(d=>d.data());
-      
-      if(busca){ 
-        pessoas = pessoas.filter(c=> (c.nome||'').toLowerCase().includes(busca) || (c.matricula||'').includes(busca)); 
-      } else {
-        pessoas = pessoas.filter(c => c.equipe == null || c.equipe === '');
-      }
-      
-      const lista = document.getElementById('maoObraLista');
-      if(!pessoas.length){ lista.innerHTML = `<div class="empty" style="grid-column: 1 / -1;">Nenhum colaborador flutuante disponível.</div>`; return; }
-      lista.innerHTML = pessoas.map(c=>`
-        <div class="person-card" onclick="abrirModalAlocacaoExterno('${c.matricula}')">
-          <div class="avatar">${(c.nome||'?').slice(0,2).toUpperCase()}</div>
-          <div class="p-info"><div class="nome">${c.nome}</div><div class="func">${c.funcao||''} · Mat. ${c.matricula}</div></div>
-          <span class="status-chip chip-pendente">Disponível</span>
-        </div>`).join('');
+async function renderMaoObra(){
+  if(unsub.maoObra){ unsub.maoObra(); unsub.maoObra=null; }
+  const lista = document.getElementById('maoObraLista');
+  if(lista) lista.innerHTML = `<div class="empty" style="grid-column: 1 / -1;">Carregando…</div>`;
+  try{
+    const snap = await getDocs(collection(db,'colaboradores'));
+    const busca = (document.getElementById('maoObraSearch').value||'').toLowerCase().trim();
+    let pessoas = snap.docs.map(d=>d.data());
+    if(busca){
+      pessoas = pessoas.filter(c=> (c.nome||'').toLowerCase().includes(busca) || (c.matricula||'').includes(busca));
+    } else {
+      pessoas = pessoas.filter(c => c.equipe == null || c.equipe === '');
     }
-  );
+    if(!pessoas.length){ lista.innerHTML = `<div class="empty" style="grid-column: 1 / -1;">Nenhum colaborador flutuante disponível.</div>`; return; }
+    lista.innerHTML = pessoas.map(c=>`
+      <div class="person-card" onclick="abrirModalAlocacaoExterno('${c.matricula}')">
+        <div class="avatar">${(c.nome||'?').slice(0,2).toUpperCase()}</div>
+        <div class="p-info"><div class="nome">${c.nome}</div><div class="func">${c.funcao||''} · Mat. ${c.matricula}</div></div>
+        <span class="status-chip chip-pendente">Disponível</span>
+      </div>`).join('');
+  }catch(e){ console.warn(e); if(lista) lista.innerHTML = `<div class="empty" style="grid-column: 1 / -1;">Erro ao carregar.</div>`; }
 }
 window.renderMaoObra = renderMaoObra;
 
-function abrirModalAlocacaoExterno(matricula) {
-  const colab = colaboradoresCache.find(x => x.matricula === matricula);
+// ================= MÓDULO RH =================
+let abaRhAtiva = 'lancar';
+let rhStatusAlvo = null;
+
+function mudarAbaRh(aba){
+  abaRhAtiva = aba;
+  ['lancar','novato','upload'].forEach(a=>{
+    const tab = document.getElementById('tabRh'+a.charAt(0).toUpperCase()+a.slice(1));
+    const pane = document.getElementById('paneRh'+a.charAt(0).toUpperCase()+a.slice(1));
+    if(tab) tab.classList.toggle('active', a===aba);
+    if(pane) pane.style.display = a===aba ? '' : 'none';
+  });
+  if(aba==='lancar') renderRhLancar();
+}
+window.mudarAbaRh = mudarAbaRh;
+
+function rhStatusChip(status){
+  const s = normStatus(status);
+  const map = {
+    'ATIVO':      {t:'ATIVO', bg:'rgba(61,232,160,.16)', c:'var(--green)'},
+    'ADMITIDO':   {t:'ADMITIDO', bg:'rgba(0,196,255,.16)', c:'var(--cyan)'},
+    'DEMITIDO':   {t:'DEMITIDO', bg:'rgba(255,90,110,.16)', c:'var(--red)'},
+    'FERIAS':     {t:'FÉRIAS', bg:'rgba(240,192,64,.16)', c:'var(--gold)'},
+    'AFASTADO':   {t:'AFASTADO', bg:'rgba(240,192,64,.16)', c:'var(--gold)'}
+  };
+  const m = map[s] || {t:(status||'—'), bg:'var(--bg-1)', c:'var(--text-2)'};
+  return `<span class="alloc-chip" style="background:${m.bg}; color:${m.c};">${m.t}</span>`;
+}
+
+function renderRhLancar(){
+  const container = document.getElementById('rhLancarLista');
+  if(!container) return;
+  const busca = (document.getElementById('rhSearch').value||'').toLowerCase().trim();
+  let lista = colaboradoresCache.slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+  if(busca) lista = lista.filter(c => (c.nome||'').toLowerCase().includes(busca) || String(c.matricula||'').includes(busca));
+  if(!lista.length){ container.innerHTML = `<div class="empty">Nenhum colaborador encontrado.</div>`; return; }
+  container.innerHTML = lista.slice(0,200).map(c=>{
+    const ds = c.dataStatus ? ` · desde ${fmtDataPtBr(c.dataStatus)}` : '';
+    return `<div class="person-card" onclick="abrirModalRhStatus('${String(c.matricula)}')">
+      <div class="avatar">${(c.nome||'?').slice(0,2).toUpperCase()}</div>
+      <div class="p-info">
+        <div class="nome">${c.nome||'—'} ${rhStatusChip(c.status)}</div>
+        <div class="func">${c.grupo||c.classificacao||''} · Mat. ${c.matricula}${ds}</div>
+        <div class="func" style="font-size:10.5px; color:var(--text-2);">${c.equipe ? 'Equipe: '+c.equipe : 'Sem equipe'}</div>
+      </div>
+    </div>`;
+  }).join('') + (lista.length>200 ? `<div class="rank-empty">Mostrando 200 de ${lista.length}. Refine a busca.</div>` : '');
+}
+window.renderRhLancar = renderRhLancar;
+
+function abrirModalRhStatus(mat){
+  const c = colaboradoresCache.find(x=>String(x.matricula)===String(mat));
+  if(!c) return;
+  rhStatusAlvo = c;
+  document.getElementById('rhStatusNome').textContent = c.nome || '—';
+  document.getElementById('rhStatusMeta').textContent = `Mat. ${c.matricula} · Status atual: ${c.status||'—'}`;
+  const sel = document.getElementById('rhStatusSel');
+  const cur = normStatus(c.status);
+  sel.value = (cur==='FERIAS') ? 'FÉRIAS' : (['ATIVO','AFASTADO','DEMITIDO'].includes(cur) ? cur : 'ATIVO');
+  document.getElementById('rhStatusData').value = hojeISOLocal();
+  document.getElementById('rhStatusFeriasDias').value = '';
+  onChangeRhStatus();
+  document.getElementById('modalRhStatus').classList.add('active');
+}
+window.abrirModalRhStatus = abrirModalRhStatus;
+
+function fecharModalRhStatus(){ document.getElementById('modalRhStatus').classList.remove('active'); rhStatusAlvo=null; }
+window.fecharModalRhStatus = fecharModalRhStatus;
+
+function onChangeRhStatus(){
+  const val = document.getElementById('rhStatusSel').value;
+  const wrap = document.getElementById('rhStatusFeriasWrap');
+  const isFerias = normStatus(val)==='FERIAS';
+  wrap.style.display = isFerias ? '' : 'none';
+  if(isFerias){
+    const ini = document.getElementById('rhStatusData').value;
+    const dias = document.getElementById('rhStatusFeriasDias').value;
+    const r = (typeof calcularFimRetornoFerias==='function') ? calcularFimRetornoFerias(ini, dias) : null;
+    const prev = document.getElementById('rhStatusFeriasPreview');
+    prev.innerHTML = r ? `Último dia: <b style="color:var(--text-1)">${fmtDataPtBr(r.fim)}</b> · Retorno: <b style="color:var(--cyan)">${fmtDataPtBr(r.retorno)}</b>` : '';
+  }
+}
+window.onChangeRhStatus = onChangeRhStatus;
+
+async function salvarStatusRh(){
+  if(!rhStatusAlvo) return;
+  const novo = document.getElementById('rhStatusSel').value;
+  const data = document.getElementById('rhStatusData').value || hojeISOLocal();
+  const dados = { status: novo, dataStatus: data };
+  // Férias: além do status, grava o período (mesma regra atual das férias por período).
+  if(normStatus(novo)==='FERIAS'){
+    const dias = document.getElementById('rhStatusFeriasDias').value;
+    const r = (typeof calcularFimRetornoFerias==='function') ? calcularFimRetornoFerias(data, dias) : null;
+    if(!r){ toast('Informe a quantidade de dias de férias.', 'err'); return; }
+    dados.feriasInicio = data;
+    dados.feriasFim = r.fim;
+  }
+  try{
+    await updateDoc(doc(db,'colaboradores', String(rhStatusAlvo.matricula)), dados);
+    toast('Status atualizado para ' + novo + '.', 'ok');
+    fecharModalRhStatus();
+    if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
+  }catch(e){ console.error(e); toast('Erro ao salvar status: ' + (e && e.message ? e.message : e), 'err'); }
+}
+window.salvarStatusRh = salvarStatusRh;
+
+async function salvarNovatoRh(){
+  const mat = (document.getElementById('rhNovMat').value||'').trim();
+  const nome = (document.getElementById('rhNovNome').value||'').trim();
+  if(!mat || !nome){ toast('Matrícula e Nome são obrigatórios.', 'err'); return; }
+  if(colaboradoresCache.find(c=>String(c.matricula)===String(mat))){
+    toast('Já existe colaborador com essa matrícula.', 'err'); return;
+  }
+  const g = id => (document.getElementById(id).value||'').trim();
+  const status = document.getElementById('rhNovStatus').value || 'ADMITIDO';
+  const dados = {
+    matricula: mat, nome,
+    contrato: g('rhNovContrato'), cc: g('rhNovContrato'),
+    grupo: '', classificacao: g('rhNovClass'), funcao: g('rhNovClass'),
+    ccTipo: g('rhNovCC'),
+    equipe: null, rastreabilidade: '',
+    atuacao: g('rhNovAtuacao'), tipoKpi: g('rhNovKpi'), codContrato: g('rhNovCentro'),
+    respCampo:'', responsavel:'', gestor:'',
+    posTernium:'', admissao: g('rhNovAdmissao'), matTernium: g('rhNovMatTernium'), cpf: g('rhNovCpf'),
+    status, dataStatus: g('rhNovDataStatus') || hojeISOLocal(),
+    liderMatricula: null, situacao:'A', feriasInicio:null, feriasFim:null, alocacaoTipo:null,
+    atualizadoEm: serverTimestamp()
+  };
+  try{
+    await setDoc(doc(db,'colaboradores', String(mat)), dados, {merge:true});
+    toast('Colaborador cadastrado com status ' + status + '.', 'ok');
+    ['rhNovMat','rhNovNome','rhNovContrato','rhNovClass','rhNovCC','rhNovKpi','rhNovCentro','rhNovAtuacao','rhNovAdmissao','rhNovDataStatus','rhNovMatTernium','rhNovCpf'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+    if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
+  }catch(e){ console.error(e); toast('Erro ao cadastrar: ' + (e && e.message ? e.message : e), 'err'); }
+}
+window.salvarNovatoRh = salvarNovatoRh;
+
+function baixarModeloRh(){
+  const COLUNAS = ['MATRICULA','NOME','CONTRATO','GRUPO','CLASSIFICAÇÃO','C.C','EQUIPE ','ATUAÇÃO','TIPO DE KPI','CENTRO DE CUSTO ','RESPONSÁVEL CAMPO','RESPONSÁVEL','GESTOR','POSIÇÃO TERNIUM','ADMISSÃO','DATA STATUS ','MAT. TERNIUM','CPF','STATUS'];
+  const exemplo = ['00000','FULANO DE TAL (EXEMPLO)','PRESERVAÇÃO','','AUXILIAR','DIRETOS','','','ADERÊNCIA','2071','','','','','2026-07-01','2026-07-01','','00000000000','ADMITIDO'];
+  const aoa = [COLUNAS, exemplo];
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'BASE 2 ATUALIZAR AQUI');
+  XLSX.writeFile(wb, 'MODELO_BASE_RH.xlsx');
+  toast('Modelo baixado.', 'ok');
+}
+window.baixarModeloRh = baixarModeloRh;
+
+// Upload do RH reaproveita o importador único (que já lê STATUS/DATA STATUS)
+(function(){
+  const inp = document.getElementById('rhFileInput');
+  if(inp){
+    inp.addEventListener('change', (ev)=>{
+      const f = ev.target.files && ev.target.files[0];
+      if(f && typeof window.processarUploadEfetivo==='function'){
+        // roteia o feedback para os elementos do RH
+        window.__rhUploadUI = true;
+        window.processarUploadEfetivo(f);
+      }
+      inp.value='';
+    });
+  }
+})();
+
+async function abrirModalAlocacaoExterno(matricula) {
+  let colab = colaboradoresCache.find(x => String(x.matricula) === String(matricula));
+  if(!colab){
+    try{ const s = await getDoc(doc(db,'colaboradores', String(matricula))); if(s.exists()) colab = s.data(); }catch(_){}
+  }
   if(colab) abrirModalAlocacao(colab);
 }
 window.abrirModalAlocacaoExterno = abrirModalAlocacaoExterno;
@@ -3602,9 +4181,9 @@ function renderAdminEquipes(){
 // Grava tudo na coleção `colaboradores` (base única da Central + Efetivo).
 async function processarUploadEfetivo(file){
   if(!file) return;
-  // Apenas admin pode atualizar a base
-  if(!session || session.role !== 'admin'){
-    toast('Apenas administradores podem atualizar a base.', 'err');
+  // Admin e RH podem atualizar a base via planilha
+  if(!session || (session.role !== 'admin' && session.role !== 'rh')){
+    toast('Apenas administradores ou RH podem atualizar a base.', 'err');
     return;
   }
   const loading = document.getElementById('uploadLoading');
@@ -3669,9 +4248,19 @@ async function processarUploadEfetivo(file){
       const admissao    = excelDateToISO(n['ADMISSAO']!==undefined ? n['ADMISSAO'] : pick(n,'ADMISSAO'));
       const matTernium  = pick(n,'MAT. TERNIUM','MAT TERNIUM','MATRICULA TERNIUM');
       const cpf         = pick(n,'CPF');
+      // Novas colunas do RH: STATUS e DATA STATUS
+      const statusPlan  = pick(n,'STATUS');
+      const dataStatusP = excelDateToISO(n['DATA STATUS']!==undefined ? n['DATA STATUS'] : pick(n,'DATA STATUS'));
 
       const liderMatricula = equipe ? (lideresPorEquipe[equipe.toUpperCase()] || null) : null;
       const antigo = colaboradoresCache.find(x => String(x.matricula)===String(matricula)) || {};
+
+      // Status: usa o da planilha (normalizado) se informado; senão preserva o existente; senão ATIVO.
+      const upStatus = s => String(s||'').trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      let statusFinal = statusPlan ? statusPlan.trim().toUpperCase() : (antigo.status || 'ATIVO');
+      // "ADMITIDO " (com espaço) -> "ADMITIDO"
+      statusFinal = statusFinal.trim();
+      const dataStatusFinal = dataStatusP || antigo.dataStatus || (typeof hojeISOLocal==='function' ? hojeISOLocal() : new Date().toISOString().slice(0,10));
 
       const dados = {
         matricula, nome,
@@ -3685,6 +4274,8 @@ async function processarUploadEfetivo(file){
         atuacao, tipoKpi, codContrato,
         respCampo, responsavel, gestor,
         posTernium, admissao, matTernium, cpf,
+        status: statusFinal,      // ATIVO / ADMITIDO / DEMITIDO / FÉRIAS / AFASTADO
+        dataStatus: dataStatusFinal,
         liderMatricula,
         // preserva dados operacionais que não vêm da planilha
         situacao: antigo.situacao || 'A',
@@ -3724,6 +4315,7 @@ async function processarUploadEfetivo(file){
         <div><div class="num" style="color:var(--cyan)">${conjuntoEquipes.size}</div><div class="lab">Equipes</div></div>
       </div>`;
     toast('Base mestre processada com sucesso!', 'ok');
+    if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
   } catch(e){
     console.error(e);
     if(resumo) resumo.innerHTML = `<div class="empty">Erro ao ler a planilha. Confira se as colunas seguem o padrão da BASE.</div>`;
@@ -4782,6 +5374,86 @@ window.efetivoAplicarFirebase = efetivoAplicarFirebase;
 
 })();
 
+</script>
+
+<!-- ============ PWA: instalação self-contained (sem arquivos externos) ============ -->
+<script>
+(function(){
+  // Ícone do app (SVG -> data URI). Serve para manifest e atalho.
+  var iconSvg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%23070d18'/%3E%3Ctext x='256' y='330' font-size='260' font-family='Arial,sans-serif' font-weight='bold' fill='%2300c4ff' text-anchor='middle'%3EC%3C/text%3E%3C/svg%3E";
+
+  // 1) Manifest gerado em runtime (Blob) e injetado como <link rel="manifest">
+  try{
+    var manifest = {
+      name: "REFRAMAX — Central Operacional",
+      short_name: "Central",
+      description: "Central Operacional REFRAMAX · Coqueria",
+      start_url: ".",
+      scope: ".",
+      display: "standalone",
+      background_color: "#070d18",
+      theme_color: "#070d18",
+      orientation: "portrait",
+      icons: [
+        { src: iconSvg, sizes: "192x192", type: "image/svg+xml", purpose: "any maskable" },
+        { src: iconSvg, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }
+      ]
+    };
+    var mBlob = new Blob([JSON.stringify(manifest)], {type:"application/manifest+json"});
+    var mUrl = URL.createObjectURL(mBlob);
+    var link = document.createElement('link');
+    link.rel = 'manifest';
+    link.setAttribute('crossorigin','use-credentials');
+    link.href = mUrl;
+    document.head.appendChild(link);
+  }catch(e){ console.warn('Manifest PWA falhou:', e); }
+
+  // 2) Service worker: precisa ser um ARQUIVO real no mesmo domínio (navegadores não
+  //    permitem registrar SW a partir de Blob). Registramos 'sw.js'. Se não existir,
+  //    o app funciona normalmente — apenas não fica "instalável" até o arquivo estar publicado.
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('sw.js').catch(function(err){
+        console.warn('Service worker (sw.js) não registrado — publique o arquivo sw.js junto do HTML para habilitar a instalação.', err);
+      });
+    });
+  }
+
+  // 3) Botão "Instalar": captura o evento e mostra os botões; no iOS mostra a dica.
+  var deferredPrompt = null;
+  function botoes(){ return [document.getElementById('btnInstalarApp'), document.getElementById('btnInstalarAppHub')]; }
+  function mostrarBotoes(mostrar){ botoes().forEach(function(b){ if(b) b.style.display = mostrar ? 'block' : 'none'; }); }
+
+  window.addEventListener('beforeinstallprompt', function(e){
+    e.preventDefault();
+    deferredPrompt = e;
+    mostrarBotoes(true);
+  });
+
+  window.instalarApp = async function(){
+    if(!deferredPrompt){
+      // Sem prompt disponível (ex.: já instalado, ou navegador sem suporte).
+      if(ehIOS() && !ehStandalone()){ alert('Para instalar no iPhone: toque em Compartilhar e depois em “Adicionar à Tela de Início”.'); }
+      return;
+    }
+    deferredPrompt.prompt();
+    try{ await deferredPrompt.userChoice; }catch(_){}
+    deferredPrompt = null;
+    mostrarBotoes(false);
+  };
+
+  // Já instalado -> esconde os botões.
+  window.addEventListener('appinstalled', function(){ mostrarBotoes(false); });
+
+  // iOS (Safari) não dispara beforeinstallprompt: mostra a dica de "Adicionar à Tela de Início".
+  function ehIOS(){ return /iphone|ipad|ipod/i.test(navigator.userAgent); }
+  function ehStandalone(){ return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
+  document.addEventListener('DOMContentLoaded', function(){
+    if(ehIOS() && !ehStandalone()){
+      ['dicaInstalariOS','dicaInstalariOSHub'].forEach(function(id){ var d=document.getElementById(id); if(d) d.style.display='block'; });
+    }
+  });
+})();
 </script>
 </body>
 </html>

@@ -8,7 +8,7 @@
    - Firebase/Google: nunca intercepta (dados sempre pela rede, sempre atuais).
    - Outros estáticos (fontes, libs): cache primeiro, atualizando em segundo plano.
 */
-const CACHE = 'central-v2';
+const CACHE = 'central-v3';
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();

@@ -208,6 +208,7 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
 .chip-presente{background:rgba(61,232,160,.14); color:var(--green); border:1px solid rgba(61,232,160,.35);}
 .chip-manual{background:rgba(0,196,255,.14); color:var(--cyan); border:1px solid rgba(0,196,255,.35);}
 .chip-falta{background:rgba(255,92,108,.14); color:var(--red); border:1px solid rgba(255,92,108,.35);}
+.chip-fte{background:rgba(138,124,255,.16); color:#a99cff; border:1px solid rgba(138,124,255,.4);}
 .chip-neutro{background:var(--bg-2); color:var(--text-1); border:1px solid var(--line);}
 
 .empty{text-align:center; padding:40px 20px; color:var(--text-2);}
@@ -1448,7 +1449,8 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
         <button class="btn btn-green" onclick="salvarStatus('presente')">✓ Presente</button>
         <button class="btn btn-danger" onclick="salvarStatus('falta')">✕ Falta</button>
         <button class="btn btn-gold" onclick="salvarStatus('atestado')">📄 Afastado</button>
-        <button class="btn btn-ghost" onclick="fecharModalStatus()">Cancelar</button>
+        <button class="btn" style="background:linear-gradient(135deg,#8a7cff,#6b5cd6); color:#0b0620;" onclick="salvarStatus('falta_fte')">📋 Falta FTE</button>
+        <button class="btn btn-ghost" style="grid-column:1 / -1;" onclick="fecharModalStatus()">Cancelar</button>
       </div>
       
       <div id="feriasCampos" style="margin-top: 12px; padding: 10px; background: var(--bg-2); border-radius: 12px; border: 1px solid var(--line);">
@@ -2225,15 +2227,16 @@ function renderHomeList(){
   const equipe = todaEquipe.filter(c => !estaEmFeriasNaData(c, dataChamadaAtual));
   const afastados = todaEquipe.filter(c => estaEmFeriasNaData(c, dataChamadaAtual));
 
-  let presentes=0, faltas=0;
+  let presentes=0, faltas=0, resolvidos=0;
   const linhas = equipe.map(c=>{
     const reg = chamadasHomeCache.find(r=>r.matricula===c.matricula);
     const status = reg ? reg.status : null;
     if(status==='presente') presentes++;
     if(status==='falta') faltas++;
+    if(status) resolvidos++; // qualquer status lançado (presente/falta/atestado/falta_fte) deixa de ser pendente
     return {colaborador:c, registro:reg, status};
   });
-  const pendentes = equipe.length - presentes - faltas;
+  const pendentes = equipe.length - resolvidos;
 
   document.getElementById('kpiPresente').textContent = presentes;
   document.getElementById('kpiPendente').textContent = Math.max(pendentes,0);
@@ -2248,8 +2251,8 @@ function renderHomeList(){
   
   let htmlPrincipal = linhas.map(l=>{
     const c = l.colaborador;
-    const chipClass = l.status==='presente'?'chip-presente':(l.status==='falta'?'chip-falta':(l.status==='atestado'?'chip-manual':'chip-pendente'));
-    const chipLabel = l.status==='presente'?'Presente':(l.status==='falta'?'Falta':(l.status==='atestado'?'Afastado':'Pendente'));
+    const chipClass = l.status==='presente'?'chip-presente':(l.status==='falta'?'chip-falta':(l.status==='atestado'?'chip-manual':(l.status==='falta_fte'?'chip-fte':'chip-pendente')));
+    const chipLabel = l.status==='presente'?'Presente':(l.status==='falta'?'Falta':(l.status==='atestado'?'Afastado':(l.status==='falta_fte'?'Falta FTE':'Pendente')));
     const meta = l.registro ? ((c.funcao||'') + ' · ' + (l.registro.hora||'')) : ((c.funcao||'') + ' · Mat. ' + c.matricula);
     const tipoNome = c.alocacaoTipo==='hora_extra' ? 'Hora extra' : (c.alocacaoTipo==='remanejado' ? 'Remanejado' : (c.alocacaoTipo==='apoio' ? 'Apoio' : ''));
     const tipoClasse = c.alocacaoTipo==='hora_extra' ? 'alloc-hora_extra' : (c.alocacaoTipo==='remanejado' ? 'alloc-remanejado' : 'alloc-permanente');
@@ -2571,8 +2574,10 @@ function attachAdminDiaListener(data){
 
 function buildAdminTree(){
   const porArea = {};
+  const hojeRef = (typeof hojeISO==='function') ? hojeISO() : new Date().toISOString().slice(0,10);
   equipesCache.forEach(eq=>{
     if(!equipeFazChamada(eq.nome)) return; // equipes sem obrigatoriedade não aparecem na chamada
+    if(equipeEmFolgaNaData(eq.nome, hojeRef)) return; // equipe de folga/liberalidade hoje
     const areaChave = eq.atuacao || 'COQUERIA REFRAMAX';
     porArea[areaChave] = porArea[areaChave] || [];
     porArea[areaChave].push(eq);
@@ -3152,6 +3157,12 @@ async function renderDashboard(){
         <div class="dc-label">Pendentes</div>
         <div class="dc-sub">Sem chamada</div>
       </div>
+      <div class="dash-card" style="cursor:pointer; border-color:rgba(138,124,255,.4);" onclick="toggleDashLista('falta_fte')">
+        <div class="dc-ic">📋</div>
+        <div class="dc-num" id="dashFaltasFte" style="color:#a99cff;">0</div>
+        <div class="dc-label">Faltas FTE</div>
+        <div class="dc-sub">Justificadas p/ cliente</div>
+      </div>
     </div>
     <div id="dashListaNomes" style="display:none; margin-top:-4px; margin-bottom:8px; background:var(--bg-2); border:1px solid var(--line); border-radius:12px; padding:12px;"></div>
 
@@ -3179,6 +3190,12 @@ async function renderDashboard(){
     <div class="rank-card">
       <h3>⏳ Equipes que ainda não concluíram a chamada · Hoje</h3>
       <div id="rankPendentesEquipe"><div class="rank-empty">Carregando…</div></div>
+    </div>
+
+    <div class="rank-card">
+      <h3>🟦 Equipes sem obrigação de chamada / em folga · Hoje</h3>
+      <div style="font-size:11px; color:var(--text-2); margin:-6px 0 8px;">Gestão, estrutura, turnos ou equipes liberadas. Não contam como pendência.</div>
+      <div id="rankSemObrigacao"><div class="rank-empty">Carregando…</div></div>
     </div>
 
     <div class="rank-card">
@@ -3210,14 +3227,17 @@ async function renderDashboard(){
 
 function atualizarCardsDashboard(regs){
   dashRegsHoje = regs;
-  // Considera apenas colaboradores de equipes obrigadas a fazer chamada.
-  const contaChamada = c => c.equipe && c.equipe.trim()!=='' && equipeFazChamada(c.equipe) && statusPermiteChamada(c);
+  const dataRef = (typeof hojeISO==='function') ? hojeISO() : new Date().toISOString().slice(0,10);
+  // "Total que precisa de chamada hoje": exclui equipes sem obrigatoriedade, demitidos
+  // e quem já está com ausência justificada (férias/afastado) — esses não são pendência.
+  const contaChamada = c => c.equipe && c.equipe.trim()!=='' && equipeFazChamada(c.equipe) && !equipeEmFolgaNaData(c.equipe, dataRef) && statusPermiteChamada(c) && !estaJustificadoNaData(c, dataRef);
   const total = colaboradoresCache.filter(contaChamada).length;
   const efetivoTotal = colaboradoresCache.length;
   const presentes = regs.filter(r=>r.status==='presente').length;
   const faltas = regs.filter(r=>r.status==='falta').length;
   const atestados = regs.filter(r=>r.status==='atestado').length;
-  const pendentes = Math.max(total - presentes - faltas - atestados, 0);
+  const faltasFte = regs.filter(r=>r.status==='falta_fte').length;
+  const pendentes = Math.max(total - presentes - faltas - atestados - faltasFte, 0);
   const remanejados = colaboradoresCache.filter(c=>c.alocacaoTipo && c.alocacaoTipo!=='permanente').length;
 
   const setTxt = (id,v)=>{ const el=document.getElementById(id); if(el) el.textContent = v; };
@@ -3225,6 +3245,7 @@ function atualizarCardsDashboard(regs){
   setTxt('dashPresentes', presentes);
   setTxt('dashFaltas', faltas);
   setTxt('dashAtestados', atestados);
+  setTxt('dashFaltasFte', faltasFte);
   setTxt('dashPendentes', pendentes);
   setTxt('dashRemanejados', remanejados);
   const pct = total>0 ? Math.round((presentes/total)*100) : 0;
@@ -3269,7 +3290,9 @@ function atualizarCardsDashboard(regs){
   colaboradoresCache.forEach(c=>{
     if(!c.equipe || !c.equipe.trim()) return;
     if(!equipeFazChamada(c.equipe)) return; // equipe sem obrigatoriedade não conta
+    if(equipeEmFolgaNaData(c.equipe, dataRef)) return; // equipe de folga/liberalidade hoje
     if(!statusPermiteChamada(c)) return;    // DEMITIDO não conta
+    if(estaJustificadoNaData(c, dataRef)) return; // férias/afastado = ausência justificada
     const eq = c.equipe;
     equipesInfo[eq] = equipesInfo[eq] || {equipe:eq, total:0, feitos:0};
     equipesInfo[eq].total++;
@@ -3296,6 +3319,30 @@ function atualizarCardsDashboard(regs){
     }
   }
 
+  // Bloco: equipes SEM obrigação de chamada + equipes de FOLGA hoje (informativo).
+  const boxSO = document.getElementById('rankSemObrigacao');
+  if(boxSO){
+    const membrosDe = nome => colaboradoresCache.filter(c=>c.equipe===nome && statusPermiteChamada(c)).length;
+    const semObrig = equipesCache
+      .filter(eq => eq.fazChamada === false)
+      .map(eq => ({nome: eq.nome, motivo: 'Sem obrigação', membros: membrosDe(eq.nome)}));
+    const folgas = equipesCache
+      .filter(eq => eq.fazChamada !== false && eq.folgaData === dataRef)
+      .map(eq => ({nome: eq.nome, motivo: 'Folga/Liberalidade' + (eq.folgaJustificativa ? ' · '+eq.folgaJustificativa : ''), membros: membrosDe(eq.nome)}));
+    const todas = semObrig.concat(folgas).sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+    if(!todas.length){
+      boxSO.innerHTML = `<div class="rank-empty">Nenhuma equipe dispensada hoje.</div>`;
+    } else {
+      boxSO.innerHTML = todas.map(e=>`<div class="rank-row">
+        <div class="rank-name" style="color:var(--text-2);">${e.nome}</div>
+        <div class="rank-val" style="color:var(--cyan);">${e.motivo}</div>
+      </div>
+      <div class="rank-row" style="padding:0 0 6px 8px; border-bottom:none;">
+        <div style="font-size:10.5px; color:var(--text-2);">${e.membros} colaborador${e.membros!==1?'es':''} · não conta como pendência</div>
+      </div>`).join('');
+    }
+  }
+
   // Se uma lista de nomes estiver aberta, re-renderiza com os dados novos
   if(dashListaAtiva) renderDashListaNomes(dashListaAtiva);
 }
@@ -3316,12 +3363,13 @@ function renderDashListaNomes(tipo){
   let itens = [], titulo = '';
   if(tipo==='pendente'){
     titulo = 'Pendentes (sem chamada)';
+    const dataRef = (typeof hojeISO==='function') ? hojeISO() : new Date().toISOString().slice(0,10);
     const registrados = new Set(dashRegsHoje.map(r=>String(r.matricula)));
     itens = colaboradoresCache
-      .filter(c=>c.equipe && c.equipe.trim()!=='' && equipeFazChamada(c.equipe) && statusPermiteChamada(c) && !registrados.has(String(c.matricula)))
+      .filter(c=>c.equipe && c.equipe.trim()!=='' && equipeFazChamada(c.equipe) && !equipeEmFolgaNaData(c.equipe, dataRef) && statusPermiteChamada(c) && !estaJustificadoNaData(c, dataRef) && !registrados.has(String(c.matricula)))
       .map(c=>({nome:c.nome, equipe:c.equipe, grupo:c.grupo}));
   } else {
-    titulo = tipo==='presente' ? 'Presentes' : (tipo==='falta' ? 'Faltas' : 'Atestados');
+    titulo = tipo==='presente' ? 'Presentes' : (tipo==='falta' ? 'Faltas' : (tipo==='falta_fte' ? 'Faltas FTE (justificadas p/ cliente)' : 'Atestados'));
     itens = dashRegsHoje.filter(r=>r.status===tipo).map(r=>{
       const c = nomeDe(r.matricula) || {};
       return {nome: c.nome || r.nome || String(r.matricula), equipe: c.equipe || r.equipe || '—', grupo: c.grupo || ''};
@@ -3450,13 +3498,27 @@ function renderAdminRemanejar(){
 }
 window.renderAdminRemanejar = renderAdminRemanejar;
 
+// Normaliza nome de equipe p/ comparação (sem acento, espaços extras, caixa).
+function normEquipe(s){ return String(s||'').trim().toUpperCase().replace(/\s+/g,' ').normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+
 // Uma equipe faz chamada por padrão; só não faz se fazChamada === false explicitamente.
+// Comparação por nome NORMALIZADO (evita falha por acento/espaço/caixa).
 function equipeFazChamada(nomeEquipe){
   if(!nomeEquipe) return true;
-  const eq = equipesCache.find(e => e.nome === nomeEquipe);
+  const alvo = normEquipe(nomeEquipe);
+  const eq = equipesCache.find(e => normEquipe(e.nome) === alvo);
   return !(eq && eq.fazChamada === false);
 }
 window.equipeFazChamada = equipeFazChamada;
+
+// Equipe está de FOLGA/LIBERALIDADE na data informada? (não conta como pendência nesse dia)
+function equipeEmFolgaNaData(nomeEquipe, dataISO){
+  if(!nomeEquipe) return false;
+  const alvo = normEquipe(nomeEquipe);
+  const eq = equipesCache.find(e => normEquipe(e.nome) === alvo);
+  return !!(eq && eq.folgaData && eq.folgaData === dataISO);
+}
+window.equipeEmFolgaNaData = equipeEmFolgaNaData;
 
 function renderAdminChamadaObrig(){
   const container = document.getElementById('chamadaObrigLista');
@@ -3476,15 +3538,23 @@ function renderAdminChamadaObrig(){
   container.innerHTML = lista.map(eq=>{
     const faz = eq.fazChamada !== false;
     const membros = colaboradoresCache.filter(c=>c.equipe===eq.nome).length;
+    const hoje = hojeISOLocal();
+    const emFolga = eq.folgaData === hoje;
+    const nomeEsc = (eq.nome||'').replace(/'/g,"\\'");
     return `<div class="rank-row" style="align-items:center;">
       <div style="flex:1;">
         <div class="rank-name" style="color:${faz?'var(--text-1)':'var(--text-2)'};">${eq.nome}</div>
-        <div style="font-size:10.5px; color:var(--text-2);">${eq.atuacao||'—'} · ${membros} colaborador${membros!==1?'es':''}</div>
+        <div style="font-size:10.5px; color:var(--text-2);">${eq.atuacao||'—'} · ${membros} colaborador${membros!==1?'es':''}${emFolga?' · <span style="color:var(--cyan);">EM FOLGA HOJE</span>':''}</div>
       </div>
       <label class="chamada-switch">
-        <input type="checkbox" ${faz?'checked':''} onchange="toggleEquipeChamada('${(eq.nome||'').replace(/'/g,"\\'")}', this.checked)">
+        <input type="checkbox" ${faz?'checked':''} onchange="toggleEquipeChamada('${nomeEsc}', this.checked)">
         <span class="chamada-slider"></span>
       </label>
+    </div>
+    <div class="rank-row" style="padding:2px 0 10px 8px; border-bottom:1px solid var(--line);">
+      ${emFolga
+        ? `<button class="link-btn" style="color:var(--cyan);" onclick="removerFolgaEquipe('${nomeEsc}')">✕ Cancelar folga de hoje</button>`
+        : `<button class="link-btn" onclick="marcarFolgaEquipe('${nomeEsc}')">🌙 Marcar folga/liberalidade hoje</button>`}
     </div>`;
   }).join('');
 }
@@ -3499,6 +3569,34 @@ async function toggleEquipeChamada(nomeEquipe, faz){
   }catch(e){ console.error(e); toast('Erro ao salvar: ' + (e && e.message ? e.message : e), 'err'); renderAdminChamadaObrig(); }
 }
 window.toggleEquipeChamada = toggleEquipeChamada;
+
+// Marca uma equipe inteira como FOLGA/LIBERALIDADE hoje (com justificativa).
+// Enquanto folgaData for a data de hoje, a equipe não conta como pendência.
+async function marcarFolgaEquipe(nomeEquipe){
+  const just = prompt('Justificativa da folga/liberalidade de "' + nomeEquipe + '" hoje:\n(ex.: turno de folga, liberação, campanha)');
+  if(just === null) return; // cancelou
+  try{
+    await setDoc(doc(db,'equipes', nomeEquipe), {
+      nome: nomeEquipe,
+      folgaData: hojeISOLocal(),
+      folgaJustificativa: (just||'').trim() || 'Folga/Liberalidade'
+    }, {merge:true});
+    toast('Equipe "' + nomeEquipe + '" marcada como folga hoje.', 'ok');
+    if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
+    renderAdminChamadaObrig();
+  }catch(e){ console.error(e); toast('Erro ao marcar folga: ' + (e && e.message ? e.message : e), 'err'); }
+}
+window.marcarFolgaEquipe = marcarFolgaEquipe;
+
+async function removerFolgaEquipe(nomeEquipe){
+  try{
+    await setDoc(doc(db,'equipes', nomeEquipe), { nome: nomeEquipe, folgaData: null, folgaJustificativa: null }, {merge:true});
+    toast('Folga de "' + nomeEquipe + '" cancelada.', 'ok');
+    if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
+    renderAdminChamadaObrig();
+  }catch(e){ console.error(e); toast('Erro ao cancelar folga: ' + (e && e.message ? e.message : e), 'err'); }
+}
+window.removerFolgaEquipe = removerFolgaEquipe;
 
 // ================= LÍDER DA EQUIPE (permanente / temporário) =================
 function hojeISOLocal(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
@@ -3659,6 +3757,16 @@ function statusPermiteChamada(c){
   return normStatus(c.status) !== 'DEMITIDO';
 }
 window.statusPermiteChamada = statusPermiteChamada;
+
+// Ausência JÁ JUSTIFICADA na data: férias (por status ou por período) ou afastado.
+// Quem está justificado não deve contar como "pendente / sem chamada" no dashboard.
+function estaJustificadoNaData(c, dataISO){
+  const s = normStatus(c.status);
+  if(s === 'FERIAS' || s === 'AFASTADO') return true;
+  if(typeof estaEmFeriasNaData === 'function' && estaEmFeriasNaData(c, dataISO)) return true;
+  return false;
+}
+window.estaJustificadoNaData = estaJustificadoNaData;
 
 // ============ REMANEJAR: MODO CLIQUE-CLIQUE (origem/destino lado a lado) ============
 let remanejarModo = 'arrastar';

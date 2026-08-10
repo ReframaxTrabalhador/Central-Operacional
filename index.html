@@ -1087,7 +1087,10 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
       <!-- Area que será convertida em PDF -->
       <div id="areaRelatorioSintetico" style="margin-bottom: 16px;"></div>
 
-      <button class="btn btn-ghost" onclick="baixarRelatorioLanchePDF()" style="margin-top: 10px;">📄 Baixar Relatório (PDF)</button>
+      <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-2); margin-bottom:10px; cursor:pointer;">
+        <input type="checkbox" id="incluirCanceladosImpressao" onchange="renderPainelLanche()"> Incluir reprovados/cancelados na impressão
+      </label>
+      <button class="btn btn-ghost" onclick="baixarRelatorioLanchePDF()" style="margin-top: 4px;">📄 Baixar Relatório (PDF)</button>
     </div>
   </div>
 
@@ -1328,6 +1331,7 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
     <div class="screen-body" style="padding:18px;">
       <div class="tabs-row" style="margin-bottom:14px;">
         <div class="tab-pill active" id="tabRhLancar" onclick="mudarAbaRh('lancar')">📝 Lançamentos</div>
+        <div class="tab-pill" id="tabRhFerias" onclick="mudarAbaRh('ferias')">🏖️ Férias</div>
         <div class="tab-pill" id="tabRhNovato" onclick="mudarAbaRh('novato')">➕ Novo colaborador</div>
         <div class="tab-pill" id="tabRhUpload" onclick="mudarAbaRh('upload')">📄 Importar planilha</div>
       </div>
@@ -1339,6 +1343,17 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
         </div>
         <div class="search-row"><input type="text" id="rhSearch" placeholder="Buscar por nome ou matrícula…" oninput="renderRhLancar()"></div>
         <div class="list" id="rhLancarLista"></div>
+      </div>
+
+      <!-- ABA: Férias -->
+      <div id="paneRhFerias" style="display:none;">
+        <div class="remanejar-hint">
+          Acompanhe as férias dos colaboradores. Solicitações aprovadas pelo gestor aparecem aqui para o RH dar andamento. Você também pode lançar férias direto na aba <b>Lançamentos</b>.
+        </div>
+        <div id="rhSolicitacoesFerias"></div>
+        <div class="section-title" style="margin-top:16px;">Colaboradores em férias / agendadas</div>
+        <div class="search-row"><input type="text" id="rhFeriasSearch" placeholder="Filtrar por nome…" oninput="renderRhFerias()"></div>
+        <div class="list" id="rhFeriasLista"></div>
       </div>
 
       <!-- ABA: Novo colaborador (recém-contratado) -->
@@ -1393,6 +1408,92 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
         <div id="rhUploadResumo" style="margin-top:14px;"></div>
         <div id="rhUploadLoading" style="display:none; align-items:center; gap:8px; margin-top:12px; color:var(--text-2);">Processando planilha…</div>
         <button class="btn" style="width:100%; margin-top:14px;" onclick="baixarModeloRh()">⬇️ Baixar modelo de planilha</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MÓDULO DE CONTROLE (admin) ================= -->
+  <div class="screen" id="screen-controle">
+    <div class="topbar">
+      <div class="icon-btn" onclick="goScreen('hub')">‹</div>
+      <div class="brand-text" style="text-align:center;">
+        <div class="k1">MÓDULO DE CONTROLE</div>
+        <div class="k2">Contratos · Equipes · Centros de Custo · Acessos</div>
+      </div>
+      <div style="width:38px;"></div>
+    </div>
+    <div class="screen-body" style="padding:16px;">
+      <div class="tabs-row" style="margin-bottom:14px; flex-wrap:wrap; gap:6px;">
+        <div class="tab-pill active" id="tabCtrlArvore" onclick="mudarAbaControle('arvore')">🗂️ Árvore</div>
+        <div class="tab-pill" id="tabCtrlContratos" onclick="mudarAbaControle('contratos')">📑 Contratos</div>
+        <div class="tab-pill" id="tabCtrlEquipes" onclick="mudarAbaControle('equipes')">👥 Equipes</div>
+        <div class="tab-pill" id="tabCtrlCC" onclick="mudarAbaControle('cc')">💰 Centros de Custo</div>
+        <div class="tab-pill" id="tabCtrlPos" onclick="mudarAbaControle('pos')">🏷️ Posições</div>
+        <div class="tab-pill" id="tabCtrlAcessos" onclick="mudarAbaControle('acessos')">🔑 Acessos</div>
+      </div>
+
+      <!-- ÁRVORE (visão em caixas por contrato / CC) -->
+      <div id="paneCtrlArvore">
+        <div class="remanejar-hint">Visão geral: contratos agrupados por centro de custo, com suas equipes. Toque numa equipe para editar a correlação.</div>
+        <div id="ctrlArvoreBox"><div class="rank-empty">Carregando…</div></div>
+      </div>
+
+      <!-- CONTRATOS -->
+      <div id="paneCtrlContratos" style="display:none;">
+        <div class="remanejar-hint">Crie e edite contratos. Cada contrato tem um centro de custo padrão (usado como sugestão ao criar equipes).</div>
+        <div class="field"><label>Nome do contrato</label><input type="text" id="ctrlContratoNome" placeholder="Ex.: CABECEIRA"></div>
+        <div class="field"><label>Centro de custo padrão</label><input type="text" id="ctrlContratoCC" placeholder="Ex.: 2012"></div>
+        <button class="btn btn-primary btn-sm" style="width:100%;" onclick="salvarContrato()">Salvar contrato</button>
+        <div id="ctrlContratosLista" style="margin-top:14px;"></div>
+      </div>
+
+      <!-- EQUIPES (com correlação editável) -->
+      <div id="paneCtrlEquipes" style="display:none;">
+        <div class="remanejar-hint">Crie equipes e defina a correlação: contrato, centro de custo, responsável (supervisor), gestor e posição Ternium. Ao mover um colaborador para a equipe, esses valores são aplicados automaticamente.</div>
+        <div class="field"><label>Nome da equipe</label><input type="text" id="ctrlEqNome" placeholder="Ex.: PU - CABECEIRA"></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div class="field"><label>Contrato</label><input type="text" id="ctrlEqContrato" list="ctrlContratosDatalist" placeholder="Ex.: CABECEIRA" oninput="sugerirCCporContrato()"></div>
+          <div class="field"><label>Centro de custo</label><input type="text" id="ctrlEqCC" placeholder="Ex.: 2012"></div>
+        </div>
+        <datalist id="ctrlContratosDatalist"></datalist>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div class="field"><label>Responsável (supervisor)</label><input type="text" id="ctrlEqResp"></div>
+          <div class="field"><label>Gestor</label><input type="text" id="ctrlEqGestor"></div>
+        </div>
+        <div class="field"><label>Posição Ternium</label><input type="text" id="ctrlEqPos" list="ctrlPosDatalist"></div>
+        <datalist id="ctrlPosDatalist"></datalist>
+        <button class="btn btn-primary btn-sm" style="width:100%;" onclick="salvarEquipeControle()">Salvar equipe</button>
+        <div class="search-row" style="margin-top:12px;"><input type="text" id="ctrlEqSearch" placeholder="Filtrar equipes…" oninput="renderCtrlEquipes()"></div>
+        <div id="ctrlEquipesLista"></div>
+      </div>
+
+      <!-- CENTROS DE CUSTO -->
+      <div id="paneCtrlCC" style="display:none;">
+        <div class="remanejar-hint">Cadastre os centros de custo. Ex.: 2071, 2011, 2012. No futuro pode haver mais.</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div class="field"><label>Código</label><input type="text" id="ctrlCCcod" placeholder="Ex.: 2071"></div>
+          <div class="field"><label>Descrição (opcional)</label><input type="text" id="ctrlCCdesc" placeholder="Ex.: Primárias/Preservação"></div>
+        </div>
+        <button class="btn btn-primary btn-sm" style="width:100%;" onclick="salvarCentroCusto()">Salvar centro de custo</button>
+        <div id="ctrlCClista" style="margin-top:14px;"></div>
+      </div>
+
+      <!-- POSIÇÕES TERNIUM -->
+      <div id="paneCtrlPos" style="display:none;">
+        <div class="remanejar-hint">Cadastre as posições Ternium disponíveis.</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div class="field"><label>Código/nome</label><input type="text" id="ctrlPosCod" placeholder="Ex.: 90001"></div>
+          <div class="field"><label>Descrição (opcional)</label><input type="text" id="ctrlPosDesc"></div>
+        </div>
+        <button class="btn btn-primary btn-sm" style="width:100%;" onclick="salvarPosicao()">Salvar posição</button>
+        <div id="ctrlPoslista" style="margin-top:14px;"></div>
+      </div>
+
+      <!-- ACESSOS (níveis de acesso das pessoas) -->
+      <div id="paneCtrlAcessos" style="display:none;">
+        <div class="remanejar-hint">Pesquise uma pessoa cadastrada e altere o nível de acesso. As mudanças valem no próximo login da pessoa.</div>
+        <div class="search-row"><input type="text" id="ctrlAcessoSearch" placeholder="Buscar por nome ou matrícula…" oninput="renderCtrlAcessos()"></div>
+        <div id="ctrlAcessosLista"></div>
       </div>
     </div>
   </div>
@@ -1469,7 +1570,7 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
             </div>
           </div>
           <div id="feriasPreview" style="font-size:11px; color:var(--text-2); margin-top:8px;"></div>
-          <button class="btn btn-primary btn-sm" style="margin-top:10px; width:100%; box-shadow: 0 4px 10px rgba(0, 196, 255, 0.2);" onclick="salvarFerias()">Lançar Férias no Sistema</button>
+          <button class="btn btn-primary btn-sm" id="btnSalvarFerias" style="margin-top:10px; width:100%; box-shadow: 0 4px 10px rgba(0, 196, 255, 0.2);" onclick="salvarFerias()">Lançar Férias no Sistema</button>
         </div>
       </div>
 
@@ -1709,8 +1810,34 @@ let equipesCache = [];
 let lideresUsuariosCache = [];
 let chamadasHomeCache = [];
 let solicitacoesPendentesCache = [];
+
+// Verifica se já existe solicitação PENDENTE para o colaborador (evita duplicidade).
+// Checa o cache em memória e confirma no Firestore por segurança.
+// tipos: null = qualquer tipo; ou array de tipos específicos (ex.: ['demissao']).
+async function existeSolicitacaoPendente(matricula, tipos){
+  const mat = String(matricula||'');
+  const casa = s => String(s.colaboradorMatricula)===mat && (s.status==='pendente' || s.status===undefined)
+                    && (!tipos || tipos.includes(s.tipoAlocacao));
+  // 1) cache em memória
+  if(solicitacoesPendentesCache.some(casa)) return true;
+  // 2) confirmação no servidor (garante mesmo se o cache ainda não atualizou)
+  try{
+    const snap = await getDocs(query(
+      collection(db,'solicitacoes_movimentacao'),
+      where('colaboradorMatricula','==', mat),
+      where('status','==','pendente')
+    ));
+    const docs = snap.docs.map(d=>d.data());
+    return docs.some(s => !tipos || tipos.includes(s.tipoAlocacao));
+  }catch(e){ /* se a consulta falhar, confia no cache */ return false; }
+}
+window.existeSolicitacaoPendente = existeSolicitacaoPendente;
 let movDiariasCache = [];
 let dashRegsHoje = [];
+let contratosCache = [];
+let centrosCustoCache = [];
+let posicoesCache = [];
+let usuariosCache = [];
 let adminChamadasDiaCache = [];
 let lanchesPainelCache = []; 
 let currentAdminTeamLider = null;
@@ -2056,6 +2183,7 @@ function rerenderScreenAtiva(){
   else if(id==='screen-admin-equipes') renderAdminEquipes();
   else if(id==='screen-mao-obra') renderMaoObra();
   else if(id==='screen-rh'){ if(typeof renderRhLancar==='function') renderRhLancar(); }
+  else if(id==='screen-controle'){ if(typeof abrirModuloControle==='function') abrirModuloControle(); }
   else if(id==='screen-efetivo'){ /* dados aplicados via efetivoSyncFirebase() */ }
   else if(id==='screen-config') renderConfig();
   else if(id==='screen-lanche-painel') renderPainelLanche();
@@ -2120,6 +2248,7 @@ function renderHub(){
     cards.push({ic:'👥', label:'Equipes', sub:'Efetivo · árvore genealógica', screen:'efetivo', accent:'accent-cyan'});
     cards.push({ic:'🔄', label:'Gestão de Equipes', sub:'Visão gerencial + remanejar', screen:'admin-home', accent:'accent-gold'});
     cards.push({ic:'🛂', label:'Aprovações', sub:'Contas + Mão de Obra', screen:'admin-aprovacoes', accent:'accent-purple'});
+    cards.push({ic:'🎛️', label:'Módulo de Controle', sub:'Contratos · equipes · acessos', screen:'controle', accent:'accent-cyan'});
     cards.push({ic:'📊', label:'Dashboard', sub:'Indicadores', screen:'admin-dashboard', accent:'accent-green'});
   }
 
@@ -2356,6 +2485,13 @@ function abrirModalStatus(colaborador){
   }
   atualizarPreviewFerias();
 
+  // Rótulos conforme o perfil: líder SOLICITA (gestor aprova); admin/RH fazem direto.
+  const ehLider = session && session.role === 'lider';
+  const btnFer = document.getElementById('btnSalvarFerias');
+  if(btnFer) btnFer.textContent = ehLider ? 'Solicitar férias (gestor aprova)' : 'Lançar Férias no Sistema';
+  const btnDem = document.querySelector('#modalStatus button[onclick="solicitarDemissao()"]');
+  if(btnDem) btnDem.textContent = ehLider ? '🚫 Solicitar demissão (gestor aprova)' : '🚫 Demitir colaborador';
+
   document.getElementById('modalStatus').classList.add('active');
 }
 window.abrirModalStatus = abrirModalStatus;
@@ -2383,6 +2519,11 @@ async function solicitarDemissao(){
   }
   // Líder: cria solicitação de demissão para o gestor aprovar.
   if(!confirm(`Solicitar demissão de ${c.nome}? O gestor precisará aprovar.`)) return;
+  // Impede duplicidade: já existe solicitação pendente para este colaborador?
+  if(await existeSolicitacaoPendente(c.matricula)){
+    toast('Já existe uma solicitação pendente para este colaborador. Aguarde a aprovação ou rejeição.', 'err');
+    return;
+  }
   try{
     const payload = {
       colaboradorMatricula: String(c.matricula),
@@ -2429,25 +2570,60 @@ window.atualizarPreviewFerias = atualizarPreviewFerias;
 
 async function salvarFerias() {
   if(!currentPersonModal) return;
-  
+  const c = currentPersonModal;
+
   const fInicio = document.getElementById('feriasInicio').value;
   const dias = document.getElementById('feriasDias').value;
-  
+
   if(!fInicio || !dias || parseInt(dias,10) < 1) {
     toast('Preencha a data de início e a quantidade de dias.', 'err');
     return;
   }
   const r = calcularFimRetornoFerias(fInicio, dias);
   if(!r){ toast('Dados de férias inválidos.', 'err'); return; }
-  
+
+  // LÍDER: cria solicitação de férias para o gestor aprovar (depois cai no RH).
+  if(session.role === 'lider'){
+    // Impede duplicidade: já existe solicitação pendente para este colaborador?
+    if(await existeSolicitacaoPendente(c.matricula)){
+      toast('Já existe uma solicitação pendente para este colaborador. Aguarde a aprovação ou rejeição.', 'err');
+      return;
+    }
+    try{
+      const payload = {
+        colaboradorMatricula: String(c.matricula),
+        colaboradorNome: c.nome || '',
+        colaboradorFuncao: c.funcao || c.classificacao || '',
+        equipeDestino: c.equipe || session.equipe || null,
+        liderMatricula: String(session.matricula || ''),
+        liderNome: session.nome || '',
+        tipoAlocacao: 'ferias',
+        tipoLabel: 'Férias',
+        feriasInicio: fInicio,
+        feriasFim: r.fim,
+        feriasDias: parseInt(dias,10),
+        status: 'pendente',
+        criadoEm: serverTimestamp()
+      };
+      Object.keys(payload).forEach(k => { if(payload[k] === undefined) payload[k] = null; });
+      await addDoc(collection(db,'solicitacoes_movimentacao'), payload);
+      toast('Solicitação de férias enviada. Aguardando aprovação do gestor.', 'ok');
+      fecharModalStatus();
+    }catch(e){ console.error(e); toast('Erro ao solicitar férias: ' + (e && e.message ? e.message : e), 'err'); }
+    return;
+  }
+
+  // ADMIN / RH: aplica direto (comportamento atual).
   try {
-    // Salva início e fim calculado; retorno é derivado (dia seguinte ao fim).
-    await updateDoc(doc(db, 'colaboradores', String(currentPersonModal.matricula)), {
+    await updateDoc(doc(db, 'colaboradores', String(c.matricula)), {
       feriasInicio: fInicio,
-      feriasFim: r.fim
+      feriasFim: r.fim,
+      status: 'FÉRIAS',
+      dataStatus: fInicio
     });
     toast('Período de férias lançado! Retorno em ' + fmtDataPtBr(r.retorno) + '.', 'ok');
     fecharModalStatus();
+    if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
   } catch (e) {
     console.error(e);
     toast('Erro ao registrar as férias.', 'err');
@@ -2840,16 +3016,22 @@ window.renderPainelLanche = renderPainelLanche;
 
 function desenharRelatorioSintetico(dStart, dEnd) {
   const container = document.getElementById('areaRelatorioSintetico');
-  const regs = lanchesPainelCache;
   const acoesMassa = document.getElementById('painelLancheAcoesMassa');
   const btnAprovar = document.getElementById('btnAprovarTudo');
   const btnConfirmar = document.getElementById('btnConfirmarTudo');
+  const incluirCancelados = !!(document.getElementById('incluirCanceladosImpressao') && document.getElementById('incluirCanceladosImpressao').checked);
 
-  if(regs.length === 0){
+  const todos = lanchesPainelCache;
+  if(todos.length === 0){
     container.innerHTML = `<div class="empty">Nenhum lanche solicitado neste período.</div>`;
     acoesMassa.style.display = 'none';
     return;
   }
+
+  // Reprovados: mostrados só na TELA (fora do documento de impressão), a menos que o toggle esteja marcado.
+  const reprovados = todos.filter(r => r.status === 'reprovado');
+  // O que entra no documento impresso:
+  const regs = incluirCancelados ? todos : todos.filter(r => r.status !== 'reprovado');
 
   const agrupado = {};
   regs.forEach(r => {
@@ -2858,31 +3040,38 @@ function desenharRelatorioSintetico(dStart, dEnd) {
     agrupado[r.data][r.turno].push(r);
   });
 
-  const hasSolicitado = regs.some(r => r.status === 'solicitado');
-  const hasAprovado = regs.some(r => r.status === 'aprovado');
-  
+  const hasSolicitado = todos.some(r => r.status === 'solicitado');
+  const hasAprovado = todos.some(r => r.status === 'aprovado');
+
   acoesMassa.style.display = 'flex';
   btnAprovar.style.display = (session.role === 'admin' && hasSolicitado) ? 'block' : 'none';
   btnConfirmar.style.display = ((session.role === 'suprimentos' || session.role === 'admin') && hasAprovado) ? 'block' : 'none';
 
+  const podeReprovar = (session.role === 'admin' || session.role === 'suprimentos');
+
   let html = `<div id="documentoImpressaoLanches" class="report-paper" style="background:white; color:black; padding:8px; border-radius:4px; max-width:100%;">`;
   html += `<div style="text-align:center; border-bottom:1.5px solid #000; padding-bottom:5px; margin-bottom:8px;">`;
   html += `<h2 style="margin:0; font-size:12px;">RELATÓRIO DE SOLICITAÇÃO DE LANCHES</h2>`;
-  html += `<p style="margin:2px 0 0; font-size:8px;">Período: ${fmtDataPtBr(dStart)} até ${fmtDataPtBr(dEnd)}</p>`;
+  html += `<p style="margin:2px 0 0; font-size:8px;">Período: ${fmtDataPtBr(dStart)} até ${fmtDataPtBr(dEnd)}${incluirCancelados?' · (inclui reprovados)':''}</p>`;
   html += `</div>`;
-  
+
+  if(Object.keys(agrupado).length === 0){
+    html += `<div style="text-align:center; font-size:9px; color:#666; padding:8px;">Nenhum pedido ativo neste período.</div>`;
+  }
+
   Object.keys(agrupado).sort().forEach(dataKey => {
     html += `<div style="margin-bottom:10px; border:1px solid #ccc; padding:6px; border-radius:3px;">`;
     html += `<h3 style="margin:0 0 4px 0; font-size:10px; padding-bottom:2px; border-bottom:1px solid #eee;">Data: ${fmtDataPtBr(dataKey)}</h3>`;
-    
+
     const turnosData = agrupado[dataKey];
     Object.keys(turnosData).sort().forEach(turnoKey => {
       const lista = turnosData[turnoKey];
-      const totalTurno = lista.reduce((acc, obj) => acc + obj.total, 0);
-      
+      // total do turno só conta pedidos NÃO reprovados
+      const totalTurno = lista.filter(r=>r.status!=='reprovado').reduce((acc, obj) => acc + obj.total, 0);
+
       let hasPendente = lista.some(r => r.status === 'solicitado');
       let hasAprovadoTurno = lista.some(r => r.status === 'aprovado');
-      let allConfirmados = lista.every(r => r.status === 'confirmado');
+      let allConfirmados = lista.filter(r=>r.status!=='reprovado').every(r => r.status === 'confirmado') && lista.some(r=>r.status==='confirmado');
 
       let txtStatus = '';
       let statusColor = '#666';
@@ -2895,18 +3084,20 @@ function desenharRelatorioSintetico(dStart, dEnd) {
       html += `<span>Turno: ${turnoKey}</span>`;
       html += `<span style="color:${statusColor};">${txtStatus} (${totalTurno} lanches)</span>`;
       html += `</div>`;
-      
+
       html += `<table style="width:100%; border-collapse:collapse; font-size:8px;">`;
       html += `<tr style="background:#f5f5f5; text-align:left;">`;
       html += `<th style="padding:2px 3px; border:1px solid #ddd; font-size:8px;">Líder / Equipe</th>`;
       html += `<th style="padding:2px 3px; border:1px solid #ddd; font-size:8px; width:70px;">Motivo</th>`;
       html += `<th style="padding:2px 3px; border:1px solid #ddd; font-size:8px; width:35px;">Qtd</th>`;
-      html += `<th style="padding:2px 3px; border:1px solid #ddd; font-size:8px; width:80px;">Ações</th>`;
+      html += `<th style="padding:2px 3px; border:1px solid #ddd; font-size:8px; width:110px;">Ações</th>`;
       html += `</tr>`;
 
       lista.forEach(solic => {
         let badge = '';
-        if(session.role === 'admin' && solic.status === 'solicitado'){
+        if(solic.status === 'reprovado'){
+          badge = `<span style="color:#c00; font-weight:bold; font-size:7px;">REPROVADO</span>`;
+        } else if(session.role === 'admin' && solic.status === 'solicitado'){
           badge = `<button onclick="acaoMudarStatusLanche('${solic.id}','aprovado')" style="background:#00c4ff; color:#000; border:none; padding:2px 5px; border-radius:3px; cursor:pointer; font-size:7px;">Aprovar</button>`;
         } else if((session.role === 'suprimentos' || session.role === 'admin') && solic.status === 'aprovado'){
           badge = `<button onclick="acaoMudarStatusLanche('${solic.id}','confirmado')" style="background:#3de8a0; color:#000; border:none; padding:2px 5px; border-radius:3px; cursor:pointer; font-size:7px;">Dar Aceite</button>`;
@@ -2915,8 +3106,12 @@ function desenharRelatorioSintetico(dStart, dEnd) {
         } else {
            badge = `<span style="color:#999; font-size:7px;">Aguardando</span>`;
         }
-
-        html += `<tr>`;
+        // Botão reprovar (não aparece em já confirmados/reprovados)
+        if(podeReprovar && solic.status!=='reprovado' && solic.status!=='confirmado'){
+          badge += ` <button onclick="reprovarLanche('${solic.id}')" style="background:#ff5c6c; color:#fff; border:none; padding:2px 5px; border-radius:3px; cursor:pointer; font-size:7px;">Reprovar</button>`;
+        }
+        const linhaStyle = solic.status==='reprovado' ? 'background:#ffecec; color:#a00; text-decoration:line-through;' : '';
+        html += `<tr style="${linhaStyle}">`;
         html += `<td style="padding:2px 3px; border:1px solid #ddd; font-size:8px;">${solic.liderNome} (${solic.equipe})</td>`;
         html += `<td style="padding:2px 3px; border:1px solid #ddd; font-size:8px;" class="motivo-cell">${solic.motivo || '—'}</td>`;
         html += `<td style="padding:2px 3px; border:1px solid #ddd; text-align:center; font-size:8px;">${solic.total}</td>`;
@@ -2928,7 +3123,21 @@ function desenharRelatorioSintetico(dStart, dEnd) {
     html += `</div>`;
   });
 
-  html += `</div>`;
+  html += `</div>`; // fim do documento de impressão
+
+  // Bloco de reprovados FORA do documento (só tela), quando não estão incluídos na impressão.
+  if(!incluirCancelados && reprovados.length){
+    html += `<div style="margin-top:14px; border:1px dashed var(--red); border-radius:10px; padding:10px; background:rgba(255,92,108,.06);">
+      <div style="font-weight:700; color:var(--red); font-size:12px; margin-bottom:6px;">🚫 ${reprovados.length} pedido(s) reprovado(s) — ocultos na impressão</div>
+      <div style="font-size:11px; color:var(--text-2);">Marque "Incluir reprovados/cancelados na impressão" acima se quiser que apareçam no PDF.</div>
+      <div style="margin-top:8px;">`;
+    reprovados.forEach(r=>{
+      html += `<div style="font-size:11px; color:var(--text-2); padding:3px 0; border-bottom:1px solid var(--line);">
+        ${fmtDataPtBr(r.data)} · ${r.turno} · ${r.liderNome} (${r.equipe}) · ${r.total} lanches</div>`;
+    });
+    html += `</div></div>`;
+  }
+
   container.innerHTML = html;
 }
 
@@ -2942,6 +3151,23 @@ async function acaoMudarStatusLanche(id, novoStatus){
   }
 }
 window.acaoMudarStatusLanche = acaoMudarStatusLanche;
+
+async function reprovarLanche(id){
+  if(!(session.role==='admin' || session.role==='suprimentos')){ toast('Sem permissão para reprovar.', 'err'); return; }
+  const motivo = prompt('Motivo da reprovação (opcional):');
+  if(motivo === null) return; // cancelou
+  try{
+    await updateDoc(doc(db,'pedidosLanche', id), {
+      status: 'reprovado',
+      reprovadoPor: String(session.matricula||''),
+      reprovadoPorNome: session.nome || '',
+      motivoReprovacao: (motivo||'').trim(),
+      reprovadoEm: serverTimestamp()
+    });
+    toast('Pedido reprovado.', 'ok');
+  }catch(e){ console.error(e); toast('Erro ao reprovar: '+(e&&e.message?e.message:e), 'err'); }
+}
+window.reprovarLanche = reprovarLanche;
 
 async function acaoMassaLanche(novoStatus) {
   const regs = lanchesPainelCache.filter(r => {
@@ -3032,20 +3258,48 @@ function renderAprovacoes(){
       const lista = document.getElementById('aprovMaoObra');
       if(!lista) return;
       if(!solicitacoes.length){ lista.innerHTML = `<div class="empty" style="grid-column: 1 / -1;">Nenhuma solicitação de mão de obra pendente.</div>`; return; }
-      lista.innerHTML = solicitacoes.map(s=>{
-        const tipoClass = s.tipoAlocacao==='hora_extra' ? 'alloc-hora_extra' : (s.tipoAlocacao==='remanejado' ? 'alloc-remanejado' : 'alloc-permanente');
+      // Agrupa duplicatas do mesmo colaborador + mesmo tipo (líder pedindo repetido).
+      const grupos = {};
+      solicitacoes.forEach(s=>{
+        const chave = String(s.colaboradorMatricula) + '|' + (s.tipoAlocacao||'');
+        if(!grupos[chave]){ grupos[chave] = { ...s, _ids:[s.id], _qtd:1 }; }
+        else {
+          grupos[chave]._ids.push(s.id);
+          grupos[chave]._qtd++;
+          // mantém o registro mais recente como representante (se tiver criadoEm)
+          if(s.criadoEm && grupos[chave].criadoEm && s.criadoEm.seconds > grupos[chave].criadoEm.seconds){
+            const ids = grupos[chave]._ids, qtd = grupos[chave]._qtd;
+            grupos[chave] = { ...s, _ids:ids, _qtd:qtd };
+          }
+        }
+      });
+      const listaAgrupada = Object.values(grupos);
+      lista.innerHTML = listaAgrupada.map(s=>{
+        const tipoClass = s.tipoAlocacao==='hora_extra' ? 'alloc-hora_extra'
+          : (s.tipoAlocacao==='remanejado' ? 'alloc-remanejado'
+          : (s.tipoAlocacao==='demissao' ? 'chip-falta'
+          : (s.tipoAlocacao==='ferias' ? 'chip-fte' : 'alloc-permanente')));
+        let detalhe = `<b style="color:var(--cyan);">Destino:</b> ${s.equipeDestino||'—'}`;
+        if(s.tipoAlocacao==='ferias'){
+          detalhe = `<b style="color:#a99cff;">Férias:</b> ${s.feriasInicio? fmtDataPtBr(s.feriasInicio):'—'} a ${s.feriasFim? fmtDataPtBr(s.feriasFim):'—'}${s.feriasDias?' ('+s.feriasDias+' dias)':''}`;
+        } else if(s.tipoAlocacao==='demissao'){
+          detalhe = `<b style="color:var(--red);">Demissão solicitada</b>`;
+        }
+        const idsJson = encodeURIComponent(JSON.stringify(s._ids));
+        const badgeDup = s._qtd>1 ? ` <span class="alloc-chip" style="background:rgba(240,192,64,.18); color:var(--gold);">${s._qtd}× repetida</span>` : '';
         return `<div class="rep-card" style="flex-direction:column; align-items:stretch;">
           <div class="rc-info">
-            <div class="rc-nome">${s.colaboradorNome} <span class="alloc-chip ${tipoClass}">${s.tipoLabel||''}</span></div>
+            <div class="rc-nome">${s.colaboradorNome} <span class="alloc-chip ${tipoClass}">${s.tipoLabel||''}</span>${badgeDup}</div>
             <div class="rc-meta">Mat. ${s.colaboradorMatricula} · ${s.colaboradorFuncao||'—'}</div>
             <div class="rc-meta" style="margin-top:6px;">
-              <b style="color:var(--cyan);">Destino:</b> ${s.equipeDestino||'—'}<br>
+              ${detalhe}<br>
               <b style="color:var(--text-1);">Solicitante:</b> ${s.liderNome||'—'} (Mat. ${s.liderMatricula||'—'})
+              ${s._qtd>1?`<br><span style="font-size:10.5px; color:var(--gold);">Esta solicitação foi enviada ${s._qtd} vezes. Aprovar ou rejeitar resolve todas de uma vez.</span>`:''}
             </div>
           </div>
           <div class="actions-row" style="margin-top:10px;">
-            <button class="btn btn-sm btn-green" onclick="aprovarSolicitacaoMaoObra('${s.id}')">Aprovar</button>
-            <button class="btn btn-sm btn-danger" onclick="rejeitarSolicitacaoMaoObra('${s.id}')">Rejeitar</button>
+            <button class="btn btn-sm btn-green" onclick="aprovarSolicitacaoMaoObra('${s.id}','${idsJson}')">Aprovar</button>
+            <button class="btn btn-sm btn-danger" onclick="rejeitarSolicitacaoMaoObra('${s.id}','${idsJson}')">Rejeitar</button>
           </div>
         </div>`;
       }).join('');
@@ -3053,7 +3307,25 @@ function renderAprovacoes(){
   );
 }
 
-async function aprovarSolicitacaoMaoObra(id){
+// Marca as solicitações duplicadas (exceto a principal) com o mesmo desfecho, para limpar o acúmulo.
+async function resolverDuplicatas(idsJson, idPrincipal, desfecho){
+  let ids = [];
+  try{ ids = JSON.parse(decodeURIComponent(idsJson||'')) || []; }catch(_){ ids = []; }
+  const extras = ids.filter(x => x && x !== idPrincipal);
+  for(const eid of extras){
+    try{
+      await updateDoc(doc(db,'solicitacoes_movimentacao', eid), {
+        status: desfecho,
+        resolvidoComoDuplicata: true,
+        aprovadoPor: session.matricula,
+        aprovadoEm: serverTimestamp()
+      });
+    }catch(_){}
+  }
+}
+window.resolverDuplicatas = resolverDuplicatas;
+
+async function aprovarSolicitacaoMaoObra(id, idsJson){
   try{
     const ref = doc(db,'solicitacoes_movimentacao',id);
     const snap = await getDoc(ref);
@@ -3066,20 +3338,55 @@ async function aprovarSolicitacaoMaoObra(id){
         dataStatus: hojeISOLocal()
       });
       await updateDoc(ref, { status:'aprovado', aprovadoPor: session.matricula, aprovadoEm: serverTimestamp() });
+      // Encaminha para o RH dar baixa.
+      try{ await addDoc(collection(db,'solicitacoes_rh'), {
+        tipo:'demissao', colaboradorMatricula:String(s.colaboradorMatricula), colaboradorNome:s.colaboradorNome||'',
+        status:'aguardando_rh', origem:'gestor', aprovadoPor:String(session.matricula||''),
+        data: hojeISOLocal(), criadoEm: serverTimestamp()
+      }); }catch(_){}
       toast('Demissão aprovada.', 'ok');
+      await resolverDuplicatas(idsJson, id, 'aprovado');
+      if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
+      return;
+    }
+    if(s.tipoAlocacao === 'ferias'){
+      // Férias aprovadas pelo gestor: aplica o período e encaminha ao RH.
+      await updateDoc(doc(db,'colaboradores',String(s.colaboradorMatricula)), {
+        feriasInicio: s.feriasInicio || null,
+        feriasFim: s.feriasFim || null,
+        status: 'FÉRIAS',
+        dataStatus: s.feriasInicio || hojeISOLocal()
+      });
+      await updateDoc(ref, { status:'aprovado', aprovadoPor: session.matricula, aprovadoEm: serverTimestamp() });
+      try{ await addDoc(collection(db,'solicitacoes_rh'), {
+        tipo:'ferias', colaboradorMatricula:String(s.colaboradorMatricula), colaboradorNome:s.colaboradorNome||'',
+        feriasInicio:s.feriasInicio||null, feriasFim:s.feriasFim||null, feriasDias:s.feriasDias||null,
+        status:'aguardando_rh', origem:'gestor', aprovadoPor:String(session.matricula||''),
+        data: hojeISOLocal(), criadoEm: serverTimestamp()
+      }); }catch(_){}
+      toast('Férias aprovadas. Encaminhado ao RH.', 'ok');
+      await resolverDuplicatas(idsJson, id, 'aprovado');
       if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
       return;
     }
     // Aplica o remanejamento PERMANENTE no colaborador (altera a árvore de efetivo e equipes)
     // Regra de negócio: "Remanejado" aprovado incorpora o colaborador de forma permanente à equipe.
     const alocacaoFinal = (s.tipoAlocacao === 'remanejado') ? 'permanente' : s.tipoAlocacao;
-    await updateDoc(doc(db,'colaboradores',String(s.colaboradorMatricula)), {
-      equipe: s.equipeDestino || null,
-      rastreabilidade: s.equipeDestino || null,
-      liderMatricula: s.liderMatricula,
-      alocacaoTipo: alocacaoFinal,
-      alocadoEm: serverTimestamp()
-    });
+    const updAprov = camposMovimentacao(s.equipeDestino);
+    updAprov.alocacaoTipo = alocacaoFinal;
+    await updateDoc(doc(db,'colaboradores',String(s.colaboradorMatricula)), updAprov);
+    // Histórico auditável.
+    try{
+      const cA = colaboradoresCache.find(x=>String(x.matricula)===String(s.colaboradorMatricula)) || {};
+      await addDoc(collection(db,'movimentacoes_log'), {
+        colaboradorMatricula: String(s.colaboradorMatricula), colaboradorNome: s.colaboradorNome || cA.nome || '',
+        de: cA.equipe || '', para: s.equipeDestino || '', tipo: 'remanejamento_aprovado',
+        contratoNovo: updAprov.contrato || '', ccNovo: updAprov.codContrato || '',
+        responsavelNovo: updAprov.responsavel || '', gestorNovo: updAprov.gestor || '',
+        porMatricula: String(session.matricula||''), porNome: session.nome || '',
+        data: (typeof hojeISOLocal==='function'?hojeISOLocal():new Date().toISOString().slice(0,10)), timestamp: serverTimestamp()
+      });
+    }catch(_){}
     // Marca solicitação como aprovada
     await updateDoc(ref, {
       status: 'aprovado',
@@ -3087,12 +3394,13 @@ async function aprovarSolicitacaoMaoObra(id){
       aprovadoEm: serverTimestamp()
     });
     toast('Inclusão aprovada.', 'ok');
+    await resolverDuplicatas(idsJson, id, 'aprovado');
     if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
   } catch(e){ console.error(e); toast('Erro ao aprovar.', 'err'); }
 }
 window.aprovarSolicitacaoMaoObra = aprovarSolicitacaoMaoObra;
 
-async function rejeitarSolicitacaoMaoObra(id){
+async function rejeitarSolicitacaoMaoObra(id, idsJson){
   if(!confirm('Rejeitar esta solicitação?')) return;
   try{
     await updateDoc(doc(db,'solicitacoes_movimentacao',id), {
@@ -3100,6 +3408,7 @@ async function rejeitarSolicitacaoMaoObra(id){
       rejeitadoPor: session.matricula,
       rejeitadoEm: serverTimestamp()
     });
+    await resolverDuplicatas(idsJson, id, 'rejeitado');
     toast('Solicitação rejeitada.', 'ok');
   } catch(e){ console.error(e); toast('Erro ao rejeitar.', 'err'); }
 }
@@ -3520,6 +3829,60 @@ function equipeEmFolgaNaData(nomeEquipe, dataISO){
 }
 window.equipeEmFolgaNaData = equipeEmFolgaNaData;
 
+// Correlação por equipe: retorna contrato/CC/responsável/gestor/posição da equipe.
+// Usado ao mover um colaborador — esses campos passam a ser os da equipe destino.
+// Regra de CC inicial por contrato (fallback quando a equipe não tem CC salvo):
+//   PRIMÁRIA / PRESERVAÇÃO / PROJEÇÃO -> 2071 ; CABECEIRA -> 2012 ; VEDAÇÃO -> 2011
+function ccPadraoDoContrato(contrato){
+  const c = String(contrato||'').trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  if(c==='CABECEIRA') return '2012';
+  if(c==='VEDACAO')   return '2011';
+  if(c==='PRIMARIA' || c==='PRESERVACAO' || c==='PROJECAO') return '2071';
+  return '';
+}
+window.ccPadraoDoContrato = ccPadraoDoContrato;
+
+function dadosDaEquipe(nomeEquipe){
+  if(!nomeEquipe) return null;
+  const alvo = normEquipe(nomeEquipe);
+  const eq = equipesCache.find(e => normEquipe(e.nome) === alvo);
+  if(!eq) return null;
+  const contrato = eq.contrato || eq.cc || '';
+  const cc = eq.codContrato || eq.centroCusto || ccPadraoDoContrato(contrato) || '';
+  return {
+    contrato,
+    cc: contrato,                    // alias usado pela árvore do efetivo
+    codContrato: cc,
+    responsavel: eq.responsavel || '',
+    gestor: eq.gestor || '',
+    posTernium: eq.posTernium || '',
+    liderMatricula: (eq.liderMatricula!==undefined ? eq.liderMatricula : null)
+  };
+}
+window.dadosDaEquipe = dadosDaEquipe;
+
+// Monta o objeto de atualização ao mover um colaborador para uma equipe.
+// Preserva os valores EXCLUSIVOS do colaborador (matrícula, nome, grupo, classificação,
+// admissão, mat. ternium, cpf) — só muda o que é ligado à equipe.
+function camposMovimentacao(nomeEquipe){
+  const d = dadosDaEquipe(nomeEquipe) || {};
+  const upd = {
+    equipe: nomeEquipe,
+    rastreabilidade: nomeEquipe,
+    alocacaoTipo: 'permanente',
+    alocadoEm: serverTimestamp()
+  };
+  // Correlação automática (só preenche o que a equipe conhece).
+  if(d.contrato)    { upd.contrato = d.contrato; upd.cc = d.contrato; }
+  if(d.codContrato) upd.codContrato = d.codContrato;
+  if(d.responsavel) upd.responsavel = d.responsavel;
+  if(d.gestor)      upd.gestor = d.gestor;
+  if(d.posTernium)  upd.posTernium = d.posTernium;
+  if(d.liderMatricula !== undefined) upd.liderMatricula = d.liderMatricula || null;
+  return upd;
+}
+window.camposMovimentacao = camposMovimentacao;
+
 function renderAdminChamadaObrig(){
   const container = document.getElementById('chamadaObrigLista');
   if(!container) return;
@@ -3864,16 +4227,21 @@ async function moverSelecionadosClique(){
     const hoje = hojeISOLocal();
     mats.forEach(m=>{
       const c = colaboradoresCache.find(x=>String(x.matricula)===String(m)) || {};
-      const upd = {
-        equipe: destino,
-        rastreabilidade: destino,
-        liderMatricula: eqDest.liderMatricula || null,
-        alocacaoTipo: 'permanente',
-        alocadoEm: serverTimestamp()
-      };
+      // Correlação automática: puxa contrato/CC/responsável/gestor/posição da equipe destino.
+      const upd = camposMovimentacao(destino);
       // Novato (ADMITIDO) atribuído a uma equipe passa a ATIVO.
       if(normStatus(c.status)==='ADMITIDO'){ upd.status='ATIVO'; upd.dataStatus=hoje; }
       batch.update(doc(db,'colaboradores', String(m)), upd);
+      // Histórico auditável da movimentação.
+      const logRef = doc(collection(db,'movimentacoes_log'));
+      batch.set(logRef, {
+        colaboradorMatricula: String(m), colaboradorNome: c.nome || '',
+        de: origem, para: destino, tipo: 'remanejamento',
+        contratoNovo: upd.contrato || '', ccNovo: upd.codContrato || '',
+        responsavelNovo: upd.responsavel || '', gestorNovo: upd.gestor || '',
+        porMatricula: String(session.matricula||''), porNome: session.nome || '',
+        data: hoje, timestamp: serverTimestamp()
+      });
     });
     await batch.commit();
     toast(`${mats.length} colaborador(es) movido(s) para ${destino}.`, 'ok');
@@ -4001,15 +4369,21 @@ async function onDragEnd(ev){
     if(!colab){ toast('Colaborador não encontrado.', 'err'); return; }
     if(!confirm(`Mover ${colab.nome} para ${equipeDestino}?`)) return;
     try{
-      const updA = {
-        equipe: equipeDestino,
-        rastreabilidade: equipeDestino,
-        liderMatricula: eq.liderMatricula || null,
-        alocacaoTipo: 'permanente',
-        alocadoEm: serverTimestamp()
-      };
+      // Correlação automática: contrato/CC/responsável/gestor/posição da equipe destino.
+      const updA = camposMovimentacao(equipeDestino);
       if(normStatus(colab.status)==='ADMITIDO'){ updA.status='ATIVO'; updA.dataStatus=hojeISOLocal(); }
       await updateDoc(doc(db,'colaboradores', String(s.matricula)), updA);
+      // Histórico auditável.
+      try{
+        await addDoc(collection(db,'movimentacoes_log'), {
+          colaboradorMatricula: String(s.matricula), colaboradorNome: colab.nome || '',
+          de: colab.equipe || '', para: equipeDestino, tipo: 'remanejamento',
+          contratoNovo: updA.contrato || '', ccNovo: updA.codContrato || '',
+          responsavelNovo: updA.responsavel || '', gestorNovo: updA.gestor || '',
+          porMatricula: String(session.matricula||''), porNome: session.nome || '',
+          data: hojeISOLocal(), timestamp: serverTimestamp()
+        });
+      }catch(_){}
       toast(`${colab.nome.split(' ')[0]} → ${equipeDestino}`, 'ok');
       if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
     } catch(e){ console.error(e); toast('Erro ao remanejar.', 'err'); }
@@ -4047,13 +4421,14 @@ let rhStatusAlvo = null;
 
 function mudarAbaRh(aba){
   abaRhAtiva = aba;
-  ['lancar','novato','upload'].forEach(a=>{
+  ['lancar','ferias','novato','upload'].forEach(a=>{
     const tab = document.getElementById('tabRh'+a.charAt(0).toUpperCase()+a.slice(1));
     const pane = document.getElementById('paneRh'+a.charAt(0).toUpperCase()+a.slice(1));
     if(tab) tab.classList.toggle('active', a===aba);
     if(pane) pane.style.display = a===aba ? '' : 'none';
   });
   if(aba==='lancar') renderRhLancar();
+  if(aba==='ferias') renderRhFerias();
 }
 window.mudarAbaRh = mudarAbaRh;
 
@@ -4090,6 +4465,70 @@ function renderRhLancar(){
   }).join('') + (lista.length>200 ? `<div class="rank-empty">Mostrando 200 de ${lista.length}. Refine a busca.</div>` : '');
 }
 window.renderRhLancar = renderRhLancar;
+
+// ---- RH: aba Férias (vê férias e solicitações aprovadas pelo gestor) ----
+async function renderRhFerias(){
+  const boxSol = document.getElementById('rhSolicitacoesFerias');
+  const boxLista = document.getElementById('rhFeriasLista');
+  // 1) Solicitações que caíram do gestor (coleção solicitacoes_rh, tipo ferias, aguardando_rh)
+  if(boxSol){
+    boxSol.innerHTML = `<div class="rank-empty">Carregando solicitações…</div>`;
+    try{
+      const snap = await getDocs(query(collection(db,'solicitacoes_rh'), where('tipo','==','ferias'), where('status','==','aguardando_rh')));
+      const sols = snap.docs.map(d=>({id:d.id, ...d.data()}));
+      if(!sols.length){
+        boxSol.innerHTML = `<div class="rank-empty">Nenhuma solicitação de férias pendente no RH.</div>`;
+      } else {
+        boxSol.innerHTML = `<div class="section-title" style="margin-bottom:6px;">Solicitações aprovadas pelo gestor</div>` + sols.map(s=>`
+          <div class="rep-card" style="flex-direction:column; align-items:stretch;">
+            <div class="rc-info">
+              <div class="rc-nome">${s.colaboradorNome||'—'} <span class="alloc-chip chip-fte">Férias</span></div>
+              <div class="rc-meta">Mat. ${s.colaboradorMatricula} · ${s.feriasInicio? fmtDataPtBr(s.feriasInicio):'—'} a ${s.feriasFim? fmtDataPtBr(s.feriasFim):'—'}${s.feriasDias?' ('+s.feriasDias+' dias)':''}</div>
+            </div>
+            <div class="actions-row" style="margin-top:8px;">
+              <button class="btn btn-sm btn-green" onclick="concluirSolicitacaoRh('${s.id}')">✓ Marcar como tratada</button>
+            </div>
+          </div>`).join('');
+      }
+    }catch(e){ console.warn(e); boxSol.innerHTML = `<div class="rank-empty">Não foi possível carregar as solicitações.</div>`; }
+  }
+  // 2) Lista de quem está de férias / com férias agendadas
+  if(boxLista){
+    const busca = (document.getElementById('rhFeriasSearch').value||'').toLowerCase().trim();
+    const hoje = hojeISOLocal();
+    let lista = colaboradoresCache.filter(c=>{
+      const emFerias = normStatus(c.status)==='FERIAS' || (c.feriasInicio && c.feriasFim);
+      return emFerias;
+    });
+    if(busca) lista = lista.filter(c=>(c.nome||'').toLowerCase().includes(busca) || String(c.matricula||'').includes(busca));
+    lista.sort((a,b)=> (a.feriasInicio||'').localeCompare(b.feriasInicio||'') || (a.nome||'').localeCompare(b.nome||''));
+    if(!lista.length){ boxLista.innerHTML = `<div class="rank-empty">Nenhum colaborador em férias no momento.</div>`; return; }
+    boxLista.innerHTML = lista.map(c=>{
+      const ativa = c.feriasInicio && c.feriasFim && hoje>=c.feriasInicio && hoje<=c.feriasFim;
+      const futura = c.feriasInicio && hoje < c.feriasInicio;
+      const tag = ativa ? '<span class="alloc-chip chip-fte">EM FÉRIAS</span>' : (futura ? '<span class="alloc-chip" style="background:rgba(0,196,255,.14); color:var(--cyan);">AGENDADA</span>' : '');
+      const periodo = (c.feriasInicio && c.feriasFim) ? `${fmtDataPtBr(c.feriasInicio)} a ${fmtDataPtBr(c.feriasFim)}` : (c.dataStatus? 'desde '+fmtDataPtBr(c.dataStatus):'—');
+      return `<div class="person-card">
+        <div class="avatar">${(c.nome||'?').slice(0,2).toUpperCase()}</div>
+        <div class="p-info">
+          <div class="nome">${c.nome||'—'} ${tag}</div>
+          <div class="func">${c.grupo||c.classificacao||''} · Mat. ${c.matricula}</div>
+          <div class="func" style="font-size:10.5px; color:var(--text-2);">${periodo}${c.equipe?' · '+c.equipe:''}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
+window.renderRhFerias = renderRhFerias;
+
+async function concluirSolicitacaoRh(id){
+  try{
+    await updateDoc(doc(db,'solicitacoes_rh', id), { status:'tratada', tratadaPor:String(session.matricula||''), tratadaEm: serverTimestamp() });
+    toast('Solicitação marcada como tratada.', 'ok');
+    renderRhFerias();
+  }catch(e){ console.error(e); toast('Erro: '+(e&&e.message?e.message:e), 'err'); }
+}
+window.concluirSolicitacaoRh = concluirSolicitacaoRh;
 
 function abrirModalRhStatus(mat){
   const c = colaboradoresCache.find(x=>String(x.matricula)===String(mat));
@@ -4179,8 +4618,8 @@ async function salvarNovatoRh(){
 window.salvarNovatoRh = salvarNovatoRh;
 
 function baixarModeloRh(){
-  const COLUNAS = ['MATRICULA','NOME','CONTRATO','GRUPO','CLASSIFICAÇÃO','C.C','EQUIPE ','ATUAÇÃO','TIPO DE KPI','CENTRO DE CUSTO ','RESPONSÁVEL CAMPO','RESPONSÁVEL','GESTOR','POSIÇÃO TERNIUM','ADMISSÃO','DATA STATUS ','MAT. TERNIUM','CPF','STATUS'];
-  const exemplo = ['00000','FULANO DE TAL (EXEMPLO)','PRESERVAÇÃO','','AUXILIAR','DIRETOS','','','ADERÊNCIA','2071','','','','','2026-07-01','2026-07-01','','00000000000','ADMITIDO'];
+  const COLUNAS = ['MATRICULA','NOME','CONTRATO','GRUPO','CLASSIFICAÇÃO','EQUIPE ','CENTRO DE CUSTO ','RESPONSÁVEL ','GESTOR','POSIÇÃO TERNIUM','ADMISSÃO','DATA STATUS','MAT. TERNIUM','CPF','STATUS'];
+  const exemplo = ['00000','FULANO DE TAL (EXEMPLO)','PRESERVAÇÃO','SOLDADOR','SOLDADOR','','2071','','','90001','2026-07-01','2026-07-01','','00000000000','ADMITIDO'];
   const aoa = [COLUNAS, exemplo];
   const ws = XLSX.utils.aoa_to_sheet(aoa);
   const wb = XLSX.utils.book_new();
@@ -4189,6 +4628,417 @@ function baixarModeloRh(){
   toast('Modelo baixado.', 'ok');
 }
 window.baixarModeloRh = baixarModeloRh;
+
+// ==================== MÓDULO DE CONTROLE (admin) ====================
+let abaControleAtiva = 'arvore';
+
+async function abrirModuloControle(){
+  // Carrega coleções de apoio (leitura única) + usa equipesCache/colaboradoresCache já em memória.
+  try{
+    const [ct, cc, pos, us] = await Promise.all([
+      getDocs(collection(db,'contratos')).catch(()=>({docs:[]})),
+      getDocs(collection(db,'centros_custo')).catch(()=>({docs:[]})),
+      getDocs(collection(db,'posicoes_ternium')).catch(()=>({docs:[]})),
+      getDocs(collection(db,'usuarios')).catch(()=>({docs:[]}))
+    ]);
+    contratosCache = ct.docs.map(d=>({id:d.id, ...d.data()}));
+    centrosCustoCache = cc.docs.map(d=>({id:d.id, ...d.data()}));
+    posicoesCache = pos.docs.map(d=>({id:d.id, ...d.data()}));
+    usuariosCache = us.docs.map(d=>({id:d.id, ...d.data()}));
+  }catch(e){ console.warn('Falha ao carregar apoio do controle:', e); }
+  mudarAbaControle(abaControleAtiva || 'arvore');
+}
+window.abrirModuloControle = abrirModuloControle;
+
+function mudarAbaControle(aba){
+  abaControleAtiva = aba;
+  const abas = ['arvore','contratos','equipes','cc','pos','acessos'];
+  const nome = a => a==='cc'?'CC':(a==='pos'?'Pos':(a.charAt(0).toUpperCase()+a.slice(1)));
+  abas.forEach(a=>{
+    const tab = document.getElementById('tabCtrl'+nome(a));
+    const pane = document.getElementById('paneCtrl'+nome(a));
+    if(tab) tab.classList.toggle('active', a===aba);
+    if(pane) pane.style.display = a===aba ? '' : 'none';
+  });
+  atualizarDatalistsControle();
+  if(aba==='arvore') renderCtrlArvore();
+  if(aba==='contratos') renderCtrlContratos();
+  if(aba==='equipes') renderCtrlEquipes();
+  if(aba==='cc') renderCtrlCC();
+  if(aba==='pos') renderCtrlPos();
+  if(aba==='acessos') renderCtrlAcessos();
+}
+window.mudarAbaControle = mudarAbaControle;
+
+function atualizarDatalistsControle(){
+  const dc = document.getElementById('ctrlContratosDatalist');
+  if(dc){
+    const nomes = new Set(contratosCache.map(c=>c.nome).filter(Boolean));
+    equipesCache.forEach(e=>{ if(e.contrato) nomes.add(e.contrato); });
+    dc.innerHTML = [...nomes].sort().map(n=>`<option value="${(n||'').replace(/"/g,'&quot;')}">`).join('');
+  }
+  const dp = document.getElementById('ctrlPosDatalist');
+  if(dp){
+    const ps = new Set(posicoesCache.map(p=>p.cod).filter(Boolean));
+    equipesCache.forEach(e=>{ if(e.posTernium) ps.add(e.posTernium); });
+    dp.innerHTML = [...ps].sort().map(n=>`<option value="${(n||'').replace(/"/g,'&quot;')}">`).join('');
+  }
+}
+
+// ---------- ÁRVORE em caixas (contrato agrupado por CC) ----------
+function renderCtrlArvore(){
+  const box = document.getElementById('ctrlArvoreBox');
+  if(!box) return;
+  if(!equipesCache.length){ box.innerHTML = `<div class="rank-empty">Nenhuma equipe cadastrada. Importe a base ou cadastre equipes.</div>`; return; }
+  // agrupa: CC -> contrato -> equipes
+  const porCC = {};
+  equipesCache.forEach(eq=>{
+    const contrato = eq.contrato || eq.cc || '(sem contrato)';
+    const cc = eq.codContrato || eq.centroCusto || (typeof ccPadraoDoContrato==='function'?ccPadraoDoContrato(contrato):'') || '(sem CC)';
+    porCC[cc] = porCC[cc] || {};
+    porCC[cc][contrato] = porCC[cc][contrato] || [];
+    porCC[cc][contrato].push(eq);
+  });
+  const cont = c => colaboradoresCache.filter(p=>normEquipe(p.equipe)===normEquipe(c.nome) && statusPermiteChamada(p)).length;
+  let html = '';
+  Object.keys(porCC).sort().forEach(cc=>{
+    const totalCC = Object.values(porCC[cc]).reduce((s,eqs)=>s+eqs.reduce((a,e)=>a+cont(e),0),0);
+    html += `<div style="margin-bottom:14px; border:1px solid var(--line); border-radius:12px; overflow:hidden;">
+      <div style="background:var(--bg-3); padding:10px 12px; display:flex; justify-content:space-between; align-items:center;">
+        <div style="font-weight:700; color:var(--cyan);">💰 Centro de Custo ${cc}</div>
+        <div style="font-size:11px; color:var(--text-2);">${totalCC} pessoas</div>
+      </div>
+      <div style="padding:10px 12px;">`;
+    Object.keys(porCC[cc]).sort().forEach(contrato=>{
+      const eqs = porCC[cc][contrato].slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+      const totC = eqs.reduce((a,e)=>a+cont(e),0);
+      html += `<div style="margin-bottom:10px;">
+        <div style="font-weight:600; margin-bottom:6px;">📑 ${contrato} <span style="font-size:10.5px; color:var(--text-2);">· ${totC} pessoas</span></div>
+        <div style="display:flex; flex-wrap:wrap; gap:6px;">`;
+      eqs.forEach(e=>{
+        const q = cont(e);
+        html += `<div onclick="editarEquipeControle('${(e.nome||'').replace(/'/g,"\\'")}')" style="cursor:pointer; background:var(--bg-2); border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-size:11.5px;">
+          <div style="color:var(--text-1);">${e.nome}</div>
+          <div style="font-size:10px; color:var(--text-2);">${q} pessoa${q!==1?'s':''}${e.responsavel?' · '+e.responsavel:''}</div>
+        </div>`;
+      });
+      html += `</div></div>`;
+    });
+    html += `</div></div>`;
+  });
+  box.innerHTML = html;
+}
+window.renderCtrlArvore = renderCtrlArvore;
+
+// ---------- CONTRATOS ----------
+async function salvarContrato(){
+  const nome = (document.getElementById('ctrlContratoNome').value||'').trim();
+  const cc = (document.getElementById('ctrlContratoCC').value||'').trim();
+  if(!nome){ toast('Informe o nome do contrato.', 'err'); return; }
+  try{
+    await setDoc(doc(db,'contratos', nome), { nome, ccPadrao: cc, atualizadoEm: serverTimestamp() }, {merge:true});
+    toast('Contrato salvo.', 'ok');
+    document.getElementById('ctrlContratoNome').value=''; document.getElementById('ctrlContratoCC').value='';
+    const ct = await getDocs(collection(db,'contratos')); contratosCache = ct.docs.map(d=>({id:d.id, ...d.data()}));
+    renderCtrlContratos(); atualizarDatalistsControle();
+  }catch(e){ console.error(e); toast('Erro ao salvar contrato: '+(e&&e.message?e.message:e), 'err'); }
+}
+window.salvarContrato = salvarContrato;
+
+function renderCtrlContratos(){
+  const box = document.getElementById('ctrlContratosLista');
+  if(!box) return;
+  // une contratos cadastrados + os que aparecem nas equipes
+  const mapa = {};
+  contratosCache.forEach(c=>{ mapa[c.nome] = { nome:c.nome, cc:c.ccPadrao||'' }; });
+  equipesCache.forEach(e=>{ if(e.contrato && !mapa[e.contrato]) mapa[e.contrato] = { nome:e.contrato, cc:e.codContrato||'' }; });
+  const lista = Object.values(mapa).sort((a,b)=>a.nome.localeCompare(b.nome));
+  if(!lista.length){ box.innerHTML = `<div class="rank-empty">Nenhum contrato ainda.</div>`; return; }
+  box.innerHTML = lista.map(c=>{
+    const nEq = equipesCache.filter(e=>e.contrato===c.nome).length;
+    const nomeEsc = (c.nome||'').replace(/'/g,"\\'");
+    return `<div class="rank-row" style="align-items:center;">
+      <div style="flex:1;">
+        <div class="rank-name">${c.nome}</div>
+        <div style="font-size:11px; color:var(--text-2);">CC ${c.cc||'—'} · ${nEq} equipe${nEq!==1?'s':''}</div>
+      </div>
+      <button class="btn btn-sm" style="background:rgba(255,92,108,.15); color:var(--red);" onclick="excluirContrato('${nomeEsc}')">Excluir</button>
+    </div>`;
+  }).join('');
+}
+window.renderCtrlContratos = renderCtrlContratos;
+
+function sugerirCCporContrato(){
+  const contrato = document.getElementById('ctrlEqContrato').value;
+  const ccField = document.getElementById('ctrlEqCC');
+  if(ccField && !ccField.value){
+    const ct = contratosCache.find(c=>normEquipe(c.nome)===normEquipe(contrato));
+    const sug = (ct && ct.ccPadrao) ? ct.ccPadrao : (typeof ccPadraoDoContrato==='function'?ccPadraoDoContrato(contrato):'');
+    if(sug) ccField.value = sug;
+  }
+}
+window.sugerirCCporContrato = sugerirCCporContrato;
+
+// ---------- EQUIPES (correlação) ----------
+async function salvarEquipeControle(){
+  const nome = (document.getElementById('ctrlEqNome').value||'').trim();
+  if(!nome){ toast('Informe o nome da equipe.', 'err'); return; }
+  const contrato = (document.getElementById('ctrlEqContrato').value||'').trim();
+  const cc = (document.getElementById('ctrlEqCC').value||'').trim();
+  const resp = (document.getElementById('ctrlEqResp').value||'').trim();
+  const gestor = (document.getElementById('ctrlEqGestor').value||'').trim();
+  const pos = (document.getElementById('ctrlEqPos').value||'').trim();
+  try{
+    await setDoc(doc(db,'equipes', nome), {
+      nome, contrato, cc: contrato,
+      codContrato: cc, centroCusto: cc,
+      responsavel: resp, gestor, posTernium: pos,
+      atualizadoEm: serverTimestamp()
+    }, {merge:true});
+    toast('Equipe salva.', 'ok');
+    ['ctrlEqNome','ctrlEqContrato','ctrlEqCC','ctrlEqResp','ctrlEqGestor','ctrlEqPos'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
+    if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
+    renderCtrlEquipes(); atualizarDatalistsControle();
+  }catch(e){ console.error(e); toast('Erro ao salvar equipe: '+(e&&e.message?e.message:e), 'err'); }
+}
+window.salvarEquipeControle = salvarEquipeControle;
+
+function editarEquipeControle(nomeEquipe){
+  mudarAbaControle('equipes');
+  const eq = equipesCache.find(e=>normEquipe(e.nome)===normEquipe(nomeEquipe));
+  if(!eq) return;
+  document.getElementById('ctrlEqNome').value = eq.nome || '';
+  document.getElementById('ctrlEqContrato').value = eq.contrato || '';
+  document.getElementById('ctrlEqCC').value = eq.codContrato || eq.centroCusto || '';
+  document.getElementById('ctrlEqResp').value = eq.responsavel || '';
+  document.getElementById('ctrlEqGestor').value = eq.gestor || '';
+  document.getElementById('ctrlEqPos').value = eq.posTernium || '';
+  try{ document.getElementById('ctrlEqNome').scrollIntoView({behavior:'smooth', block:'center'}); }catch(_){}
+}
+window.editarEquipeControle = editarEquipeControle;
+
+function renderCtrlEquipes(){
+  const box = document.getElementById('ctrlEquipesLista');
+  if(!box) return;
+  const busca = (document.getElementById('ctrlEqSearch').value||'').toLowerCase().trim();
+  let lista = equipesCache.slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+  if(busca) lista = lista.filter(e=>(e.nome||'').toLowerCase().includes(busca) || (e.contrato||'').toLowerCase().includes(busca));
+  if(!lista.length){ box.innerHTML = `<div class="rank-empty">Nenhuma equipe.</div>`; return; }
+  box.innerHTML = lista.map(e=>{
+    const nomeEsc = (e.nome||'').replace(/'/g,"\\'");
+    return `<div class="rank-row" style="align-items:center;">
+      <div style="flex:1; cursor:pointer;" onclick="editarEquipeControle('${nomeEsc}')">
+        <div class="rank-name">${e.nome}</div>
+        <div style="font-size:10.5px; color:var(--text-2);">${e.contrato||'—'} · CC ${e.codContrato||e.centroCusto||'—'} · resp: ${e.responsavel||'—'} · gestor: ${e.gestor||'—'}</div>
+      </div>
+      <button class="btn btn-sm" style="background:var(--bg-3); color:var(--cyan); margin-right:6px;" onclick="editarEquipeControle('${nomeEsc}')">editar</button>
+      <button class="btn btn-sm" style="background:rgba(255,92,108,.15); color:var(--red);" onclick="excluirEquipeControle('${nomeEsc}')">Excluir</button>
+    </div>`;
+  }).join('');
+}
+window.renderCtrlEquipes = renderCtrlEquipes;
+
+// ---------- CENTROS DE CUSTO ----------
+async function salvarCentroCusto(){
+  const cod = (document.getElementById('ctrlCCcod').value||'').trim();
+  const desc = (document.getElementById('ctrlCCdesc').value||'').trim();
+  if(!cod){ toast('Informe o código do centro de custo.', 'err'); return; }
+  try{
+    await setDoc(doc(db,'centros_custo', cod), { cod, descricao: desc, atualizadoEm: serverTimestamp() }, {merge:true});
+    toast('Centro de custo salvo.', 'ok');
+    document.getElementById('ctrlCCcod').value=''; document.getElementById('ctrlCCdesc').value='';
+    const cc = await getDocs(collection(db,'centros_custo')); centrosCustoCache = cc.docs.map(d=>({id:d.id, ...d.data()}));
+    renderCtrlCC();
+  }catch(e){ console.error(e); toast('Erro: '+(e&&e.message?e.message:e), 'err'); }
+}
+window.salvarCentroCusto = salvarCentroCusto;
+
+function renderCtrlCC(){
+  const box = document.getElementById('ctrlCClista');
+  if(!box) return;
+  const mapa = {};
+  centrosCustoCache.forEach(c=>{ mapa[c.cod] = c.descricao||''; });
+  equipesCache.forEach(e=>{ const cc=e.codContrato||e.centroCusto; if(cc && !(cc in mapa)) mapa[cc]=''; });
+  const lista = Object.keys(mapa).sort();
+  if(!lista.length){ box.innerHTML = `<div class="rank-empty">Nenhum centro de custo.</div>`; return; }
+  box.innerHTML = lista.map(cod=>{
+    const nEq = equipesCache.filter(e=>(e.codContrato||e.centroCusto)===cod).length;
+    const codEsc = String(cod).replace(/'/g,"\\'");
+    return `<div class="rank-row" style="align-items:center;">
+      <div style="flex:1;"><div class="rank-name">${cod}</div><div style="font-size:11px; color:var(--text-2);">${mapa[cod]||''}${mapa[cod]?' · ':''}${nEq} equipe${nEq!==1?'s':''}</div></div>
+      <button class="btn btn-sm" style="background:rgba(255,92,108,.15); color:var(--red);" onclick="excluirCentroCusto('${codEsc}')">Excluir</button>
+    </div>`;
+  }).join('');
+}
+window.renderCtrlCC = renderCtrlCC;
+
+// ---------- POSIÇÕES TERNIUM ----------
+async function salvarPosicao(){
+  const cod = (document.getElementById('ctrlPosCod').value||'').trim();
+  const desc = (document.getElementById('ctrlPosDesc').value||'').trim();
+  if(!cod){ toast('Informe o código/nome da posição.', 'err'); return; }
+  try{
+    await setDoc(doc(db,'posicoes_ternium', cod), { cod, descricao: desc, atualizadoEm: serverTimestamp() }, {merge:true});
+    toast('Posição salva.', 'ok');
+    document.getElementById('ctrlPosCod').value=''; document.getElementById('ctrlPosDesc').value='';
+    const p = await getDocs(collection(db,'posicoes_ternium')); posicoesCache = p.docs.map(d=>({id:d.id, ...d.data()}));
+    renderCtrlPos(); atualizarDatalistsControle();
+  }catch(e){ console.error(e); toast('Erro: '+(e&&e.message?e.message:e), 'err'); }
+}
+window.salvarPosicao = salvarPosicao;
+
+function renderCtrlPos(){
+  const box = document.getElementById('ctrlPoslista');
+  if(!box) return;
+  const mapa = {};
+  posicoesCache.forEach(p=>{ mapa[p.cod]=p.descricao||''; });
+  equipesCache.forEach(e=>{ if(e.posTernium && !(e.posTernium in mapa)) mapa[e.posTernium]=''; });
+  const lista = Object.keys(mapa).sort();
+  if(!lista.length){ box.innerHTML = `<div class="rank-empty">Nenhuma posição.</div>`; return; }
+  box.innerHTML = lista.map(cod=>{
+    const codEsc = String(cod).replace(/'/g,"\\'");
+    return `<div class="rank-row" style="align-items:center;">
+      <div style="flex:1;"><div class="rank-name">${cod}</div><div style="font-size:11px; color:var(--text-2);">${mapa[cod]||''}</div></div>
+      <button class="btn btn-sm" style="background:rgba(255,92,108,.15); color:var(--red);" onclick="excluirPosicao('${codEsc}')">Excluir</button>
+    </div>`;
+  }).join('');
+}
+window.renderCtrlPos = renderCtrlPos;
+
+// ---------- ACESSOS (nível de acesso das pessoas) ----------
+const ROLES_DISPONIVEIS = [
+  {v:'colaborador', t:'Colaborador'},
+  {v:'lider', t:'Líder'},
+  {v:'rh', t:'Recursos Humanos'},
+  {v:'suprimentos', t:'Suprimentos'},
+  {v:'admin', t:'Administrador'}
+];
+
+async function renderCtrlAcessos(){
+  const box = document.getElementById('ctrlAcessosLista');
+  if(!box) return;
+  // Recarrega usuarios ao abrir a aba (garante dados mesmo se o load inicial falhou).
+  box.innerHTML = `<div class="rank-empty">Carregando pessoas…</div>`;
+  try{
+    const us = await getDocs(collection(db,'usuarios'));
+    usuariosCache = us.docs.map(d=>({id:d.id, ...d.data()}));
+  }catch(e){
+    console.warn('Falha ao carregar usuarios:', e);
+    box.innerHTML = `<div class="rank-empty">Não foi possível carregar os acessos.<br><span style="font-size:11px;">Verifique se as regras do Firebase permitem leitura da coleção <b>usuarios</b> para o admin.</span></div>`;
+    return;
+  }
+  const busca = (document.getElementById('ctrlAcessoSearch').value||'').toLowerCase().trim();
+  let lista = usuariosCache.slice();
+  if(busca) lista = lista.filter(u=>(u.nome||'').toLowerCase().includes(busca) || String(u.matricula||u.id||'').includes(busca));
+  lista.sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+  if(!lista.length){ box.innerHTML = `<div class="rank-empty">Nenhuma pessoa cadastrada encontrada.</div>`; return; }
+  box.innerHTML = lista.slice(0,300).map(u=>{
+    const mat = String(u.matricula||u.id);
+    const opts = ROLES_DISPONIVEIS.map(r=>`<option value="${r.v}" ${u.role===r.v?'selected':''}>${r.t}</option>`).join('');
+    const aprovado = u.statusConta==='aprovado';
+    const statusTag = aprovado
+      ? `<span class="alloc-chip" style="background:rgba(61,232,160,.16); color:var(--green);">aprovado</span>`
+      : `<span class="alloc-chip" style="background:rgba(240,192,64,.18); color:var(--gold);">${u.statusConta||'pendente'}</span>`;
+    const btnConta = aprovado
+      ? `<button class="btn btn-sm" style="background:var(--bg-3);" onclick="alterarStatusConta('${mat}','pendente')">Suspender</button>`
+      : `<button class="btn btn-sm btn-green" onclick="alterarStatusConta('${mat}','aprovado')">Aprovar</button>`;
+    return `<div class="rank-row" style="align-items:center; flex-wrap:wrap; gap:6px;">
+      <div style="flex:1; min-width:150px;">
+        <div class="rank-name">${u.nome||'—'} ${statusTag}</div>
+        <div style="font-size:10.5px; color:var(--text-2);">Mat. ${mat}</div>
+      </div>
+      <select onchange="alterarNivelAcesso('${mat}', this.value)" style="max-width:150px;">${opts}</select>
+      ${btnConta}
+    </div>`;
+  }).join('') + (lista.length>300?`<div class="rank-empty">Mostrando 300 de ${lista.length}. Refine a busca.</div>`:'');
+}
+window.renderCtrlAcessos = renderCtrlAcessos;
+
+async function alterarNivelAcesso(mat, novoRole){
+  try{
+    await updateDoc(doc(db,'usuarios', String(mat)), { role: novoRole, roleAtualizadoEm: serverTimestamp() });
+    const u = usuariosCache.find(x=>String(x.matricula||x.id)===String(mat)); if(u) u.role = novoRole;
+    toast('Nível de acesso atualizado.', 'ok');
+  }catch(e){ console.error(e); toast('Erro ao atualizar acesso: '+(e&&e.message?e.message:e), 'err'); }
+}
+window.alterarNivelAcesso = alterarNivelAcesso;
+
+async function alterarStatusConta(mat, novoStatus){
+  try{
+    await updateDoc(doc(db,'usuarios', String(mat)), { statusConta: novoStatus, statusContaEm: serverTimestamp() });
+    const u = usuariosCache.find(x=>String(x.matricula||x.id)===String(mat)); if(u) u.statusConta = novoStatus;
+    toast(novoStatus==='aprovado'?'Conta aprovada.':'Conta suspensa.', 'ok');
+    renderCtrlAcessos();
+  }catch(e){ console.error(e); toast('Erro ao alterar status: '+(e&&e.message?e.message:e), 'err'); }
+}
+window.alterarStatusConta = alterarStatusConta;
+
+// Registra no histórico antes de excluir (para os relatórios futuros).
+async function logExclusao(entidade, identificador, dados){
+  try{
+    await addDoc(collection(db,'movimentacoes_log'), {
+      tipo:'exclusao', entidade, identificador: String(identificador||''),
+      detalhe: dados ? JSON.stringify(dados).slice(0,1500) : '',
+      porMatricula: String(session.matricula||''), porNome: session.nome||'',
+      data: (typeof hojeISOLocal==='function'?hojeISOLocal():new Date().toISOString().slice(0,10)),
+      timestamp: serverTimestamp()
+    });
+  }catch(_){}
+}
+
+async function excluirContrato(nome){
+  if(!confirm(`Excluir o contrato "${nome}"? As equipes existentes não são apagadas, apenas o cadastro do contrato. O histórico é mantido.`)) return;
+  try{
+    const c = contratosCache.find(x=>x.nome===nome) || {nome};
+    await logExclusao('contrato', nome, c);
+    await deleteDoc(doc(db,'contratos', nome));
+    contratosCache = contratosCache.filter(x=>x.nome!==nome);
+    toast('Contrato excluído.', 'ok');
+    renderCtrlContratos(); atualizarDatalistsControle();
+  }catch(e){ console.error(e); toast('Erro ao excluir: '+(e&&e.message?e.message:e), 'err'); }
+}
+window.excluirContrato = excluirContrato;
+
+async function excluirCentroCusto(cod){
+  if(!confirm(`Excluir o centro de custo "${cod}"? O histórico é mantido.`)) return;
+  try{
+    await logExclusao('centro_custo', cod, centrosCustoCache.find(x=>x.cod===cod));
+    await deleteDoc(doc(db,'centros_custo', cod));
+    centrosCustoCache = centrosCustoCache.filter(x=>x.cod!==cod);
+    toast('Centro de custo excluído.', 'ok');
+    renderCtrlCC();
+  }catch(e){ console.error(e); toast('Erro ao excluir: '+(e&&e.message?e.message:e), 'err'); }
+}
+window.excluirCentroCusto = excluirCentroCusto;
+
+async function excluirPosicao(cod){
+  if(!confirm(`Excluir a posição "${cod}"? O histórico é mantido.`)) return;
+  try{
+    await logExclusao('posicao_ternium', cod, posicoesCache.find(x=>x.cod===cod));
+    await deleteDoc(doc(db,'posicoes_ternium', cod));
+    posicoesCache = posicoesCache.filter(x=>x.cod!==cod);
+    toast('Posição excluída.', 'ok');
+    renderCtrlPos(); atualizarDatalistsControle();
+  }catch(e){ console.error(e); toast('Erro ao excluir: '+(e&&e.message?e.message:e), 'err'); }
+}
+window.excluirPosicao = excluirPosicao;
+
+async function excluirEquipeControle(nome){
+  const nPessoas = colaboradoresCache.filter(c=>normEquipe(c.equipe)===normEquipe(nome)).length;
+  if(nPessoas>0){
+    toast(`A equipe "${nome}" tem ${nPessoas} colaborador(es). Remaneje-os antes de excluir.`, 'err');
+    return;
+  }
+  if(!confirm(`Excluir a equipe "${nome}"? O histórico é mantido.`)) return;
+  try{
+    await logExclusao('equipe', nome, equipesCache.find(e=>normEquipe(e.nome)===normEquipe(nome)));
+    await deleteDoc(doc(db,'equipes', nome));
+    toast('Equipe excluída.', 'ok');
+    if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
+    renderCtrlEquipes(); atualizarDatalistsControle();
+  }catch(e){ console.error(e); toast('Erro ao excluir: '+(e&&e.message?e.message:e), 'err'); }
+}
+window.excluirEquipeControle = excluirEquipeControle;
 
 // Upload do RH reaproveita o importador único (que já lê STATUS/DATA STATUS)
 (function(){
@@ -4243,6 +5093,11 @@ async function confirmarAlocacao(tipo){
   try{
     if(tipo === 'remanejado'){
       // PERMANENTE: altera a árvore de equipes -> exige aprovação do gestor.
+      // Impede duplicidade: já existe solicitação pendente para este colaborador?
+      if(await existeSolicitacaoPendente(alocacaoAlvo.matricula)){
+        toast('Já existe uma solicitação pendente para este colaborador. Aguarde a aprovação ou rejeição.', 'err');
+        return;
+      }
       const payload = { ...baseInfo, tipoAlocacao: 'remanejado', tipoLabel: 'Remanejado', status: 'pendente', criadoEm: serverTimestamp() };
       Object.keys(payload).forEach(k => { if(payload[k] === undefined) payload[k] = null; });
       await addDoc(collection(db,'solicitacoes_movimentacao'), payload);
@@ -4340,52 +5195,51 @@ async function processarUploadEfetivo(file){
       const n = {}; Object.keys(l).forEach(k => n[normKey(k)] = l[k]);
       const matricula = pick(n,'MATRICULA','RM');
       if(!matricula) continue;
-      const nome        = pick(n,'NOME');
-      const contrato    = pick(n,'CONTRATO');                    // topo da árvore / cc
-      const grupo       = pick(n,'GRUPO');
-      const classificacao = pick(n,'CLASSIFICACAO','CLASSIFICACAO ');
-      const ccTipo      = pick(n,'C.C','CC','C C');              // DIRETOS/INDIRETOS
-      const equipe      = pick(n,'EQUIPE');                      // 2º nível (rastreabilidade)
-      const atuacao     = pick(n,'ATUACAO');
-      const tipoKpi     = pick(n,'TIPO DE KPI','TIPO KPI');
-      const codContrato = pick(n,'DENTRO DE CUSTO','CENTRO DE CUSTO','COD. CONTRATO','COD CONTRATO');
-      const respCampo   = pick(n,'RESPONSAVEL CAMPO');
-      const responsavel = pick(n,'RESPONSAVEL');
-      const gestor      = pick(n,'GESTOR','COORDENADOR');
-      const posTernium  = pick(n,'POSICAO TERNIUM','POSICAO TERNIUM ');
-      const admissao    = excelDateToISO(n['ADMISSAO']!==undefined ? n['ADMISSAO'] : pick(n,'ADMISSAO'));
-      const matTernium  = pick(n,'MAT. TERNIUM','MAT TERNIUM','MATRICULA TERNIUM');
-      const cpf         = pick(n,'CPF');
-      // Novas colunas do RH: STATUS e DATA STATUS
+      const antigo = colaboradoresCache.find(x => String(x.matricula)===String(matricula)) || {};
+      const nome        = pick(n,'NOME') || antigo.nome || '';
+      const contrato    = pick(n,'CONTRATO') || antigo.contrato || '';       // topo da árvore
+      const grupo       = pick(n,'GRUPO') || antigo.grupo || '';
+      const classificacao = pick(n,'CLASSIFICACAO','CLASSIFICACAO ') || antigo.classificacao || '';
+      const equipe      = pick(n,'EQUIPE') || antigo.equipe || '';           // 2º nível / chave de equipe
+      const codContrato = pick(n,'CENTRO DE CUSTO','DENTRO DE CUSTO','COD. CONTRATO','COD CONTRATO') || antigo.codContrato || '';
+      const responsavel = pick(n,'RESPONSAVEL') || antigo.responsavel || '';
+      const gestor      = pick(n,'GESTOR','COORDENADOR') || antigo.gestor || '';
+      const posTernium  = pick(n,'POSICAO TERNIUM','POSICAO TERNIUM ') || antigo.posTernium || '';
+      const admissao    = excelDateToISO(n['ADMISSAO']!==undefined ? n['ADMISSAO'] : pick(n,'ADMISSAO')) || antigo.admissao || '';
+      const matTernium  = pick(n,'MAT. TERNIUM','MAT TERNIUM','MATRICULA TERNIUM') || antigo.matTernium || '';
+      const cpf         = pick(n,'CPF') || antigo.cpf || '';
+      // Campos REMOVIDOS da planilha (C.C, ATUAÇÃO, TIPO DE KPI, RESP. CAMPO): preserva o que já existe.
+      const ccTipo      = antigo.ccTipo || '';                               // DIRETOS/INDIRETOS (legado)
+      const atuacao     = antigo.atuacao || '';                              // legado (árvore usa CC agora)
+      const tipoKpi     = antigo.tipoKpi || '';
+      const respCampo   = antigo.respCampo || '';
+      // Colunas do RH: STATUS e DATA STATUS
       const statusPlan  = pick(n,'STATUS');
       const dataStatusP = excelDateToISO(n['DATA STATUS']!==undefined ? n['DATA STATUS'] : pick(n,'DATA STATUS'));
 
       const liderMatricula = equipe ? (lideresPorEquipe[equipe.toUpperCase()] || null) : null;
-      const antigo = colaboradoresCache.find(x => String(x.matricula)===String(matricula)) || {};
 
       // Status: usa o da planilha (normalizado) se informado; senão preserva o existente; senão ATIVO.
-      const upStatus = s => String(s||'').trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
       let statusFinal = statusPlan ? statusPlan.trim().toUpperCase() : (antigo.status || 'ATIVO');
-      // "ADMITIDO " (com espaço) -> "ADMITIDO"
       statusFinal = statusFinal.trim();
       const dataStatusFinal = dataStatusP || antigo.dataStatus || (typeof hojeISOLocal==='function' ? hojeISOLocal() : new Date().toISOString().slice(0,10));
 
       const dados = {
         matricula, nome,
-        contrato,                 // = CONTRATO (topo da árvore)
-        cc: contrato,             // alias p/ compatibilidade com árvore do efetivo
+        contrato,                 // CONTRATO (topo da árvore)
+        cc: contrato,             // alias p/ compatibilidade com a árvore do efetivo
         grupo, classificacao,
         funcao: classificacao,    // telas de chamada exibem `funcao`
-        ccTipo,                   // DIRETOS/INDIRETOS
-        equipe: equipe || null,   // 2º nível (rastreabilidade) e chave de equipe p/ chamadas
+        ccTipo,                   // legado (preservado)
+        equipe: equipe || null,   // chave de equipe p/ chamadas
         rastreabilidade: equipe || '',
-        atuacao, tipoKpi, codContrato,
+        atuacao, tipoKpi,         // legado (preservados)
+        codContrato,              // CENTRO DE CUSTO
         respCampo, responsavel, gestor,
         posTernium, admissao, matTernium, cpf,
-        status: statusFinal,      // ATIVO / ADMITIDO / DEMITIDO / FÉRIAS / AFASTADO
+        status: statusFinal,
         dataStatus: dataStatusFinal,
         liderMatricula,
-        // preserva dados operacionais que não vêm da planilha
         situacao: antigo.situacao || 'A',
         feriasInicio: antigo.feriasInicio || null,
         feriasFim: antigo.feriasFim || null,
@@ -4394,9 +5248,11 @@ async function processarUploadEfetivo(file){
       };
       registros.push(dados);
       if(equipe){
-        conjuntoEquipes.set(equipe.toUpperCase(), {
-          nome: equipe, contrato, cc: contrato, atuacao,
-          liderMatricula: lideresPorEquipe[equipe.toUpperCase()] || null
+        const chaveEq = equipe.toUpperCase();
+        conjuntoEquipes.set(chaveEq, {
+          nome: equipe, contrato, cc: contrato,
+          codContrato, responsavel, gestor, posTernium,
+          liderMatricula: lideresPorEquipe[chaveEq] || null
         });
       }
     }
@@ -4407,11 +5263,15 @@ async function processarUploadEfetivo(file){
       registros.slice(i,i+400).forEach(d => batch.set(doc(db,'colaboradores', String(d.matricula)), d, {merge:true}));
       await batch.commit();
     }
-    // grava/atualiza equipes
+    // grava/atualiza equipes COM a correlação (contrato, CC, responsável, gestor, posição).
+    // Preserva fazChamada/folga já configurados (merge não sobrescreve campos ausentes).
     const be = writeBatch(db);
     for(const [key,eq] of conjuntoEquipes){
       be.set(doc(db,'equipes', eq.nome), {
-        nome: eq.nome, cc: eq.cc, contrato: eq.contrato, atuacao: eq.atuacao,
+        nome: eq.nome, cc: eq.cc, contrato: eq.contrato,
+        codContrato: eq.codContrato || '', centroCusto: eq.codContrato || '',
+        responsavel: eq.responsavel || '', gestor: eq.gestor || '',
+        posTernium: eq.posTernium || '',
         liderMatricula: eq.liderMatricula, atualizadoEm: serverTimestamp()
       }, {merge:true});
     }
@@ -5124,9 +5984,8 @@ document.getElementById('ef_btnExport').addEventListener('click', () => {
   // Exporta seguindo EXATAMENTE as colunas e a ordem da planilha de inserção,
   // para servir de modelo ao usuário que for importar dados no sistema.
   const COLUNAS = [
-    'MATRICULA','NOME','CONTRATO','GRUPO','CLASSIFICAÇÃO','C.C','EQUIPE ','ATUAÇÃO',
-    'TIPO DE KPI','CENTRO DE CUSTO ','RESPONSÁVEL CAMPO','RESPONSÁVEL','GESTOR',
-    'POSIÇÃO TERNIUM','ADMISSÃO','MAT. TERNIUM','CPF '
+    'MATRICULA','NOME','CONTRATO','GRUPO','CLASSIFICAÇÃO','EQUIPE ','CENTRO DE CUSTO ',
+    'RESPONSÁVEL ','GESTOR','POSIÇÃO TERNIUM','ADMISSÃO','DATA STATUS','MAT. TERNIUM','CPF','STATUS'
   ];
   // Cada coluna -> campo correspondente no registro do colaborador.
   const valorDe = (p, col) => {
@@ -5136,18 +5995,16 @@ document.getElementById('ef_btnExport').addEventListener('click', () => {
       case 'CONTRATO':         return p.contrato ?? p.cc ?? '';
       case 'GRUPO':            return p.grupo ?? '';
       case 'CLASSIFICAÇÃO':    return p.classificacao ?? p.funcao ?? '';
-      case 'C.C':              return p.ccTipo ?? '';
       case 'EQUIPE ':          return p.equipe ?? '';
-      case 'ATUAÇÃO':          return p.atuacao ?? '';
-      case 'TIPO DE KPI':      return p.tipoKpi ?? '';
       case 'CENTRO DE CUSTO ': return p.codContrato ?? '';
-      case 'RESPONSÁVEL CAMPO':return p.respCampo ?? '';
-      case 'RESPONSÁVEL':      return p.responsavel ?? '';
+      case 'RESPONSÁVEL ':     return p.responsavel ?? '';
       case 'GESTOR':           return p.gestor ?? p.coordenador ?? '';
       case 'POSIÇÃO TERNIUM':  return p.posTernium ?? '';
       case 'ADMISSÃO':         return p.admissao ?? '';
+      case 'DATA STATUS':      return p.dataStatus ?? '';
       case 'MAT. TERNIUM':     return p.matTernium ?? '';
-      case 'CPF ':             return p.cpf ?? '';
+      case 'CPF':              return p.cpf ?? '';
+      case 'STATUS':           return p.status ?? '';
       default: return '';
     }
   };

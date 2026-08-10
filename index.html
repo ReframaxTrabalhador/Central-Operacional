@@ -1090,7 +1090,10 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
       <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-2); margin-bottom:10px; cursor:pointer;">
         <input type="checkbox" id="incluirCanceladosImpressao" onchange="renderPainelLanche()"> Incluir reprovados/cancelados na impressão
       </label>
-      <button class="btn btn-ghost" onclick="baixarRelatorioLanchePDF()" style="margin-top: 4px;">🖼️ Baixar Relatório (imagem PNG)</button>
+      <div style="display:flex; gap:8px; margin-top:4px;">
+        <button class="btn btn-primary" style="flex:1;" onclick="compartilharRelatorioLanche()">📄 Imprimir / PDF</button>
+        <button class="btn btn-ghost" style="flex:1;" onclick="gerarImagemRelatorioLanche()">🖼️ Salvar / Compartilhar imagem</button>
+      </div>
     </div>
   </div>
 
@@ -3196,81 +3199,177 @@ async function acaoMassaLanche(novoStatus) {
 }
 window.acaoMassaLanche = acaoMassaLanche;
 
-function baixarRelatorioLanchePDF() {
+// Impressão/compartilhamento do relatório de lanches SEM depender de biblioteca externa (CDN).
+// Abre o relatório numa janela formatada e usa a impressão nativa do navegador — no celular,
+// o próprio menu de impressão oferece "Compartilhar" e "Salvar como PDF".
+function compartilharRelatorioLanche(){
   const el = document.getElementById('documentoImpressaoLanches');
-  if(!el) { toast('Nenhum relatório na tela. Selecione um período com pedidos.', 'err'); return; }
-
+  if(!el){ toast('Nenhum relatório na tela. Selecione um período com pedidos.', 'err'); return; }
   const dStart = (document.getElementById('painelLancheDataInicio')||{}).value || '';
   const dEnd = (document.getElementById('painelLancheDataFim')||{}).value || '';
 
-  // Rasteriza o relatório como IMAGEM (PNG) — mais confiável que o PDF, que saía em branco.
-  // O html2canvas vem junto no bundle do html2pdf.
-  const canvasLib = (typeof html2canvas !== 'undefined') ? html2canvas
-                    : (typeof html2pdf !== 'undefined' && html2pdf.Worker ? window.html2canvas : null);
+  const conteudo = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório de Lanches ${dStart} a ${dEnd}</title>
+    <style>
+      * { box-sizing:border-box; }
+      body{ font-family: Arial, Helvetica, sans-serif; margin:0; padding:14px; color:#000; background:#fff; }
+      table{ width:100%; border-collapse:collapse; }
+      th,td{ border:1px solid #ccc; padding:3px 5px; font-size:12px; text-align:left; }
+      th{ background:#f0f0f0; }
+      h2{ font-size:16px; margin:0; } h3{ font-size:13px; }
+      .barra{ position:sticky; top:0; background:#0a1628; padding:10px; text-align:center; display:flex; gap:8px; justify-content:center; }
+      .barra button{ padding:10px 16px; font-size:14px; font-weight:bold; border:none; border-radius:8px; cursor:pointer; }
+      .b1{ background:#00c4ff; color:#00131f; } .b2{ background:#e6e9ef; color:#111; }
+      @media print { .barra{ display:none !important; } body{ padding:0; } }
+    </style></head><body>
+    <div class="barra">
+      <button class="b1" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+      <button class="b2" onclick="window.close()">Fechar</button>
+    </div>
+    <div style="padding:6px;">${el.outerHTML}</div>
+    <script>
+      // Dispara a caixa de impressão automaticamente ao abrir (no celular, ela traz Compartilhar/Salvar PDF).
+      setTimeout(function(){ try{ window.focus(); window.print(); }catch(e){} }, 600);
+    <\/script>
+    </body></html>`;
 
-  if(typeof html2canvas === 'undefined'){
-    // Sem a lib: cai direto para a impressão nativa do navegador.
-    imprimirRelatorioLancheNativo(el, dStart, dEnd);
+  // Abre em nova aba (funciona bem no celular; o menu de impressão nativo oferece PDF/compartilhar).
+  const win = window.open('', '_blank');
+  if(win){
+    win.document.open(); win.document.write(conteudo); win.document.close();
+    toast('Relatório aberto. Use Imprimir → Salvar PDF ou Compartilhar.', 'ok');
     return;
   }
 
-  // Clona o relatório para um container isolado com fundo branco (evita PDF/PNG em branco por causa
-  // de variáveis CSS herdadas do tema escuro).
-  const wrapper = document.createElement('div');
-  wrapper.style.cssText = 'position:fixed; left:-99999px; top:0; background:#ffffff; color:#000000; padding:12px; width:800px; z-index:-1;';
-  const clone = el.cloneNode(true);
-  clone.style.background = '#ffffff';
-  clone.style.color = '#000000';
-  wrapper.appendChild(clone);
-  document.body.appendChild(wrapper);
-
-  toast('Gerando imagem do relatório…', 'ok');
-  html2canvas(clone, { scale: 2, backgroundColor: '#ffffff', useCORS: true, logging: false })
-    .then(canvas => {
-      const link = document.createElement('a');
-      link.download = `Relatorio_Lanches_${dStart}_a_${dEnd}.png`;
-      link.href = canvas.toDataURL('image/png');
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      toast('Imagem do relatório baixada!', 'ok');
-    })
-    .catch(err => {
-      console.error('Falha ao gerar imagem:', err);
-      imprimirRelatorioLancheNativo(el, dStart, dEnd);
-    })
-    .finally(()=>{ try{ document.body.removeChild(wrapper); }catch(_){} });
+  // Se o navegador bloquear a nova aba (pop-up), imprime na própria página via iframe oculto.
+  toast('Preparando impressão…', 'ok');
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText = 'position:fixed; right:0; bottom:0; width:0; height:0; border:0;';
+  document.body.appendChild(iframe);
+  const idoc = iframe.contentWindow.document;
+  idoc.open(); idoc.write(conteudo.replace('setTimeout(function(){ try{ window.focus(); window.print(); }catch(e){} }, 600);','')); idoc.close();
+  setTimeout(()=>{
+    try{ iframe.contentWindow.focus(); iframe.contentWindow.print(); }
+    catch(e){ toast('Não foi possível imprimir. Permita pop-ups para este site.', 'err'); }
+    setTimeout(()=>{ try{ document.body.removeChild(iframe); }catch(_){} }, 2000);
+  }, 500);
 }
-window.baixarRelatorioLanchePDF = baixarRelatorioLanchePDF;
+window.compartilharRelatorioLanche = compartilharRelatorioLanche;
 
-// Fallback: impressão nativa do navegador (o usuário escolhe "Salvar como PDF" ou imprimir).
-function imprimirRelatorioLancheNativo(el, dStart, dEnd){
-  try{
-    const win = window.open('', '_blank');
-    if(!win){ toast('Permita pop-ups para imprimir o relatório.', 'err'); return; }
-    win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
-      <title>Relatório de Lanches ${dStart} a ${dEnd}</title>
-      <style>
-        body{ font-family: Arial, sans-serif; margin:12px; color:#000; background:#fff; }
-        table{ width:100%; border-collapse:collapse; }
-        @media print { .noprint{ display:none; } }
-      </style></head><body>
-      <div class="noprint" style="text-align:center; margin-bottom:10px;">
-        <button onclick="window.print()" style="padding:8px 16px; font-size:14px; cursor:pointer;">🖨️ Imprimir / Salvar como PDF</button>
-      </div>
-      ${el.outerHTML}
-      </body></html>`);
-    win.document.close();
-    win.focus();
-    setTimeout(()=>{ try{ win.print(); }catch(_){} }, 500);
-    toast('Relatório aberto para impressão.', 'ok');
-  }catch(err){
-    console.error('Falha impressão nativa:', err);
-    toast('Não foi possível abrir a impressão.', 'err');
+// Gera a imagem do relatório desenhando num <canvas> NATIVO (sem biblioteca externa).
+// Depois compartilha (Web Share) ou baixa como PNG.
+async function gerarImagemRelatorioLanche(){
+  const dStart = (document.getElementById('painelLancheDataInicio')||{}).value || '';
+  const dEnd = (document.getElementById('painelLancheDataFim')||{}).value || '';
+  const incluirCancelados = !!(document.getElementById('incluirCanceladosImpressao') && document.getElementById('incluirCanceladosImpressao').checked);
+
+  const todos = (typeof lanchesPainelCache!=='undefined' ? lanchesPainelCache : []) || [];
+  const regs = incluirCancelados ? todos : todos.filter(r => r.status !== 'reprovado');
+  if(!regs.length){ toast('Nenhum pedido para gerar imagem neste período.', 'err'); return; }
+
+  // Agrupa por data -> turno.
+  const agr = {};
+  regs.forEach(r=>{ (agr[r.data] = agr[r.data]||{}); (agr[r.data][r.turno] = agr[r.data][r.turno]||[]).push(r); });
+
+  // ---- Medidas ----
+  const W = 1000;                 // largura da imagem
+  const pad = 30;
+  const lh = 30;                  // altura de linha
+  const colLider = pad;
+  const colMotivo = pad + 430;
+  const colQtd = pad + 760;
+  const colStatus = pad + 850;
+
+  // calcula altura total
+  let linhas = 3; // título + período + espaço
+  Object.keys(agr).forEach(d=>{ linhas += 1.4; Object.keys(agr[d]).forEach(t=>{ linhas += 1.4 + agr[d][t].length + 0.6; }); });
+  const H = Math.ceil(pad*2 + linhas*lh + 40);
+
+  const canvas = document.createElement('canvas');
+  const scale = 2;               // nitidez
+  canvas.width = W*scale; canvas.height = H*scale;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(scale, scale);
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,W,H);
+  ctx.textBaseline = 'middle';
+
+  let y = pad;
+  // Título
+  ctx.fillStyle = '#000'; ctx.font = 'bold 22px Arial'; ctx.textAlign = 'center';
+  ctx.fillText('RELATÓRIO DE SOLICITAÇÃO DE LANCHES', W/2, y+8); y += lh;
+  ctx.font = '13px Arial'; ctx.fillStyle = '#555';
+  ctx.fillText(`Período: ${fmtDataPtBr(dStart)} até ${fmtDataPtBr(dEnd)}${incluirCancelados?' · (inclui reprovados)':''}`, W/2, y+6); y += lh*1.2;
+  ctx.textAlign = 'left';
+
+  const linha = (yy) => { ctx.strokeStyle='#e0e0e0'; ctx.beginPath(); ctx.moveTo(pad,yy); ctx.lineTo(W-pad,yy); ctx.stroke(); };
+
+  Object.keys(agr).sort().forEach(dataKey=>{
+    ctx.fillStyle = '#0a1628'; ctx.font = 'bold 16px Arial';
+    ctx.fillText('Data: ' + fmtDataPtBr(dataKey), pad, y+8); y += lh;
+
+    Object.keys(agr[dataKey]).sort().forEach(turnoKey=>{
+      const lista = agr[dataKey][turnoKey];
+      const totalTurno = lista.filter(r=>r.status!=='reprovado').reduce((a,o)=>a+(o.total||0),0);
+      ctx.fillStyle = '#00699c'; ctx.font = 'bold 14px Arial';
+      ctx.fillText(`Turno: ${turnoKey}  —  ${totalTurno} lanches`, pad, y+8); y += lh*0.95;
+
+      // cabeçalho da tabela
+      ctx.fillStyle = '#f0f0f0'; ctx.fillRect(pad, y-4, W-pad*2, lh);
+      ctx.fillStyle = '#333'; ctx.font = 'bold 12px Arial';
+      ctx.fillText('Líder / Equipe', colLider+4, y+8);
+      ctx.fillText('Motivo', colMotivo, y+8);
+      ctx.fillText('Qtd', colQtd, y+8);
+      ctx.fillText('Status', colStatus, y+8);
+      y += lh; linha(y-4);
+
+      lista.forEach(s=>{
+        const reprov = s.status==='reprovado';
+        ctx.font = '12px Arial';
+        ctx.fillStyle = reprov ? '#b00' : '#111';
+        const nomeTxt = `${s.liderNome||'—'} (${s.equipe||'—'})`;
+        ctx.fillText(cortar(ctx, nomeTxt, 420), colLider+4, y+8);
+        ctx.fillStyle = reprov ? '#b00' : '#555';
+        ctx.fillText(cortar(ctx, s.motivo||'—', 320), colMotivo, y+8);
+        ctx.fillStyle = reprov ? '#b00' : '#111';
+        ctx.fillText(String(s.total||0), colQtd, y+8);
+        ctx.fillStyle = reprov ? '#b00' : (s.status==='confirmado'?'#0a0':'#888');
+        ctx.fillText(reprov?'REPROVADO':(s.status||'—'), colStatus, y+8);
+        if(reprov){ ctx.strokeStyle='#b00'; ctx.beginPath(); ctx.moveTo(colLider+4,y+8); ctx.lineTo(colQtd-10,y+8); ctx.stroke(); }
+        y += lh; linha(y-4);
+      });
+      y += lh*0.5;
+    });
+    y += lh*0.4;
+  });
+
+  // exporta
+  const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+  if(!blob){ toast('Falha ao gerar a imagem.', 'err'); return; }
+  const nome = `Relatorio_Lanches_${dStart}_a_${dEnd}.png`;
+  const file = new File([blob], nome, { type:'image/png' });
+
+  // Compartilhar nativo (celular) ...
+  if(navigator.canShare && navigator.canShare({ files:[file] })){
+    try{ await navigator.share({ files:[file], title:'Relatório de Lanches', text:`Lanches ${dStart} a ${dEnd}` }); return; }
+    catch(err){ if(err && err.name==='AbortError') return; }
   }
+  // ... ou baixar.
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=nome;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
+  toast('Imagem gerada.', 'ok');
 }
-window.imprimirRelatorioLancheNativo = imprimirRelatorioLancheNativo;
-window.baixarRelatorioLanchePDF = baixarRelatorioLanchePDF;
+window.gerarImagemRelatorioLanche = gerarImagemRelatorioLanche;
+
+// corta texto que não cabe na largura, adicionando reticências
+function cortar(ctx, txt, maxW){
+  txt = String(txt||'');
+  if(ctx.measureText(txt).width <= maxW) return txt;
+  while(txt.length>1 && ctx.measureText(txt+'…').width > maxW) txt = txt.slice(0,-1);
+  return txt+'…';
+}
 
 // ================= ADMIN: MANAGEMENT =================
 function renderAprovacoes(){

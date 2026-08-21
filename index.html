@@ -210,6 +210,59 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
 .chip-falta{background:rgba(255,92,108,.14); color:var(--red); border:1px solid rgba(255,92,108,.35);}
 .chip-fte{background:rgba(138,124,255,.16); color:#a99cff; border:1px solid rgba(138,124,255,.4);}
 .chip-neutro{background:var(--bg-2); color:var(--text-1); border:1px solid var(--line);}
+.chip-justificada{background:rgba(240,160,60,.16); color:#f0a03c; border:1px solid rgba(240,160,60,.45);}
+
+/* --- Cards de escolha de equipe (líder que acumula mais de uma) --- */
+.eq-escolha-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:10px; margin-bottom:16px;}
+.eq-escolha{background:var(--bg-1); border:1px solid var(--line); border-radius:14px; padding:13px 14px;
+  cursor:pointer; transition:border-color .15s ease, transform .1s ease; min-width:0;}
+.eq-escolha:active{transform:scale(.98);}
+.eq-escolha:hover{border-color:rgba(0,196,255,.45);}
+.eq-escolha.sel{border-color:var(--cyan); background:rgba(0,196,255,.08);}
+/* O nome QUEBRA em várias linhas de propósito: equipes como
+   "PU - TROCA DE PORTAS - AMARELA/AZUL/BRANCA" só se distinguem no final,
+   e cortar com reticências deixaria os três cards idênticos. */
+.eq-escolha .ee-nome{font-family:'Barlow Condensed'; font-weight:700; font-size:15px; letter-spacing:.02em;
+  color:var(--text-0); line-height:1.2; overflow-wrap:anywhere;}
+.eq-escolha .ee-sub{font-size:11px; color:var(--text-2); margin-top:4px; overflow-wrap:anywhere;}
+.eq-escolha .ee-pos{font-size:10.5px; color:var(--cyan); margin-top:3px;}
+.eq-escolha .ee-tag{display:inline-block; margin-top:6px; font-size:9.5px; padding:2px 7px; border-radius:999px;
+  background:rgba(240,192,64,.16); color:var(--gold); text-transform:uppercase; letter-spacing:.04em;}
+.eq-escolha .ee-ok{display:inline-block; margin-top:6px; font-size:9.5px; padding:2px 7px; border-radius:999px;
+  background:rgba(61,232,160,.16); color:var(--green); text-transform:uppercase; letter-spacing:.04em;}
+.barra-equipe-ativa{display:flex; align-items:center; gap:10px; background:rgba(0,196,255,.08);
+  border:1px solid rgba(0,196,255,.35); border-radius:12px; padding:10px 12px; margin-bottom:14px;}
+.barra-equipe-ativa .bea-nome{flex:1; min-width:0; font-family:'Barlow Condensed'; font-weight:700;
+  font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+
+/* --- Painel da equipe no Módulo de Controle --- */
+.painel-equipe{border:1px solid rgba(0,196,255,.3); border-radius:16px; padding:15px; margin:14px 0;
+  background:linear-gradient(180deg, rgba(0,196,255,.05), transparent);}
+.painel-equipe .pe-topo{display:flex; align-items:flex-start; gap:10px; margin-bottom:12px;}
+.painel-equipe .pe-nome{flex:1; font-family:'Barlow Condensed'; font-weight:800; font-size:19px;
+  letter-spacing:.02em; color:var(--cyan); line-height:1.1;}
+.painel-equipe .pe-sub{font-size:11px; color:var(--text-2); font-family:'Barlow'; font-weight:400; letter-spacing:0;}
+.membro-linha{display:flex; align-items:center; gap:9px; background:var(--bg-1); border:1px solid var(--line);
+  border-radius:10px; padding:8px 10px; margin-bottom:6px;}
+.membro-linha .ml-info{flex:1; min-width:0;}
+.membro-linha .ml-nome{font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.membro-linha .ml-meta{font-size:10.5px; color:var(--text-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.membro-linha.e-lider{border-color:rgba(240,192,64,.5); background:rgba(240,192,64,.07);}
+
+/* Selo de liderança na árvore genealógica: mostra se a designação é
+   permanente ou temporária, junto com o prazo. */
+/* O módulo da árvore tem um reset `#efetivoModule * {margin:0;padding:0}`,
+   por isso o seletor abaixo precisa da mesma especificidade para valer lá. */
+.lider-selo,
+#efetivoModule .lider-selo{display:inline-block; margin-left:7px; padding:2px 7px; border-radius:999px;
+  font-size:9px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; vertical-align:middle;
+  white-space:nowrap; line-height:1.5;}
+.lider-selo.perm,
+#efetivoModule .lider-selo.perm{background:rgba(61,232,160,.16); color:var(--green); border:1px solid rgba(61,232,160,.4);}
+.lider-selo.temp,
+#efetivoModule .lider-selo.temp{background:rgba(240,160,60,.16); color:#f0a03c; border:1px solid rgba(240,160,60,.5);}
+#efetivoModule .person.leader-temp{border-color:rgba(240,160,60,.6) !important;}
+#efetivoModule .person.leader-temp .p-role{color:#f0a03c !important;}
 
 .empty{text-align:center; padding:40px 20px; color:var(--text-2);}
 .empty .ic{font-size:34px; margin-bottom:10px;}
@@ -988,6 +1041,20 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
 .tabs-row::-webkit-scrollbar-thumb{background:var(--line); border-radius:99px;}
 /* Tabelas largas dentro de qualquer módulo passam a rolar em vez de estourar a tela. */
 .table-scroll{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+
+/* --- Zona de manutenção (ações destrutivas, só admin) --- */
+.zona-perigo{border:1px solid rgba(255,92,108,.42); border-radius:16px; padding:16px;
+  background:linear-gradient(180deg, rgba(255,92,108,.08), rgba(255,92,108,.02));}
+.zona-perigo .zp-topo{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
+.zona-perigo .zp-ic{font-size:22px; flex:0 0 auto;}
+.zona-perigo .zp-titulo{font-family:'Barlow Condensed'; font-weight:800; font-size:18px;
+  letter-spacing:.02em; color:var(--red); line-height:1.1;}
+.zona-perigo .zp-sub{font-size:10.5px; color:var(--text-2); text-transform:uppercase; letter-spacing:.06em;}
+.zona-perigo .zp-texto{font-size:12.5px; color:var(--text-1); line-height:1.55; margin-bottom:12px;}
+.zona-perigo .zp-resumo{background:var(--bg-1); border:1px solid var(--line); border-radius:12px;
+  padding:11px 13px; font-size:12px; color:var(--text-1); line-height:1.7; margin-bottom:12px;}
+.zona-perigo .zp-resumo b{color:var(--gold);}
+.zona-perigo .zp-nada{color:var(--text-2); font-style:italic;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -1029,7 +1096,30 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
           <button class="link-btn" onclick="voltarStep1()">‹ Trocar matrícula</button>
           <button class="link-btn" onclick="solicitarReset()">Esqueci a senha</button>
         </div>
+        <div id="loginResetAviso" style="display:none; margin-top:12px; padding:11px 12px; border-radius:12px; font-size:12px; line-height:1.5;"></div>
         <div class="err-msg" id="loginErr2"></div>
+      </div>
+
+      <!-- PASSO 4: redefinição de senha já liberada pelo administrador -->
+      <div id="loginStep4" style="display:none;">
+        <div style="padding:11px 12px; border-radius:12px; background:rgba(61,232,160,.08); border:1px solid rgba(61,232,160,.35); font-size:12.5px; color:var(--text-1); line-height:1.5; margin-bottom:14px;">
+          ✅ <b>Redefinição liberada</b> pelo administrador.<br>
+          <span style="color:var(--text-2);">Crie agora a sua nova senha. A senha anterior deixa de valer.</span>
+        </div>
+        <div class="field">
+          <label>Nova senha</label>
+          <input type="password" id="resetSenha1" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+        </div>
+        <div class="field">
+          <label>Confirmar nova senha</label>
+          <input type="password" id="resetSenha2" placeholder="Repita a nova senha" autocomplete="new-password">
+        </div>
+        <button class="btn btn-green" onclick="concluirResetSenha()">Salvar nova senha e entrar</button>
+        <div style="display:flex; justify-content:space-between; margin-top:12px;">
+          <button class="link-btn" onclick="voltarStep1()">‹ Trocar matrícula</button>
+          <button class="link-btn" onclick="usarSenhaAntiga()">Lembrei a senha</button>
+        </div>
+        <div class="err-msg" id="loginErr4"></div>
       </div>
 
       <div id="loginStep3" style="display:none;">
@@ -1106,6 +1196,10 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
     <div class="screen-body" style="padding:18px;">
       <button class="btn btn-sm" style="width:100%; margin-bottom:10px;" onclick="recarregarBase()">🔄 Atualizar lista</button>
       <input type="date" id="homeData" onchange="renderHome()" style="width:100%; padding:11px 12px; border-radius:10px; border:1px solid var(--line); background:var(--bg-2); color:var(--text-0); margin-bottom:14px;">
+      <!-- Escolha de equipe: só aparece para quem lidera mais de uma -->
+      <div id="homeSeletorEquipes" style="display:none;"></div>
+      <div id="homeBarraEquipe" style="display:none;"></div>
+      <div id="homeCorpoChamada">
       <div id="homeAvisoEscala" style="display:none; margin-bottom:12px;"></div>
       <div class="kpi-row">
         <div class="kpi presente"><div class="n" id="kpiPresente">0</div><div class="l">Presentes</div></div>
@@ -1119,6 +1213,7 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
       <!-- BOTÃO REVISAR FÉRIAS -->
       <button class="btn btn-ghost" style="margin-bottom:10px;" onclick="abrirModalRevisarFerias()">🗓 Revisar Férias da Equipe</button>
       <button class="btn btn-green" style="margin-top:5px; box-shadow: 0 4px 12px rgba(61,232,160,0.2);" onclick="goScreen('hub')">✓ Concluir e Enviar Chamada</button>
+      </div>
     </div>
   </div>
 
@@ -1133,6 +1228,9 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
       <div class="icon-btn" onclick="goScreen('lanche-historico')">📋</div>
     </div>
     <div class="screen-body" style="padding:18px;">
+      <div id="lancheSeletorEquipes" style="display:none;"></div>
+      <div id="lancheBarraEquipe" style="display:none;"></div>
+      <div id="lancheCorpo">
       <div class="field">
         <label>Data da Solicitação</label>
         <input type="date" id="lancheData">
@@ -1165,6 +1263,7 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
 
       <button class="btn btn-primary" onclick="enviarPedidoLanche()">Enviar Solicitação</button>
       <div class="err-msg" id="lancheErr"></div>
+      </div>
     </div>
   </div>
 
@@ -1356,7 +1455,7 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
       <div class="icon-btn" onclick="goScreen('hub')">‹</div>
       <div class="brand-text" style="text-align:center;">
         <div class="k1">APROVAÇÕES</div>
-        <div class="k2">Contas pendentes</div>
+        <div class="k2">Contas · mão de obra · senhas</div>
       </div>
       <div style="width:38px;"></div>
     </div>
@@ -1366,6 +1465,9 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
       <div class="section-title">Novas contas</div>
       <div class="list" id="aprovContas"></div>
       <div class="section-title">Solicitações de redefinição de senha</div>
+      <div class="remanejar-hint" style="margin-bottom:12px;">
+        Ao <b>liberar</b>, o colaborador passa a poder criar a nova senha sozinho: basta ele abrir o app e digitar a matrícula. A senha antiga deixa de funcionar. A liberação vale por <b>48 horas</b>.
+      </div>
       <div class="list" id="aprovResets"></div>
     </div>
   </div>
@@ -1567,9 +1669,54 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
         <div id="rhFeriasUploadResumo" style="margin-top:14px;"></div>
         <div id="rhFeriasUploadLoading" style="display:none; align-items:center; gap:8px; margin-top:12px; color:var(--text-2);">Processando planilha…</div>
 
-        <div class="section-title" style="margin-top:18px;">Histórico de férias importado</div>
+        <div class="section-title" style="margin-top:18px;">Histórico de férias registrado</div>
         <div class="search-row"><input type="text" id="rhHistFeriasSearch" placeholder="Buscar por nome ou matrícula…" oninput="renderHistoricoFerias()"></div>
         <div id="rhHistFeriasLista"></div>
+
+        <!-- ZONA DE MANUTENÇÃO — só o administrador enxerga este bloco.
+             Serve para limpar as férias antes de subir uma planilha nova. -->
+        <div id="rhZonaManutencao" style="display:none; margin-top:22px;">
+          <div class="zona-perigo">
+            <div class="zp-topo">
+              <span class="zp-ic">⚠️</span>
+              <div>
+                <div class="zp-titulo">Zerar férias do sistema</div>
+                <div class="zp-sub">Apenas administradores · ação irreversível</div>
+              </div>
+            </div>
+            <p class="zp-texto">
+              Apaga <b>todas as férias do sistema</b> — as vigentes e <b>todo o histórico já lançado</b>,
+              não importa se veio de planilha, se o RH lançou à mão ou se nasceu de uma solicitação aprovada.
+              Também limpa os pedidos de férias, aprovados ou não. Depois disso a base fica em branco para
+              você subir a planilha nova.<br><br>
+              <b>Nada além de férias é tocado</b>: colaboradores, equipes, contratos, escalas, chamadas,
+              lanches, demissões e remanejamentos ficam como estão. Quem estiver com status
+              <b>FÉRIAS</b> volta para <b>ATIVO</b>.
+            </p>
+
+            <div id="rhZerarResumo" class="zp-resumo">Verificando o que existe hoje…</div>
+
+            <div class="section-title" style="margin-top:4px;">O que apagar</div>
+            <div class="rh-check-grid">
+              <label class="rh-check"><input type="checkbox" id="zerarCadastro" checked> <span>Férias atuais (cadastro)</span></label>
+              <label class="rh-check"><input type="checkbox" id="zerarHistorico" checked> <span>Histórico completo</span></label>
+              <label class="rh-check"><input type="checkbox" id="zerarSolicitacoes" checked> <span>Pedidos de férias (todos)</span></label>
+              <label class="rh-check"><input type="checkbox" id="zerarBackup" checked> <span>Baixar backup antes</span></label>
+            </div>
+
+            <div class="field" style="margin-bottom:10px;">
+              <label>Para confirmar, digite <b style="color:var(--red);">ZERAR FERIAS</b></label>
+              <input type="text" id="zerarConfirmacao" placeholder="ZERAR FERIAS" autocomplete="off" oninput="validarConfirmacaoZerar()">
+            </div>
+
+            <div id="rhZerarProgresso" style="display:none; font-size:12px; color:var(--text-2); margin-bottom:10px;"></div>
+
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button class="btn btn-ghost btn-sm" style="flex:1; min-width:150px;" onclick="atualizarResumoZerarFerias()">🔄 Recontar</button>
+              <button class="btn btn-danger btn-sm" id="btnZerarFerias" style="flex:1; min-width:150px; opacity:.45; pointer-events:none;" onclick="zerarFeriasDoSistema()">🗑️ Zerar férias agora</button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- ABA: Novo colaborador (recém-contratado) -->
@@ -1695,11 +1842,30 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
           <div class="field"><label>Responsável (supervisor)</label><input type="text" id="ctrlEqResp"></div>
           <div class="field"><label>Gestor</label><input type="text" id="ctrlEqGestor"></div>
         </div>
-        <div class="field"><label>Posição Ternium</label><input type="text" id="ctrlEqPos" list="ctrlPosDatalist"></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div class="field"><label>Posição Ternium</label><input type="text" id="ctrlEqPos" list="ctrlPosDatalist"></div>
+          <div class="field"><label>Atuação (nível da árvore)</label><input type="text" id="ctrlEqAtuacao" list="ctrlAtuacaoDatalist" placeholder="Ex.: RG, OFICINA DE PORTAS"></div>
+        </div>
+        <datalist id="ctrlAtuacaoDatalist"></datalist>
         <datalist id="ctrlPosDatalist"></datalist>
         <button class="btn btn-primary btn-sm" style="width:100%;" onclick="salvarEquipeControle()">Salvar equipe</button>
+
+        <!-- PAINEL DA EQUIPE: líder, integrantes, incluir e remover -->
+        <div id="ctrlEquipePainel" style="display:none;"></div>
+
         <div class="search-row" style="margin-top:12px;"><input type="text" id="ctrlEqSearch" placeholder="Filtrar equipes…" oninput="renderCtrlEquipes()"></div>
         <div id="ctrlEquipesLista"></div>
+
+        <!-- Reparo de dados: realinha quem ficou com atributos da equipe antiga -->
+        <div class="section-title" style="margin-top:20px;">Conferência de atributos</div>
+        <div class="remanejar-hint">
+          Confere se cada colaborador está com <b>atuação, contrato, centro de custo, responsável, gestor, posição Ternium e líder</b> iguais aos da equipe em que ele está hoje. Movimentações antigas podem ter deixado valores da equipe anterior. <b>Alocações temporárias</b> (apoio e hora extra) não são alteradas.
+        </div>
+        <div id="ctrlDivergenciasBox" class="zp-resumo" style="background:var(--bg-1);">Toque em conferir para verificar.</div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn btn-ghost btn-sm" style="flex:1; min-width:150px;" onclick="conferirAtributosEquipes()">🔍 Conferir divergências</button>
+          <button class="btn btn-primary btn-sm" id="btnSincronizarAtributos" style="flex:1; min-width:150px; opacity:.45; pointer-events:none;" onclick="sincronizarAtributosComEquipes()">🔧 Corrigir agora</button>
+        </div>
       </div>
 
       <!-- ESCALAS (turnos rotativos por letra) -->
@@ -1810,6 +1976,7 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
         <div class="field"><label>Responsável</label><input type="text" id="eqRapResp"></div>
         <div class="field"><label>Gestor</label><input type="text" id="eqRapGestor"></div>
       </div>
+      <div class="field"><label>Atuação (nível da árvore)</label><input type="text" id="eqRapAtuacao" list="ctrlAtuacaoDatalist"></div>
       <div id="eqRapAviso" style="font-size:11px; color:var(--text-2); margin-bottom:10px;"></div>
       <div class="actions-row">
         <button class="btn btn-ghost" onclick="fecharModalEquipeRapida()">Cancelar</button>
@@ -1855,6 +2022,10 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
       <div class="sheet-handle"></div>
       <div class="sheet-title" id="alocNome">—</div>
       <div class="sheet-sub" id="alocMeta">—</div>
+      <div class="field" id="alocEquipeWrap" style="display:none;">
+        <label>Para qual das suas equipes?</label>
+        <select id="alocEquipeSel"></select>
+      </div>
       <p style="font-size:12.5px; color:var(--text-2); margin-bottom:12px;">Como esse colaborador está entrando na sua equipe?</p>
       <div class="status-grid">
         <button class="btn btn-green" onclick="confirmarAlocacao('permanente')">Apoio</button>
@@ -1876,7 +2047,11 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
         <button class="btn btn-danger" onclick="salvarStatus('falta')">✕ Falta</button>
         <button class="btn btn-gold" onclick="salvarStatus('atestado')">📄 Afastado</button>
         <button class="btn" style="background:linear-gradient(135deg,#8a7cff,#6b5cd6); color:#0b0620;" onclick="salvarStatus('falta_fte')">📋 Falta FTE</button>
+        <button class="btn" style="grid-column:1 / -1; background:linear-gradient(135deg,#f0a03c,#c97a18); color:#241300;" onclick="salvarStatus('falta_justificada')">📝 Falta justificada</button>
         <button class="btn btn-ghost" style="grid-column:1 / -1;" onclick="fecharModalStatus()">Cancelar</button>
+      </div>
+      <div id="avisoFaltaJustificada" style="display:none; margin-bottom:12px; padding:10px 12px; border-radius:12px; background:rgba(240,160,60,.1); border:1px solid rgba(240,160,60,.45); font-size:12px; color:var(--gold); line-height:1.5;">
+        📝 <b>Falta justificada</b> exige o motivo preenchido no campo <b>Observação</b> abaixo. Descreva o que justificou a ausência.
       </div>
       
       <div id="feriasCampos" style="margin-top: 12px; padding: 10px; background: var(--bg-2); border-radius: 12px; border: 1px solid var(--line);">
@@ -2199,9 +2374,25 @@ function fmtDataPtBr(isoString){
   const p = isoString.split('-');
   return `${p[2]}/${p[1]}/${p[0]}`;
 }
+window.fmtDataPtBr = fmtDataPtBr;
 function fmtDataLonga(d){ return d.toLocaleDateString('pt-BR',{weekday:'long', day:'2-digit', month:'long'}); }
 function fmtHora(d){ return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
 function matriculaToEmail(mat){ return mat.trim()+EMAIL_DOMAIN; }
+// Traduz o erro do Firestore para algo acionável. "Missing or insufficient
+// permissions" quase sempre significa que a COLEÇÃO não existe nas regras de
+// segurança do projeto — o app está certo, falta liberar no Firebase.
+function mensagemErroFirestore(e, colecao){
+  const codigo = (e && (e.code || '')) + ' ' + (e && e.message ? e.message : '');
+  if(/permission-denied|Missing or insufficient permissions/i.test(codigo)){
+    return `Sem permissão para gravar em "${colecao}". `
+         + `Peça ao administrador do Firebase para liberar a coleção `
+         + `"${colecao}" nas regras do Firestore (Firebase Console → Firestore → Regras).`;
+  }
+  if(/unavailable|network/i.test(codigo)) return 'Sem conexão com o servidor. Tente de novo.';
+  return (e && e.message) ? e.message : String(e);
+}
+window.mensagemErroFirestore = mensagemErroFirestore;
+
 function toast(msg, tipo){
   const t = document.getElementById('toast');
   t.textContent = msg; t.className = 'toast show' + (tipo?(' '+tipo):'');
@@ -2232,10 +2423,23 @@ async function verificarMatricula(){
     loginMatriculaAtual = mat;
     if(usuarioDoc.exists()){
       loginModo = 'login';
-      document.getElementById('loginStep1').style.display='none';
-      document.getElementById('loginStep2').style.display='block';
+      // Existe redefinição de senha já liberada pelo administrador?
+      // Se sim, o colaborador vai direto para a tela de criar a nova senha.
+      const reset = await lerResetSenha(mat);
+      resetLiberadoAtual = (reset && reset.status === 'aprovado' && !resetExpirado(reset)) ? reset : null;
+      if(resetLiberadoAtual){
+        mostrarPasso('loginStep4');
+        document.getElementById('resetSenha1').value = '';
+        document.getElementById('resetSenha2').value = '';
+        document.getElementById('loginErr4').textContent = '';
+        document.getElementById('resetSenha1').focus();
+        setLoading(false);
+        return;
+      }
+      mostrarPasso('loginStep2');
       document.getElementById('loginSenha').value='';
       document.getElementById('loginSenha').focus();
+      mostrarAvisoReset(reset);
     } else {
       const ehAdminBootstrap = ADMIN_MATRICULAS.includes(mat);
       let nomeEncontrado = null;
@@ -2244,8 +2448,7 @@ async function verificarMatricula(){
       
       if(nomeEncontrado || ehAdminBootstrap){
         loginModo = 'primeiro-acesso';
-        document.getElementById('loginStep1').style.display='none';
-        document.getElementById('loginStep3').style.display='block';
+        mostrarPasso('loginStep3');
       } else {
         err.textContent = 'Matrícula ausente na base do efetivo ativo. Faça o upload da planilha atualizada.';
       }
@@ -2257,16 +2460,36 @@ async function verificarMatricula(){
 }
 window.verificarMatricula = verificarMatricula;
 
+// Mostra um único passo do login e esconde os demais.
+function mostrarPasso(idPasso){
+  ['loginStep1','loginStep2','loginStep3','loginStep4'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.style.display = (id === idPasso) ? 'block' : 'none';
+  });
+}
+window.mostrarPasso = mostrarPasso;
+
 function voltarStep1(){
-  document.getElementById('loginStep1').style.display='block';
-  document.getElementById('loginStep2').style.display='none';
-  document.getElementById('loginStep3').style.display='none';
-  document.getElementById('loginErr1').textContent='';
-  document.getElementById('loginErr2').textContent='';
-  document.getElementById('loginErr3').textContent='';
+  mostrarPasso('loginStep1');
+  ['loginErr1','loginErr2','loginErr3','loginErr4'].forEach(id=>{
+    const el = document.getElementById(id); if(el) el.textContent='';
+  });
+  const aviso = document.getElementById('loginResetAviso');
+  if(aviso){ aviso.style.display='none'; aviso.innerHTML=''; }
   document.getElementById('loginMatricula').value='';
+  resetLiberadoAtual = null;
 }
 window.voltarStep1 = voltarStep1;
+
+// "Lembrei a senha": volta para a tela de senha sem cancelar a liberação —
+// a redefinição continua disponível caso a memória falhe de novo.
+function usarSenhaAntiga(){
+  mostrarPasso('loginStep2');
+  document.getElementById('loginSenha').value='';
+  document.getElementById('loginSenha').focus();
+  mostrarAvisoReset(resetLiberadoAtual);
+}
+window.usarSenhaAntiga = usarSenhaAntiga;
 
 async function criarPrimeiraSenha(){
   const s1 = document.getElementById('novaSenha1').value;
@@ -2308,7 +2531,26 @@ async function fazerLogin(){
   if(!senha){ err.textContent = 'Digite sua senha.'; return; }
   setLoading(true);
   try{
-    await signInWithEmailAndPassword(auth, matriculaToEmail(loginMatriculaAtual), senha);
+    const mat = String(loginMatriculaAtual);
+    // Descobre qual credencial está valendo hoje para esta matrícula.
+    // Conta que nunca passou por redefinição não tem authEmail e segue no padrão antigo.
+    let email = matriculaToEmail(mat);
+    let udata = null;
+    try{
+      const usnap = await getDoc(doc(db,'usuarios', mat));
+      if(usnap.exists()){ udata = usnap.data(); email = emailDeLogin(udata, mat); }
+    }catch(_){ /* sem leitura, tenta o endereço padrão */ }
+
+    try{
+      await signInWithEmailAndPassword(auth, email, senha);
+    }catch(e1){
+      // A credencial apontada não existe (ex.: gravação interrompida no meio de
+      // uma redefinição). Aí sim vale tentar o endereço anterior — e só nesse
+      // caso, nunca quando a senha simplesmente está errada.
+      const podeTentarAnterior = (e1 && e1.code === 'auth/user-not-found') && email !== matriculaToEmail(mat);
+      if(!podeTentarAnterior) throw e1;
+      await signInWithEmailAndPassword(auth, matriculaToEmail(mat), senha);
+    }
   } catch(e){
     console.error(e);
     err.textContent = 'Senha inválida ou incompatível.';
@@ -2316,17 +2558,217 @@ async function fazerLogin(){
 }
 window.fazerLogin = fazerLogin;
 
+// ===========================================================================
+// REDEFINIÇÃO DE SENHA COM APROVAÇÃO DO ADMINISTRADOR
+// ---------------------------------------------------------------------------
+// Fluxo em três etapas:
+//   1) o colaborador pede a redefinição na tela de login  -> resets/{mat} = pendente
+//   2) o administrador aprova (ou recusa) em Aprovações   -> resets/{mat} = aprovado
+//   3) o colaborador volta ao login, digita a matrícula e o próprio app abre a
+//      tela de nova senha. Ele escolhe a senha, entra na hora, e a liberação é
+//      consumida (vira "concluido") para não poder ser reaproveitada.
+//
+// Como a credencial vive no Firebase Auth e o e-mail é interno (@reframax.local),
+// não existe "e-mail de recuperação" nem troca de senha de terceiros pelo
+// navegador. A solução é trocar a CREDENCIAL do usuário: cada redefinição cria
+// um novo login interno (132513.r2@reframax.local, depois .r3, e assim por
+// diante) e grava esse endereço em usuarios/{mat}.authEmail. O login passa a
+// usar sempre o endereço vigente, então a senha antiga deixa de abrir o app.
+// A matrícula continua sendo a mesma em todo o sistema — o sufixo é interno.
+// ===========================================================================
+
+let resetLiberadoAtual = null;            // liberação válida detectada no login
+const RESET_VALIDADE_HORAS = 48;          // prazo para usar a liberação aprovada
+
+function resetExpirado(reset){
+  if(!reset || !reset.expiraEm) return false;   // sem prazo gravado = não expira
+  return new Date().toISOString() > String(reset.expiraEm);
+}
+
+// Endereço interno de login vigente para a matrícula.
+// Contas antigas não têm authEmail — elas continuam usando matricula@dominio.
+function emailDeLogin(udata, mat){
+  if(udata && udata.authEmail) return String(udata.authEmail);
+  return matriculaToEmail(mat);
+}
+
+async function lerResetSenha(mat){
+  try{
+    const snap = await getDoc(doc(db,'resets', String(mat)));
+    return snap.exists() ? snap.data() : null;
+  }catch(e){
+    console.warn('Não foi possível ler a solicitação de senha:', e && e.message ? e.message : e);
+    return null;
+  }
+}
+
+// Mensagem na tela de senha informando em que pé está o pedido.
+function mostrarAvisoReset(reset){
+  const box = document.getElementById('loginResetAviso');
+  if(!box) return;
+  if(!reset || !reset.status || reset.status === 'concluido'){
+    box.style.display = 'none'; box.innerHTML = ''; return;
+  }
+  const estilos = {
+    pendente:  ['rgba(240,192,64,.09)','rgba(240,192,64,.4)','var(--gold)',  '⏳ <b>Pedido de nova senha enviado.</b><br>Aguarde a liberação de um administrador e volte a entrar com a sua matrícula.'],
+    aprovado:  ['rgba(61,232,160,.09)','rgba(61,232,160,.4)','var(--green)', '✅ <b>Redefinição liberada.</b><br>Escolha "Esqueci a senha" ou volte e informe a matrícula para criar a nova senha.'],
+    recusado:  ['rgba(255,92,108,.09)','rgba(255,92,108,.4)','var(--red)',   '🚫 <b>Pedido recusado pelo administrador.</b><br>Procure a área responsável antes de solicitar de novo.']
+  };
+  const cfg = estilos[reset.status];
+  if(!cfg){ box.style.display = 'none'; box.innerHTML = ''; return; }
+  const [bg, borda, cor, texto] = cfg;
+  const venceu = reset.status === 'aprovado' && resetExpirado(reset);
+  box.style.display = 'block';
+  box.style.background = bg;
+  box.style.border = '1px solid ' + borda;
+  box.style.color = cor;
+  box.innerHTML = venceu
+    ? '⌛ <b>A liberação expirou.</b><br>Solicite a redefinição novamente.'
+    : texto;
+}
+
 async function solicitarReset(){
   if(!loginMatriculaAtual){ return; }
+  const mat = String(loginMatriculaAtual);
   try{
-    let nome = loginMatriculaAtual;
-    const colabSnap = await getDoc(doc(db,'colaboradores',loginMatriculaAtual));
-    if(colabSnap.exists()) nome = colabSnap.data().nome;
-    await setDoc(doc(db,'resets',loginMatriculaAtual), { matricula: loginMatriculaAtual, nome, timestamp: serverTimestamp() }, {merge:true});
-    toast('Solicitação de senha enviada com sucesso.', 'ok');
-  } catch(e){ console.error(e); toast('Erro ao abrir reset.', 'err'); }
+    const atual = await lerResetSenha(mat);
+
+    // Já liberado e dentro do prazo: não abre outro pedido, leva direto à nova senha.
+    if(atual && atual.status === 'aprovado' && !resetExpirado(atual)){
+      resetLiberadoAtual = atual;
+      mostrarPasso('loginStep4');
+      document.getElementById('resetSenha1').value = '';
+      document.getElementById('resetSenha2').value = '';
+      document.getElementById('resetSenha1').focus();
+      toast('Sua redefinição já está liberada. Crie a nova senha.', 'ok');
+      return;
+    }
+    // Pedido em análise: evita fila de pedidos repetidos do mesmo colaborador.
+    if(atual && atual.status === 'pendente'){
+      mostrarAvisoReset(atual);
+      toast('Você já tem um pedido aguardando aprovação.', 'ok');
+      return;
+    }
+
+    let nome = mat;
+    const colabSnap = await getDoc(doc(db,'colaboradores', mat));
+    if(colabSnap.exists()) nome = colabSnap.data().nome || mat;
+
+    await setDoc(doc(db,'resets', mat), {
+      matricula: mat,
+      nome,
+      status: 'pendente',
+      solicitadoEm: new Date().toISOString(),
+      timestamp: serverTimestamp(),
+      // Campos da decisão são zerados para o caso de um pedido anterior recusado.
+      aprovadoPor: null, aprovadoPorNome: null, aprovadoEm: null,
+      expiraEm: null, motivoRecusa: null, concluidoEm: null
+    }, {merge:true});
+
+    mostrarAvisoReset({status:'pendente'});
+    toast('Pedido de nova senha enviado para aprovação.', 'ok');
+  } catch(e){
+    console.error(e);
+    toast('Erro ao solicitar nova senha: ' + (e && e.message ? e.message : e), 'err');
+  }
 }
 window.solicitarReset = solicitarReset;
+
+// Etapa 3: o colaborador define a nova senha. Só chega aqui com liberação válida.
+async function concluirResetSenha(){
+  const s1 = document.getElementById('resetSenha1').value;
+  const s2 = document.getElementById('resetSenha2').value;
+  const err = document.getElementById('loginErr4');
+  err.textContent = '';
+  if(s1.length < 6){ err.textContent = 'A senha deve ter ao menos 6 caracteres.'; return; }
+  if(s1 !== s2){ err.textContent = 'As senhas não conferem.'; return; }
+
+  const mat = String(loginMatriculaAtual || '');
+  if(!mat){ err.textContent = 'Sessão expirada. Informe a matrícula novamente.'; return; }
+
+  setLoading(true);
+  try{
+    // Reconfere a liberação no servidor: a tela pode estar aberta há horas,
+    // e o administrador pode ter revogado o pedido nesse meio-tempo.
+    const reset = await lerResetSenha(mat);
+    if(!reset || reset.status !== 'aprovado'){
+      err.textContent = 'Esta redefinição não está mais liberada. Solicite novamente.';
+      resetLiberadoAtual = null;
+      mostrarPasso('loginStep2');
+      mostrarAvisoReset(reset);
+      return;
+    }
+    if(resetExpirado(reset)){
+      err.textContent = 'A liberação expirou. Solicite a redefinição novamente.';
+      resetLiberadoAtual = null;
+      mostrarPasso('loginStep2');
+      mostrarAvisoReset(reset);
+      return;
+    }
+
+    const usnap = await getDoc(doc(db,'usuarios', mat));
+    if(!usnap.exists()){
+      err.textContent = 'Conta não encontrada. Faça o primeiro acesso.';
+      return;
+    }
+    const udata = usnap.data();
+
+    // Nova credencial interna: .r2, .r3, ... A matrícula segue a mesma no sistema.
+    const seqAtual = parseInt(udata.authSeq, 10) || 1;
+    const novaSeq = seqAtual + 1;
+    const novoEmail = `${mat}.r${novaSeq}${EMAIL_DOMAIN}`;
+
+    // Registra a credencial pretendida ANTES de criá-la. Se a gravação final
+    // falhar por algum motivo, o login sabe onde procurar e se recupera sozinho.
+    try{
+      await setDoc(doc(db,'resets', mat), { emailPretendido: novoEmail, seqPretendida: novaSeq }, {merge:true});
+    }catch(_){}
+
+    // Cria a credencial nova — isso já autentica o colaborador.
+    await createUserWithEmailAndPassword(auth, novoEmail, s1);
+
+    // Passa a apontar o login da matrícula para a credencial nova.
+    // Com retry: é a gravação que faz a senha nova valer nos próximos acessos.
+    let gravou = false;
+    for(let tentativa = 0; tentativa < 3 && !gravou; tentativa++){
+      try{
+        await setDoc(doc(db,'usuarios', mat), {
+          authEmail: novoEmail,
+          authSeq: novaSeq,
+          senhaRedefinidaEm: serverTimestamp()
+        }, {merge:true});
+        gravou = true;
+      }catch(e){
+        console.warn('Tentativa de gravar a credencial nova falhou:', e && e.message);
+        await new Promise(r => setTimeout(r, 600));
+      }
+    }
+
+    try{
+      await setDoc(doc(db,'resets', mat), {
+        status: 'concluido',
+        concluidoEm: new Date().toISOString(),
+        emailAtivo: novoEmail
+      }, {merge:true});
+    }catch(_){}
+
+    resetLiberadoAtual = null;
+    document.getElementById('resetSenha1').value = '';
+    document.getElementById('resetSenha2').value = '';
+    toast(gravou ? 'Senha redefinida com sucesso.' : 'Senha criada. Se houver erro no próximo acesso, avise o administrador.', gravou ? 'ok' : 'err');
+    // O onAuthStateChanged assume daqui e abre o app.
+  } catch(e){
+    console.error(e);
+    if(e.code === 'auth/email-already-in-use'){
+      err.textContent = 'Já existe uma senha criada para esta liberação. Use "Lembrei a senha" e entre com ela.';
+    } else if(e.code === 'auth/weak-password'){
+      err.textContent = 'Senha fraca demais. Use ao menos 6 caracteres.';
+    } else {
+      err.textContent = 'Erro ao redefinir: ' + (e.message || e.code);
+    }
+  } finally { setLoading(false); }
+}
+window.concluirResetSenha = concluirResetSenha;
 
 async function sairApp(){
   Object.values(unsub).forEach(fn=>{ try{ fn(); } catch(_e){} });
@@ -2342,11 +2784,24 @@ onAuthStateChanged(auth, async (user)=>{
     session = null;
     document.getElementById('bottomnav').style.display = 'none';
     goScreenRaw('login');
+    // Ao sair, a tela de login volta ao começo. Sem isso ela ficaria parada no
+    // passo da senha, com a matrícula de quem acabou de sair.
+    try{ voltarStep1(); }catch(_){}
     return;
   }
-  const mat = user.email.replace(EMAIL_DOMAIN, '');
+  // A matrícula é o começo do endereço interno. Contas que já passaram por
+  // redefinição carregam um sufixo (.r2, .r3…) que não faz parte da matrícula.
+  const mat = user.email.replace(EMAIL_DOMAIN, '').replace(/\.r\d+$/, '');
   try{
-    const usnap = await getDoc(doc(db,'usuarios',mat));
+    // No primeiro acesso (e na redefinição de senha) a autenticação acontece
+    // um instante ANTES de o documento do usuário terminar de ser gravado.
+    // Sem esta espera curta, o app concluiria "conta inexistente" e derrubaria
+    // a sessão de quem acabou de criar a senha. Tenta algumas vezes antes de desistir.
+    let usnap = await getDoc(doc(db,'usuarios',mat));
+    for(let tentativa = 0; tentativa < 4 && !usnap.exists(); tentativa++){
+      await new Promise(r => setTimeout(r, 500));
+      usnap = await getDoc(doc(db,'usuarios',mat));
+    }
     if(!usnap.exists()){
       toast('Conta sem credenciais ativas.', 'err');
       await signOut(auth);
@@ -2370,14 +2825,73 @@ onAuthStateChanged(auth, async (user)=>{
   }
 });
 
+// ===========================================================================
+// ESCOPO DE LIDERANÇA
+// ---------------------------------------------------------------------------
+// Um líder pode responder por MAIS DE UMA equipe, e pode responder por uma
+// equipe PAI (SESMT, por exemplo) cujas pessoas estão nas equipes filhas
+// (Meio Ambiente, Segurança, Medicina). Antes o sistema assumia uma única
+// equipe — a do próprio cadastro do líder —, então quem ele liderava não
+// aparecia na chamada nem em nenhuma outra tela.
+//
+// `equipesQueLidero` devolve TODAS as equipes sob responsabilidade da pessoa,
+// descendo a hierarquia pai -> filhas, com trava contra ciclo.
+// ===========================================================================
+function equipesQueLidero(matricula){
+  const mat = String(matricula || '');
+  if(!mat) return [];
+  const nomes = new Set();
+  const fila = [];
+
+  equipesCache.forEach(e => {
+    if(e.nome && String(e.liderMatricula || '') === mat){ nomes.add(e.nome); fila.push(e.nome); }
+  });
+
+  // Liderar a equipe pai significa liderar tudo que está dentro dela.
+  let guarda = 0;
+  while(fila.length && guarda++ < 500){
+    const atual = fila.shift();
+    equipesCache.forEach(e => {
+      if(e.equipePai && normEquipe(e.equipePai) === normEquipe(atual) && !nomes.has(e.nome)){
+        nomes.add(e.nome); fila.push(e.nome);
+      }
+    });
+  }
+  return [...nomes];
+}
+window.equipesQueLidero = equipesQueLidero;
+
+// Todas as equipes que devem aparecer para a sessão atual: as que ela lidera
+// mais a equipe do próprio cadastro.
+function escopoDeEquipesDaSessao(){
+  if(!session) return [];
+  const nomes = new Set(session.equipesLideradas || []);
+  if(session.equipe) nomes.add(session.equipe);
+  return [...nomes];
+}
+window.escopoDeEquipesDaSessao = escopoDeEquipesDaSessao;
+
+// A pessoa pertence ao escopo da sessão? (por equipe ou por vínculo direto de liderança)
+function noEscopoDaSessao(c){
+  if(!c || !session) return false;
+  if(String(c.liderMatricula || '') === String(session.matricula)) return true;
+  const alvo = normEquipe(c.equipe);
+  if(!alvo) return false;
+  return escopoDeEquipesDaSessao().some(n => normEquipe(n) === alvo);
+}
+window.noEscopoDaSessao = noEscopoDaSessao;
+
 function atualizarEquipeDaSessao(){
   if(!session) return;
+  const lideradas = equipesQueLidero(session.matricula);
+  session.equipesLideradas = lideradas;
+
   const colabInfo = colaboradoresCache.find(c => String(c.matricula) === String(session.matricula));
   if(colabInfo && colabInfo.equipe){
     session.equipe = colabInfo.equipe;
-  } else {
-    const eq = equipesCache.find(e=>String(e.liderMatricula)===String(session.matricula));
-    if(eq){ session.equipe = eq.nome; }
+  } else if(lideradas.length){
+    // Sem equipe própria no cadastro: a principal passa a ser a primeira que ele lidera.
+    session.equipe = lideradas[0];
   }
 }
 
@@ -2425,21 +2939,57 @@ function attachGlobalListeners(){
 // Leitura única (getDocs) das coleções pesadas. Para líder, filtra só a equipe dele.
 async function carregarBaseInicial(){
   try{
-    // Colaboradores: líder carrega só a própria equipe; admin/rh/efetivo carregam tudo.
-    let colabDocs;
-    if(session && session.role === 'lider' && session.equipe){
-      const qs = await getDocs(query(collection(db,'colaboradores'), where('equipe','==', session.equipe)));
-      colabDocs = qs.docs;
-    } else {
-      const qs = await getDocs(collection(db,'colaboradores'));
-      colabDocs = qs.docs;
-    }
-    colaboradoresCache = colabDocs.map(d=>d.data());
-    lideresCache = colaboradoresCache.filter(c => String(c.grupo || '').trim().toUpperCase() === 'LÍDER' || String(c.grupo || '').trim().toUpperCase() === 'LIDER');
-
-    // Equipes (leitura única)
+    // As EQUIPES vêm primeiro: é delas que sai o escopo de liderança usado logo
+    // abaixo para saber quais colaboradores este usuário pode ver.
     const eqs = await getDocs(collection(db,'equipes'));
     equipesCache = eqs.docs.map(d=>({id:d.id, ...d.data()}));
+
+    // Colaboradores: admin/RH carregam tudo; o líder carrega TODAS as equipes que
+    // ele lidera (inclusive as filhas de uma equipe pai) mais a equipe do próprio
+    // cadastro. Antes vinha só uma equipe, então quem ele liderava em outra equipe
+    // simplesmente não existia para o app.
+    let registros = [];
+    if(session && session.role === 'lider'){
+      const porMat = new Map();
+      const guardar = d => { const v = d.data(); if(v && v.matricula!=null) porMat.set(String(v.matricula), v); };
+
+      // O cadastro do próprio líder vem PRIMEIRO: é dele que sai a equipe de
+      // origem. Sem isso, no primeiro carregamento a equipe própria ficaria de
+      // fora (session.equipe ainda está vazia nesse momento).
+      let minhaEquipeCadastro = '';
+      try{
+        const meu = await getDoc(doc(db,'colaboradores', String(session.matricula)));
+        if(meu.exists()){
+          const v = meu.data();
+          porMat.set(String(session.matricula), v);
+          minhaEquipeCadastro = v.equipe || '';
+        }
+      }catch(_){}
+
+      const alvo = new Set(equipesQueLidero(session.matricula));
+      if(session.equipe) alvo.add(session.equipe);
+      if(minhaEquipeCadastro) alvo.add(minhaEquipeCadastro);
+
+      for(const nomeEquipe of alvo){
+        try{
+          const qs = await getDocs(query(collection(db,'colaboradores'), where('equipe','==', nomeEquipe)));
+          qs.docs.forEach(guardar);
+        }catch(e){ console.warn('Falha ao ler equipe '+nomeEquipe+':', e && e.message); }
+      }
+      // Rede de segurança: quem aponta para este líder entra mesmo que o nome da
+      // equipe esteja grafado de forma diferente do cadastro.
+      try{
+        const qs = await getDocs(query(collection(db,'colaboradores'), where('liderMatricula','==', String(session.matricula))));
+        qs.docs.forEach(guardar);
+      }catch(e){ console.warn('Falha ao ler por liderMatricula:', e && e.message); }
+
+      registros = [...porMat.values()];
+    } else {
+      const qs = await getDocs(collection(db,'colaboradores'));
+      registros = qs.docs.map(d=>d.data());
+    }
+    colaboradoresCache = registros;
+    lideresCache = colaboradoresCache.filter(c => String(c.grupo || '').trim().toUpperCase() === 'LÍDER' || String(c.grupo || '').trim().toUpperCase() === 'LIDER');
 
     // Escalas: precisam estar disponíveis para TODO perfil, porque a folga da escala
     // define quem entra (ou não) na chamada do dia e o retorno de férias.
@@ -2529,6 +3079,8 @@ function efetivoSyncFirebase(){
         // para exibir exatamente os mesmos campos da planilha de efetivo.
         status: up(c.status) || '',
         dataStatus: up(c.dataStatus) || '',
+        // Necessário para a árvore saber quem é o líder DESIGNADO da equipe.
+        liderMatricula: up(c.liderMatricula) || '',
         feriasInicio: up(c.feriasInicio) || '',
         feriasFim: up(c.feriasFim) || ''
       };
@@ -2618,7 +3170,7 @@ function renderHub(){
   if(session.role === 'admin'){
     cards.push({ic:'👥', label:'Equipes', sub:'Efetivo · árvore genealógica', screen:'efetivo', accent:'accent-cyan'});
     cards.push({ic:'🔄', label:'Gestão de Equipes', sub:'Visão gerencial + remanejar', screen:'admin-home', accent:'accent-gold'});
-    cards.push({ic:'🛂', label:'Aprovações', sub:'Contas + Mão de Obra', screen:'admin-aprovacoes', accent:'accent-purple'});
+    cards.push({ic:'🛂', label:'Aprovações', sub:'Contas · mão de obra · senhas', screen:'admin-aprovacoes', accent:'accent-purple'});
     cards.push({ic:'🎛️', label:'Módulo de Controle', sub:'Contratos · equipes · acessos', screen:'controle', accent:'accent-cyan'});
     cards.push({ic:'📊', label:'Dashboard', sub:'Indicadores', screen:'admin-dashboard', accent:'accent-green'});
   }
@@ -2639,9 +3191,16 @@ function renderHub(){
 }
 
 // ================= CHAMADA =================
-function getMinhaEquipe(){
+// `equipeFiltro` restringe o resultado a uma única equipe do escopo. É o que
+// permite ao líder que acumula equipes fazer a chamada de uma equipe por vez.
+function getMinhaEquipe(equipeFiltro){
+  const filtro = String(equipeFiltro || '').trim();
+  const casaFiltro = c => !filtro || normEquipe(c.equipe) === normEquipe(filtro);
+  // Entra quem está em QUALQUER equipe do escopo de liderança (inclusive as
+  // filhas de uma equipe pai) ou quem aponta diretamente para este líder.
   const base = colaboradoresCache.filter(c=>
-    (String(c.liderMatricula)===String(session.matricula) || c.equipe === session.equipe)
+    noEscopoDaSessao(c)
+    && casaFiltro(c)
     && equipeFazChamada(c.equipe)   // equipe sem obrigatoriedade não aparece na chamada
     && statusPermiteChamada(c)      // DEMITIDO não aparece
   );
@@ -2673,7 +3232,8 @@ function getMinhaEquipe(){
         matricula: String(s.colaboradorMatricula),
         nome: s.colaboradorNome || orig.nome || '',
         funcao: s.colaboradorFuncao || orig.funcao || orig.classificacao || '',
-        equipe: session.equipe,
+        // A equipe é a do pedido, não a "principal" do líder: ele pode responder por várias.
+        equipe: s.equipeDestino || session.equipe,
         liderMatricula: String(session.matricula),
         aguardandoAprovacao: true,
         alocacaoTipo: s.tipoAlocacao || orig.alocacaoTipo || null
@@ -2690,14 +3250,17 @@ function getMinhaEquipe(){
         matricula: String(m.colaboradorMatricula),
         nome: m.colaboradorNome || orig.nome || '',
         funcao: m.colaboradorFuncao || orig.funcao || orig.classificacao || '',
-        equipe: session.equipe,
+        equipe: m.equipeDestino || session.equipe,
         liderMatricula: String(session.matricula),
         alocacaoTipo: m.tipoAlocacao || null,
         movDiariaId: m.id
       };
     });
 
-  return base.concat(pendentesMeus, diariasMinhas);
+  return base.concat(
+    pendentesMeus.filter(casaFiltro),
+    diariasMinhas.filter(casaFiltro)
+  );
 }
 
 function estaEmFeriasNaData(colaborador, dataISO) {
@@ -2705,10 +3268,96 @@ function estaEmFeriasNaData(colaborador, dataISO) {
   return dataISO >= colaborador.feriasInicio && dataISO <= colaborador.feriasFim;
 }
 
+// ===========================================================================
+// ESCOLHA DE EQUIPE (líder que acumula mais de uma)
+// Quem lidera uma equipe só continua vendo a tela como sempre viu. Quem lidera
+// várias escolhe primeiro em qual vai trabalhar — misturar todo mundo numa
+// lista só tornava a chamada confusa e arriscada.
+// ===========================================================================
+let equipeChamadaAtiva = null;
+let equipeLancheAtiva = null;
+
+// Monta os cards de escolha. `contagem` diz o que exibir embaixo do nome.
+function cardsDeEquipe(nomes, aoClicar, ativa, dataRef){
+  return `<div class="eq-escolha-grid">` + nomes.map(nome=>{
+    const eq = equipesCache.find(e=>normEquipe(e.nome)===normEquipe(nome)) || {};
+    const qtd = colaboradoresCache.filter(c=>normEquipe(c.equipe)===normEquipe(nome) && statusPermiteChamada(c)).length;
+    const gestor = eq.gestor || eq.responsavel || '';
+    const folga = dataRef ? equipeEmFolgaNaData(nome, dataRef) : false;
+    const semChamada = !equipeFazChamada(nome);
+    const nomeEsc = String(nome).replace(/'/g,"\\'");
+    let tag = '';
+    if(semChamada) tag = `<span class="ee-tag">sem chamada</span>`;
+    else if(folga) tag = `<span class="ee-tag">folga hoje</span>`;
+    return `<div class="eq-escolha ${normEquipe(ativa)===normEquipe(nome)?'sel':''}" onclick="${aoClicar}('${nomeEsc}')">
+      <div class="ee-nome">${nome}</div>
+      <div class="ee-sub">${qtd} pessoa${qtd!==1?'s':''}${gestor?' · '+gestor:''}</div>
+      ${eq.posTernium?`<div class="ee-pos">Pos. ${eq.posTernium}</div>`:''}
+      ${tag}
+    </div>`;
+  }).join('') + `</div>`;
+}
+
+function barraEquipeAtiva(nome, aoTrocar){
+  return `<div class="barra-equipe-ativa">
+    <span style="color:var(--cyan); font-size:15px;">👥</span>
+    <div class="bea-nome">${nome}</div>
+    <button class="btn btn-sm btn-ghost" onclick="${aoTrocar}()">trocar equipe</button>
+  </div>`;
+}
+
+function selecionarEquipeChamada(nome){
+  equipeChamadaAtiva = nome;
+  renderHome();
+}
+window.selecionarEquipeChamada = selecionarEquipeChamada;
+
+function trocarEquipeChamada(){
+  equipeChamadaAtiva = null;
+  renderHome();
+}
+window.trocarEquipeChamada = trocarEquipeChamada;
+
 function renderHome(){
   const inputData = document.getElementById('homeData');
   if(!inputData.value) inputData.value = hojeISO();
-  document.getElementById('homeEquipeLabel').textContent = session.equipe || 'Minha equipe';
+  const escopoHome = escopoDeEquipesDaSessao();
+  const varias = escopoHome.length > 1;
+
+  // Se a equipe escolhida saiu do escopo (troca de liderança), volta à escolha.
+  if(equipeChamadaAtiva && !escopoHome.some(n=>normEquipe(n)===normEquipe(equipeChamadaAtiva))){
+    equipeChamadaAtiva = null;
+  }
+
+  const seletor = document.getElementById('homeSeletorEquipes');
+  const barra   = document.getElementById('homeBarraEquipe');
+  const corpo   = document.getElementById('homeCorpoChamada');
+
+  if(varias && !equipeChamadaAtiva){
+    // Ainda não escolheu: mostra só os cards das equipes dele.
+    if(seletor){
+      seletor.style.display = '';
+      seletor.innerHTML = `<div class="remanejar-hint">Você responde por <b>${escopoHome.length} equipes</b>. Escolha em qual vai fazer a chamada.</div>`
+        + cardsDeEquipe(escopoHome, 'selecionarEquipeChamada', null, inputData.value);
+    }
+    if(barra) barra.style.display = 'none';
+    if(corpo) corpo.style.display = 'none';
+    document.getElementById('homeEquipeLabel').textContent = `${escopoHome.length} equipes`;
+    return;   // sem equipe escolhida não há chamada a montar
+  }
+
+  if(seletor){ seletor.style.display = 'none'; seletor.innerHTML = ''; }
+  if(corpo) corpo.style.display = '';
+  if(barra){
+    if(varias){
+      barra.style.display = '';
+      barra.innerHTML = barraEquipeAtiva(equipeChamadaAtiva, 'trocarEquipeChamada');
+    } else { barra.style.display = 'none'; barra.innerHTML = ''; }
+  }
+
+  document.getElementById('homeEquipeLabel').textContent = varias
+    ? equipeChamadaAtiva
+    : (escopoHome[0] || session.equipe || 'Minha equipe');
   attachHomeListener(inputData.value);
 }
 window.renderHome = renderHome;
@@ -2716,12 +3365,21 @@ window.renderHome = renderHome;
 function attachHomeListener(data){
   if(unsub.home) unsub.home();
   // Filtra no servidor por data E equipe (economia): antes lia as chamadas de todas as equipes.
-  const base = session.equipe
-    ? query(collection(db,'chamadas'), where('data','==',data), where('equipe','==', session.equipe))
+  // Com uma única equipe mantemos o filtro no servidor (economia de leitura).
+  // Liderando mais de uma, filtramos no cliente — senão as demais equipes
+  // ficariam de fora da chamada.
+  // Com a equipe escolhida (ou com uma equipe só) dá para filtrar no servidor.
+  const escopoTodo = escopoDeEquipesDaSessao();
+  const escopo = equipeChamadaAtiva ? [equipeChamadaAtiva] : escopoTodo;
+  const base = (escopo.length === 1)
+    ? query(collection(db,'chamadas'), where('data','==',data), where('equipe','==', escopo[0]))
     : query(collection(db,'chamadas'), where('data','==',data));
   unsub.home = onSnapshot(base, (snap)=>{
     const tudo = snap.docs.map(d=>d.data());
-    chamadasHomeCache = tudo.filter(r => r.equipe === session.equipe || r.liderMatricula === session.matricula);
+    chamadasHomeCache = tudo.filter(r =>
+      String(r.liderMatricula||'') === String(session.matricula)
+      || escopo.some(n => normEquipe(n) === normEquipe(r.equipe))
+    );
     renderHomeList();
   });
 }
@@ -2734,7 +3392,24 @@ function renderHomeList(){
   // Aviso de escala: se a equipe do líder está de folga nesta data, ele precisa saber
   // — e a chamada desse dia não é cobrada como pendência nos indicadores.
   const avisoEsc = document.getElementById('homeAvisoEscala');
-  if(avisoEsc){
+  const escopoLista = equipeChamadaAtiva ? [equipeChamadaAtiva] : escopoDeEquipesDaSessao();
+  if(avisoEsc && escopoLista.length > 1){
+    // Liderando várias equipes, um aviso único de escala seria enganoso:
+    // cada equipe pode estar numa letra diferente. Mostramos uma linha por equipe.
+    const porEquipe = escopoLista.map(nomeEq=>{
+      const info = escalaDaEquipe(nomeEq);
+      if(!info) return null;
+      const trabalha = letraTrabalhaNaData(info.escala, info.letra, dataChamadaAtual);
+      return `<div style="margin-top:4px;">🗓️ <b>${nomeEq}</b> · ${info.escala.nome} letra ${info.letra.tag} — <b style="color:${trabalha?'var(--green)':'var(--gold)'};">${trabalha?'trabalha':'folga'}</b></div>`;
+    }).filter(Boolean);
+    if(porEquipe.length){
+      avisoEsc.style.display = '';
+      avisoEsc.innerHTML = `<div class="remanejar-hint">${porEquipe.join('')}</div>`;
+    } else {
+      avisoEsc.style.display = 'none';
+      avisoEsc.innerHTML = '';
+    }
+  } else if(avisoEsc){
     const infoEsc = escalaDaEquipe(session.equipe || '');
     if(infoEsc && dataChamadaAtual && !letraTrabalhaNaData(infoEsc.escala, infoEsc.letra, dataChamadaAtual)){
       avisoEsc.style.display = '';
@@ -2752,7 +3427,7 @@ function renderHomeList(){
     }
   }
 
-  const todaEquipe = getMinhaEquipe().filter(c=>{
+  const todaEquipe = getMinhaEquipe(equipeChamadaAtiva).filter(c=>{
     if(!busca) return true;
     return c.nome.toLowerCase().includes(busca) || c.matricula.includes(busca);
   });
@@ -2785,9 +3460,12 @@ function renderHomeList(){
   
   let htmlPrincipal = linhas.map(l=>{
     const c = l.colaborador;
-    const chipClass = l.status==='presente'?'chip-presente':(l.status==='falta'?'chip-falta':(l.status==='atestado'?'chip-manual':(l.status==='falta_fte'?'chip-fte':'chip-pendente')));
-    const chipLabel = l.status==='presente'?'Presente':(l.status==='falta'?'Falta':(l.status==='atestado'?'Afastado':(l.status==='falta_fte'?'Falta FTE':'Pendente')));
-    const meta = l.registro ? ((c.funcao||'') + ' · ' + (l.registro.hora||'')) : ((c.funcao||'') + ' · Mat. ' + c.matricula);
+    const chipClass = l.status==='presente'?'chip-presente':(l.status==='falta'?'chip-falta':(l.status==='atestado'?'chip-manual':(l.status==='falta_fte'?'chip-fte':(l.status==='falta_justificada'?'chip-justificada':'chip-pendente'))));
+    const chipLabel = l.status==='presente'?'Presente':(l.status==='falta'?'Falta':(l.status==='atestado'?'Afastado':(l.status==='falta_fte'?'Falta FTE':(l.status==='falta_justificada'?'Falta justif.':'Pendente'))));
+    // Com mais de uma equipe no escopo, mostrar de qual equipe a pessoa é
+    // deixa de ser detalhe e vira informação necessária.
+    const sufixoEq = (escopoLista.length > 1 && c.equipe) ? ' · ' + c.equipe : '';
+    const meta = (l.registro ? ((c.funcao||'') + ' · ' + (l.registro.hora||'')) : ((c.funcao||'') + ' · Mat. ' + c.matricula)) + sufixoEq;
     const tipoNome = c.alocacaoTipo==='hora_extra' ? 'Hora extra' : (c.alocacaoTipo==='remanejado' ? 'Remanejado' : (c.alocacaoTipo==='apoio' ? 'Apoio' : ''));
     const tipoClasse = c.alocacaoTipo==='hora_extra' ? 'alloc-hora_extra' : (c.alocacaoTipo==='remanejado' ? 'alloc-remanejado' : 'alloc-permanente');
     const allocBadge = (c.alocacaoTipo && c.alocacaoTipo!=='permanente') ? `<span class="alloc-chip ${tipoClasse}">${tipoNome}</span>` : '';
@@ -2901,6 +3579,15 @@ function abrirModalStatus(colaborador){
   if(btnDem) btnDem.textContent = ehLider ? '🚫 Solicitar demissão (gestor aprova)' : '🚫 Demitir colaborador';
 
   prepararTransferenciaEquipe(colaborador);
+
+  // Zera o destaque da falta justificada de um atendimento anterior.
+  const avisoFj = document.getElementById('avisoFaltaJustificada');
+  if(avisoFj) avisoFj.style.display = 'none';
+  const campoObs = document.getElementById('statusObs');
+  if(campoObs){
+    campoObs.style.borderColor = '';
+    campoObs.placeholder = 'Ex: chegou às 8h15, atraso justificável…';
+  }
 
   document.getElementById('modalStatus').classList.add('active');
 }
@@ -3269,7 +3956,25 @@ async function salvarStatus(status){
   const obs = document.getElementById('statusObs').value.trim();
   const liderMat = c.liderMatricula || session.matricula;
   const docId = c.matricula + '_' + data;
-  
+
+  // Falta justificada sem motivo não entra: o motivo É a justificativa.
+  if(status === 'falta_justificada'){
+    const aviso = document.getElementById('avisoFaltaJustificada');
+    if(obs.length < 3){
+      if(aviso) aviso.style.display = 'block';
+      const campo = document.getElementById('statusObs');
+      if(campo){
+        campo.style.borderColor = 'var(--gold)';
+        campo.placeholder = 'Obrigatório: descreva o motivo da falta justificada…';
+        campo.focus();
+        try{ campo.scrollIntoView({behavior:'smooth', block:'center'}); }catch(_){}
+      }
+      toast('Informe o motivo da falta justificada.', 'err');
+      return;
+    }
+    if(aviso) aviso.style.display = 'none';
+  }
+
   try {
     if(!document.getElementById('marcarFeriasCheck').checked){
       if(c.feriasInicio || c.feriasFim) {
@@ -3284,6 +3989,9 @@ async function salvarStatus(status){
       data, matricula:c.matricula, nome:c.nome, funcao:c.funcao||'',
       status, hora: fmtHora(new Date()), metodo:'manual',
       equipe: c.equipe || session.equipe || '', observacao: obs,
+      // Guardado em campo próprio para o relatório e o dashboard poderem exibir
+      // o motivo sem depender do texto livre de observação.
+      motivoJustificativa: (status === 'falta_justificada') ? obs : null,
       liderMatricula: liderMat, registradoPor: session.matricula,
       timestamp: serverTimestamp()
     }, {merge:true});
@@ -3390,7 +4098,7 @@ function buildAdminTree(){
           <div class="tree-header tree-header-l2" onclick="abrirDetalheAdminEquipeExterno('${esc1(eq.nome)}')">
             <div class="tree-titulo">
               <div class="tree-nome">${eq.nome}</div>
-              <div class="tree-sub">CC ${eq.codContrato||eq.centroCusto||'—'} · Líder Mat: ${eq.liderMatricula || 'não atribuído'}${eq.responsavel?' · resp: '+eq.responsavel:''}</div>
+              <div class="tree-sub">CC ${eq.codContrato||eq.centroCusto||'—'} · Líder: ${rotuloLiderDaEquipe(eq.nome)}${eq.responsavel?' · resp: '+eq.responsavel:''}</div>
             </div>
             <span class="status-chip ${completo?'chip-presente':(pres===0?'chip-pendente':'chip-manual')}">${pres}/${membros.length} · ${pct}%</span>
           </div>
@@ -3474,8 +4182,8 @@ function renderAdminTeamDetail(data){
       
       lista.innerHTML = linhas.map(l=>{
         const c = l.colaborador;
-        const chipClass = l.status==='presente'?'chip-presente':(l.status==='falta'?'chip-falta':(l.status==='atestado'?'chip-manual':'chip-pendente'));
-        const chipLabel = l.status==='presente'?'Presente':(l.status==='falta'?'Falta':(l.status==='atestado'?'Afastado':'Pendente'));
+        const chipClass = l.status==='presente'?'chip-presente':(l.status==='falta'?'chip-falta':(l.status==='atestado'?'chip-manual':(l.status==='falta_fte'?'chip-fte':(l.status==='falta_justificada'?'chip-justificada':'chip-pendente'))));
+        const chipLabel = l.status==='presente'?'Presente':(l.status==='falta'?'Falta':(l.status==='atestado'?'Afastado':(l.status==='falta_fte'?'Falta FTE':(l.status==='falta_justificada'?'Falta justif.':'Pendente'))));
         const meta = l.registro ? ((c.funcao||'') + ' · ' + (l.registro.hora||'')) : ((c.funcao||'') + ' · Mat. ' + c.matricula);
         return `<div class="person-card" onclick="abrirModalStatusExterno('${c.matricula}')">
           <div class="avatar">${(c.nome||'?').slice(0,2).toUpperCase()}</div>
@@ -3489,14 +4197,55 @@ function renderAdminTeamDetail(data){
 
 // ================= LANCHES =================
 
+function selecionarEquipeLanche(nome){
+  equipeLancheAtiva = nome;
+  renderLancheSolicitar();
+}
+window.selecionarEquipeLanche = selecionarEquipeLanche;
+
+function trocarEquipeLanche(){
+  equipeLancheAtiva = null;
+  renderLancheSolicitar();
+}
+window.trocarEquipeLanche = trocarEquipeLanche;
+
 function renderLancheSolicitar(){
+  const escopoL = escopoDeEquipesDaSessao();
+  const variasL = escopoL.length > 1;
+  if(equipeLancheAtiva && !escopoL.some(n=>normEquipe(n)===normEquipe(equipeLancheAtiva))){
+    equipeLancheAtiva = null;
+  }
+
+  const seletorL = document.getElementById('lancheSeletorEquipes');
+  const barraL   = document.getElementById('lancheBarraEquipe');
+  const corpoL   = document.getElementById('lancheCorpo');
+
+  if(variasL && !equipeLancheAtiva){
+    if(seletorL){
+      seletorL.style.display = '';
+      seletorL.innerHTML = `<div class="remanejar-hint">Escolha a equipe para a qual você vai pedir os lanches.</div>`
+        + cardsDeEquipe(escopoL, 'selecionarEquipeLanche', null, null);
+    }
+    if(barraL) barraL.style.display = 'none';
+    if(corpoL) corpoL.style.display = 'none';
+    return;
+  }
+  if(seletorL){ seletorL.style.display = 'none'; seletorL.innerHTML = ''; }
+  if(corpoL) corpoL.style.display = '';
+  if(barraL){
+    if(variasL){
+      barraL.style.display = '';
+      barraL.innerHTML = barraEquipeAtiva(equipeLancheAtiva, 'trocarEquipeLanche');
+    } else { barraL.style.display = 'none'; barraL.innerHTML = ''; }
+  }
+
   document.getElementById('lancheData').value = hojeISO();
   document.getElementById('lancheAvulsos').value = 0;
   document.getElementById('lancheMotivo').value = '';
 
-  const equipe = getMinhaEquipe();
+  const equipe = getMinhaEquipe(equipeLancheAtiva);
   const lista = document.getElementById('lancheTeamList');
-  
+
   if(!equipe.length){
     lista.innerHTML = `<div class="empty">Sua equipe está vazia.</div>`;
     return;
@@ -3554,7 +4303,7 @@ async function enviarPedidoLanche(){
       motivo: motivo || '',
       liderMatricula: session.matricula,
       liderNome: session.nome || '',
-      equipe: session.equipe || 'Equipe sem nome',
+      equipe: equipeLancheAtiva || session.equipe || 'Equipe sem nome',
       membros: membros,
       avulsos: avulsos,
       total: totalLanches,
@@ -4022,6 +4771,39 @@ function renderAprovacoes(){
         </div>`).join('');
     }
   );
+  // Solicitações de REDEFINIÇÃO DE SENHA
+  if(unsub.aprovResets) unsub.aprovResets();
+  unsub.aprovResets = onSnapshot(
+    query(collection(db,'resets'), where('status','==','pendente')),
+    (snap)=>{
+      const pedidos = snap.docs.map(d=>({id:d.id, ...d.data()}));
+      const lista = document.getElementById('aprovResets');
+      if(!lista) return;
+      if(!pedidos.length){
+        lista.innerHTML = `<div class="empty" style="grid-column: 1 / -1;">Nenhum pedido de senha pendente.</div>`;
+        return;
+      }
+      pedidos.sort((a,b)=> String(a.solicitadoEm||'').localeCompare(String(b.solicitadoEm||'')));
+      lista.innerHTML = pedidos.map(r=>{
+        const mat = String(r.matricula || r.id);
+        const c = colaboradoresCache.find(x=>String(x.matricula)===mat) || {};
+        const quando = r.solicitadoEm ? fmtDataPtBr(String(r.solicitadoEm).slice(0,10)) : '—';
+        const hora = r.solicitadoEm && String(r.solicitadoEm).length>=16 ? String(r.solicitadoEm).slice(11,16) : '';
+        return `<div class="rep-card" style="flex-direction:column; align-items:stretch;">
+          <div class="rc-info">
+            <div class="rc-nome">${r.nome || c.nome || '—'} <span class="alloc-chip chip-manual">Senha</span></div>
+            <div class="rc-meta">Mat. ${mat}${c.equipe? ' · '+c.equipe : ''}${c.grupo? ' · '+c.grupo : ''}</div>
+            <div class="rc-meta">Pedido em ${quando}${hora? ' às '+hora : ''}</div>
+          </div>
+          <div class="actions-row" style="margin-top:10px;">
+            <button class="btn btn-sm btn-green" onclick="aprovarReset('${mat}')">✓ Liberar nova senha</button>
+            <button class="btn btn-sm btn-danger" onclick="rejeitarReset('${mat}')">✕ Recusar</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  );
+
   // Solicitações de inclusão de Mão de Obra
   if(unsub.aprovMaoObra) unsub.aprovMaoObra();
   unsub.aprovMaoObra = onSnapshot(
@@ -4196,6 +4978,50 @@ async function rejeitarSolicitacaoMaoObra(id, idsJson){
 }
 window.rejeitarSolicitacaoMaoObra = rejeitarSolicitacaoMaoObra;
 
+// Libera a redefinição: a partir daqui o próprio colaborador cria a nova senha.
+async function aprovarReset(mat){
+  const m = String(mat);
+  const c = colaboradoresCache.find(x=>String(x.matricula)===m) || {};
+  if(!confirm(`Liberar a criação de uma nova senha para ${c.nome || 'a matrícula '+m}?\n\nA senha atual dele deixará de funcionar assim que ele criar a nova. A liberação vale por ${RESET_VALIDADE_HORAS} horas.`)) return;
+  try{
+    const expira = new Date(Date.now() + RESET_VALIDADE_HORAS*60*60*1000).toISOString();
+    await setDoc(doc(db,'resets', m), {
+      status: 'aprovado',
+      aprovadoPor: String(session.matricula||''),
+      aprovadoPorNome: session.nome || '',
+      aprovadoEm: new Date().toISOString(),
+      expiraEm: expira,
+      motivoRecusa: null
+    }, {merge:true});
+    toast('Redefinição liberada. Peça para ele abrir o app e informar a matrícula.', 'ok');
+  }catch(e){
+    console.error(e);
+    toast('Erro ao liberar: ' + (e && e.message ? e.message : e), 'err');
+  }
+}
+window.aprovarReset = aprovarReset;
+
+async function rejeitarReset(mat){
+  const m = String(mat);
+  const motivo = prompt('Motivo da recusa (opcional):');
+  if(motivo === null) return;
+  try{
+    await setDoc(doc(db,'resets', m), {
+      status: 'recusado',
+      motivoRecusa: (motivo||'').trim() || null,
+      recusadoPor: String(session.matricula||''),
+      recusadoPorNome: session.nome || '',
+      recusadoEm: new Date().toISOString(),
+      expiraEm: null
+    }, {merge:true});
+    toast('Pedido de senha recusado.', 'ok');
+  }catch(e){
+    console.error(e);
+    toast('Erro ao recusar: ' + (e && e.message ? e.message : e), 'err');
+  }
+}
+window.rejeitarReset = rejeitarReset;
+
 async function aprovarConta(mat){
   const role = document.getElementById('role_'+mat).value;
   try{
@@ -4247,6 +5073,12 @@ async function renderDashboard(){
         <div class="dc-num" id="dashPendentes">0</div>
         <div class="dc-label">Pendentes</div>
         <div class="dc-sub">Sem chamada</div>
+      </div>
+      <div class="dash-card" style="cursor:pointer; border-color:rgba(240,160,60,.45);" onclick="toggleDashLista('falta_justificada')">
+        <div class="dc-ic">📝</div>
+        <div class="dc-num" id="dashFaltasJustificadas" style="color:#f0a03c;">0</div>
+        <div class="dc-label">Faltas justificadas</div>
+        <div class="dc-sub">Com motivo do líder</div>
       </div>
       <div class="dash-card" style="cursor:pointer; border-color:rgba(138,124,255,.4);" onclick="toggleDashLista('falta_fte')">
         <div class="dc-ic">📋</div>
@@ -4328,7 +5160,8 @@ function atualizarCardsDashboard(regs){
   const faltas = regs.filter(r=>r.status==='falta').length;
   const atestados = regs.filter(r=>r.status==='atestado').length;
   const faltasFte = regs.filter(r=>r.status==='falta_fte').length;
-  const pendentes = Math.max(total - presentes - faltas - atestados - faltasFte, 0);
+  const faltasJust = regs.filter(r=>r.status==='falta_justificada').length;
+  const pendentes = Math.max(total - presentes - faltas - atestados - faltasFte - faltasJust, 0);
   const remanejados = colaboradoresCache.filter(c=>c.alocacaoTipo && c.alocacaoTipo!=='permanente').length;
 
   const setTxt = (id,v)=>{ const el=document.getElementById(id); if(el) el.textContent = v; };
@@ -4337,6 +5170,7 @@ function atualizarCardsDashboard(regs){
   setTxt('dashFaltas', faltas);
   setTxt('dashAtestados', atestados);
   setTxt('dashFaltasFte', faltasFte);
+  setTxt('dashFaltasJustificadas', faltasJust);
   setTxt('dashPendentes', pendentes);
   setTxt('dashRemanejados', remanejados);
   const pct = total>0 ? Math.round((presentes/total)*100) : 0;
@@ -4460,7 +5294,7 @@ function renderDashListaNomes(tipo){
       .filter(c=>c.equipe && c.equipe.trim()!=='' && equipeFazChamada(c.equipe) && !equipeEmFolgaNaData(c.equipe, dataRef) && statusPermiteChamada(c) && !estaJustificadoNaData(c, dataRef) && !registrados.has(String(c.matricula)))
       .map(c=>({nome:c.nome, equipe:c.equipe, grupo:c.grupo}));
   } else {
-    titulo = tipo==='presente' ? 'Presentes' : (tipo==='falta' ? 'Faltas' : (tipo==='falta_fte' ? 'Faltas FTE (justificadas p/ cliente)' : 'Atestados'));
+    titulo = tipo==='presente' ? 'Presentes' : (tipo==='falta' ? 'Faltas' : (tipo==='falta_fte' ? 'Faltas FTE (justificadas p/ cliente)' : (tipo==='falta_justificada' ? 'Faltas justificadas' : 'Atestados')));
     itens = dashRegsHoje.filter(r=>r.status===tipo).map(r=>{
       const c = nomeDe(r.matricula) || {};
       return {nome: c.nome || r.nome || String(r.matricula), equipe: c.equipe || r.equipe || '—', grupo: c.grupo || ''};
@@ -4610,7 +5444,7 @@ function renderAdminRemanejar(){
             <span style="color:var(--cyan); font-size:12px;">${eqAberta?'▾':'▸'}</span>
             <div style="min-width:0;">
               <div class="drop-zone-title">${eq.nome}</div>
-              <div class="drop-zone-sub">Líder Mat: ${eq.liderMatricula||'—'} · ${membros.length} pessoa(s)</div>
+              <div class="drop-zone-sub">Líder: ${rotuloLiderDaEquipe(eq.nome)} · ${membros.length} pessoa(s)</div>
             </div>
           </div>
           <span class="status-chip chip-neutro">${membros.length}</span>
@@ -4877,44 +5711,129 @@ function ccPadraoDoContrato(contrato){
 }
 window.ccPadraoDoContrato = ccPadraoDoContrato;
 
+// ===========================================================================
+// ATRIBUTOS DE EQUIPE x ATRIBUTOS DA PESSOA
+// ---------------------------------------------------------------------------
+// Quando alguém muda de equipe em definitivo, tudo que descreve ONDE a pessoa
+// trabalha precisa acompanhar a equipe nova. O que descreve QUEM a pessoa é
+// não pode ser tocado.
+//
+//   Seguem a equipe : equipe, rastreabilidade, ATUAÇÃO, contrato, centro de
+//                     custo, responsável, gestor, posição Ternium, líder.
+//   São da pessoa   : matrícula, nome, CPF, admissão, matrícula Ternium,
+//                     grupo e classificação/função (a função só muda pelo RH,
+//                     em evolução de carreira).
+//
+// Movimentação TEMPORÁRIA do líder (apoio / hora extra) não passa por aqui:
+// ela vive em `movimentacoes_diarias` e não encosta no cadastro.
+// ===========================================================================
+
+// Valor predominante de um campo entre os integrantes atuais da equipe.
+// Serve de rede: se a equipe ainda não tem o atributo cadastrado, herdamos o
+// que o pessoal dela já usa, em vez de arrastar o valor da equipe antiga.
+function atributoPredominanteDaEquipe(nomeEquipe, campo){
+  const alvo = normEquipe(nomeEquipe);
+  const contagem = {};
+  colaboradoresCache.forEach(c => {
+    if(normEquipe(c.equipe) !== alvo) return;
+    const v = String(c[campo] || '').trim();
+    if(!v) return;
+    contagem[v] = (contagem[v] || 0) + 1;
+  });
+  let melhor = '', qtd = 0;
+  Object.keys(contagem).forEach(v => { if(contagem[v] > qtd){ melhor = v; qtd = contagem[v]; } });
+  return melhor;
+}
+window.atributoPredominanteDaEquipe = atributoPredominanteDaEquipe;
+
+// ---------------------------------------------------------------------------
+// LÍDER DE UMA EQUIPE — fonte única de verdade
+// Quem manda é o líder DESIGNADO no módulo de Gestão de Equipes
+// (equipes.liderMatricula), com a marcação de permanente ou temporário.
+// O campo `grupo` da planilha ("LÍDER") é só um cargo: não define quem lidera
+// a equipe hoje. Antes a árvore genealógica olhava apenas para o `grupo`, por
+// isso a designação feita na tela de equipes não aparecia lá.
+// Devolve null quando a equipe não tem líder designado — aí quem chama decide
+// o que fazer (a árvore cai no cargo como último recurso).
+// ---------------------------------------------------------------------------
+function liderDaEquipe(nomeEquipe){
+  if(!nomeEquipe) return null;
+  const alvo = normEquipe(nomeEquipe);
+  const eq = equipesCache.find(e => normEquipe(e.nome) === alvo);
+  if(!eq || !eq.liderMatricula) return null;
+
+  const nomeDe = mat => {
+    if(!mat) return '';
+    const c = colaboradoresCache.find(x => String(x.matricula) === String(mat));
+    return c ? (c.nome || String(mat)) : String(mat);
+  };
+  const temporario = eq.liderTipo === 'temporario';
+  return {
+    matricula: String(eq.liderMatricula),
+    nome: nomeDe(eq.liderMatricula),
+    tipo: temporario ? 'temporario' : 'permanente',
+    fim: temporario ? (eq.liderFim || null) : null,
+    titularMatricula: temporario ? (eq.liderTitular || null) : null,
+    titularNome: temporario ? nomeDe(eq.liderTitular) : ''
+  };
+}
+window.liderDaEquipe = liderDaEquipe;
+
+// Resumo curto para exibir em listas: "FULANO (temporário até 30/09)".
+function rotuloLiderDaEquipe(nomeEquipe){
+  const l = liderDaEquipe(nomeEquipe);
+  if(!l) return 'não atribuído';
+  if(l.tipo === 'temporario'){
+    return `${l.nome}${l.fim ? ' (temporário até ' + fmtDataPtBr(l.fim) + ')' : ' (temporário)'}`;
+  }
+  return l.nome;
+}
+window.rotuloLiderDaEquipe = rotuloLiderDaEquipe;
+
 function dadosDaEquipe(nomeEquipe){
   if(!nomeEquipe) return null;
   const alvo = normEquipe(nomeEquipe);
   const eq = equipesCache.find(e => normEquipe(e.nome) === alvo);
   if(!eq) return null;
-  const contrato = eq.contrato || eq.cc || '';
-  const cc = eq.codContrato || eq.centroCusto || ccPadraoDoContrato(contrato) || '';
+  const contrato = eq.contrato || eq.cc || atributoPredominanteDaEquipe(eq.nome,'contrato') || '';
+  const cc = eq.codContrato || eq.centroCusto || atributoPredominanteDaEquipe(eq.nome,'codContrato') || ccPadraoDoContrato(contrato) || '';
+  // Atuação é atributo da EQUIPE (é um nível da árvore genealógica). Quando a
+  // equipe ainda não tem a sua cadastrada, usamos a que os integrantes dela já
+  // têm; em último caso, o próprio nome da equipe — nunca a da equipe anterior.
+  const atuacao = eq.atuacao || atributoPredominanteDaEquipe(eq.nome,'atuacao') || eq.nome;
   return {
     contrato,
     cc: contrato,                    // alias usado pela árvore do efetivo
     codContrato: cc,
-    responsavel: eq.responsavel || '',
-    gestor: eq.gestor || '',
-    posTernium: eq.posTernium || '',
+    atuacao,
+    responsavel: eq.responsavel || atributoPredominanteDaEquipe(eq.nome,'responsavel') || '',
+    gestor: eq.gestor || atributoPredominanteDaEquipe(eq.nome,'gestor') || '',
+    posTernium: eq.posTernium || atributoPredominanteDaEquipe(eq.nome,'posTernium') || '',
     liderMatricula: (eq.liderMatricula!==undefined ? eq.liderMatricula : null)
   };
 }
 window.dadosDaEquipe = dadosDaEquipe;
 
 // Monta o objeto de atualização ao mover um colaborador para uma equipe.
-// Preserva os valores EXCLUSIVOS do colaborador (matrícula, nome, grupo, classificação,
-// admissão, mat. ternium, cpf) — só muda o que é ligado à equipe.
+// Todo campo ligado à equipe é ESCRITO, mesmo quando o valor apurado é vazio:
+// se ficasse de fora, o dado da equipe antiga permaneceria no colaborador —
+// foi exatamente isso que fazia a atuação antiga reaparecer na árvore.
 function camposMovimentacao(nomeEquipe){
   const d = dadosDaEquipe(nomeEquipe) || {};
-  const upd = {
+  return {
     equipe: nomeEquipe,
     rastreabilidade: nomeEquipe,
+    atuacao: d.atuacao || nomeEquipe,
+    contrato: d.contrato || '',
+    cc: d.contrato || '',
+    codContrato: d.codContrato || '',
+    responsavel: d.responsavel || '',
+    gestor: d.gestor || '',
+    posTernium: d.posTernium || '',
+    liderMatricula: (d.liderMatricula !== undefined ? (d.liderMatricula || null) : null),
     alocacaoTipo: 'permanente',
     alocadoEm: serverTimestamp()
   };
-  // Correlação automática (só preenche o que a equipe conhece).
-  if(d.contrato)    { upd.contrato = d.contrato; upd.cc = d.contrato; }
-  if(d.codContrato) upd.codContrato = d.codContrato;
-  if(d.responsavel) upd.responsavel = d.responsavel;
-  if(d.gestor)      upd.gestor = d.gestor;
-  if(d.posTernium)  upd.posTernium = d.posTernium;
-  if(d.liderMatricula !== undefined) upd.liderMatricula = d.liderMatricula || null;
-  return upd;
 }
 window.camposMovimentacao = camposMovimentacao;
 
@@ -5031,19 +5950,17 @@ async function salvarColaboradorFirebase(dados, matriculaAntiga){
   const reg = { ...antigo, ...dados, matricula: mat };
 
   // Se a equipe mudou (ou foi definida agora), a correlação segue a equipe destino.
+  // Usa exatamente a mesma regra das demais telas (camposMovimentacao), para a
+  // edição pelo formulário não produzir um resultado diferente do arrastar.
   if(equipeNova && equipeMudou){
-    const corr = dadosDaEquipe(equipeNova);
-    if(corr){
-      if(corr.contrato){ reg.contrato = corr.contrato; reg.cc = corr.contrato; }
-      if(corr.codContrato) reg.codContrato = corr.codContrato;
-      if(corr.responsavel) reg.responsavel = corr.responsavel;
-      if(corr.gestor) reg.gestor = corr.gestor;
-      if(corr.posTernium) reg.posTernium = corr.posTernium;
-      if(corr.liderMatricula!==undefined) reg.liderMatricula = corr.liderMatricula || null;
-    }
-    reg.rastreabilidade = equipeNova;
-    reg.alocacaoTipo = 'permanente';
-    reg.alocadoEm = serverTimestamp();
+    const corr = camposMovimentacao(equipeNova);
+    Object.keys(corr).forEach(k => { reg[k] = corr[k]; });
+    // O formulário pode ter trazido valores digitados à mão; eles prevalecem
+    // sobre a correlação automática apenas quando foram realmente preenchidos.
+    ['contrato','codContrato','responsavel','gestor','posTernium'].forEach(k => {
+      if(dados[k] !== undefined && String(dados[k]).trim() !== '') reg[k] = String(dados[k]).trim();
+    });
+    if(reg.contrato) reg.cc = reg.contrato;
     // Novato (ADMITIDO) ganha equipe -> vira ATIVO.
     if(normStatus(reg.status)==='ADMITIDO'){ reg.status='ATIVO'; reg.dataStatus=hojeISOLocal(); }
   }
@@ -5258,6 +6175,8 @@ async function salvarLiderEquipe(nomeEquipe, idSafe){
       await batch.commit();
     }
     toast(tipo==='temporario' ? 'Líder temporário definido.' : 'Líder definido.', 'ok');
+    // carregarBaseInicial republica a base na árvore (efetivoSyncFirebase),
+    // então a designação aparece lá sem precisar recarregar a página.
     if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
     renderAdminLider();
   }catch(e){ console.error(e); toast('Erro ao salvar líder: ' + (e && e.message ? e.message : e), 'err'); renderAdminLider(); }
@@ -5276,7 +6195,7 @@ async function aplicarExpiracaoLideresTemporarios(){
     for(const eq of vencidas){
       const titular = eq.liderTitular || null;
       await setDoc(doc(db,'equipes', eq.nome), { nome: eq.nome, liderMatricula: titular, liderTipo:'permanente', liderFim:null, liderTitular:null }, {merge:true});
-      const membros = colaboradoresCache.filter(c=>c.equipe===eq.nome);
+      const membros = colaboradoresCache.filter(c=>normEquipe(c.equipe)===normEquipe(eq.nome));
       if(membros.length){
         const batch = writeBatch(db);
         membros.forEach(c=> batch.update(doc(db,'colaboradores', String(c.matricula)), { liderMatricula: titular }));
@@ -5646,7 +6565,23 @@ function mudarAbaRh(aba){
     if(mesEl && !mesEl.value) mesEl.value = hojeISOLocal().slice(0,7);
     carregarHistoricoFerias().then(()=>renderRhRelatorio());
   }
-  if(aba==='planFerias') carregarHistoricoFerias().then(()=>renderHistoricoFerias());
+  if(aba==='planFerias'){
+    carregarHistoricoFerias().then(()=>renderHistoricoFerias());
+    // A zona de manutenção existe só para o administrador. O RH não a enxerga.
+    const zona = document.getElementById('rhZonaManutencao');
+    const ehAdmin = !!(session && session.role === 'admin');
+    if(zona){
+      zona.style.display = ehAdmin ? 'block' : 'none';
+      if(ehAdmin){
+        const campo = document.getElementById('zerarConfirmacao');
+        if(campo) campo.value = '';
+        const prog = document.getElementById('rhZerarProgresso');
+        if(prog){ prog.style.display='none'; prog.textContent=''; }
+        validarConfirmacaoZerar();
+        atualizarResumoZerarFerias();
+      }
+    }
+  }
 }
 window.mudarAbaRh = mudarAbaRh;
 
@@ -5719,18 +6654,30 @@ async function renderRhFerias(){
   if(boxLista){
     const busca = (document.getElementById('rhFeriasSearch').value||'').toLowerCase().trim();
     const hoje = hojeISOLocal();
+    // Entram também os períodos que ainda estão no trâmite: assim o RH enxerga
+    // o que a liderança lançou, mesmo antes do aceite.
     let lista = colaboradoresCache.filter(c=>{
       const emFerias = normStatus(c.status)==='FERIAS' || (c.feriasInicio && c.feriasFim);
-      return emFerias;
+      const emTramite = !!c.feriasPendenteInicio;
+      return emFerias || emTramite;
     });
     if(busca) lista = lista.filter(c=>(c.nome||'').toLowerCase().includes(busca) || String(c.matricula||'').includes(busca));
-    lista.sort((a,b)=> (a.feriasInicio||'').localeCompare(b.feriasInicio||'') || (a.nome||'').localeCompare(b.nome||''));
+    const iniOrd = c => c.feriasInicio || c.feriasPendenteInicio || '';
+    lista.sort((a,b)=> iniOrd(a).localeCompare(iniOrd(b)) || (a.nome||'').localeCompare(b.nome||''));
     if(!lista.length){ boxLista.innerHTML = `<div class="rank-empty">Nenhum colaborador em férias no momento.</div>`; return; }
     boxLista.innerHTML = lista.map(c=>{
       const ativa = c.feriasInicio && c.feriasFim && hoje>=c.feriasInicio && hoje<=c.feriasFim;
       const futura = c.feriasInicio && hoje < c.feriasInicio;
-      const tag = ativa ? '<span class="alloc-chip chip-fte">EM FÉRIAS</span>' : (futura ? '<span class="alloc-chip" style="background:rgba(0,196,255,.14); color:var(--cyan);">AGENDADA</span>' : '');
-      const periodo = (c.feriasInicio && c.feriasFim) ? `${fmtDataPtBr(c.feriasInicio)} a ${fmtDataPtBr(c.feriasFim)}` : (c.dataStatus? 'desde '+fmtDataPtBr(c.dataStatus):'—');
+      const noTramite = !c.feriasInicio && !!c.feriasPendenteInicio;
+      const tag = noTramite
+        ? '<span class="alloc-chip" style="background:rgba(240,160,60,.18); color:#f0a03c;">AGUARDANDO ACEITE DO RH</span>'
+        : (ativa ? '<span class="alloc-chip chip-fte">EM FÉRIAS</span>'
+                 : (futura ? '<span class="alloc-chip" style="background:rgba(0,196,255,.14); color:var(--cyan);">AGENDADA</span>' : ''));
+      const periodo = (c.feriasInicio && c.feriasFim)
+        ? `${fmtDataPtBr(c.feriasInicio)} a ${fmtDataPtBr(c.feriasFim)}`
+        : (noTramite
+            ? `${fmtDataPtBr(c.feriasPendenteInicio)} a ${c.feriasPendenteFim? fmtDataPtBr(c.feriasPendenteFim):'—'} (a confirmar)`
+            : (c.dataStatus? 'desde '+fmtDataPtBr(c.dataStatus):'—'));
       return `<div class="person-card">
         <div class="avatar">${(c.nome||'?').slice(0,2).toUpperCase()}</div>
         <div class="p-info">
@@ -5781,6 +6728,12 @@ async function gravarHistoricoFerias(reg){
     return true;
   }catch(e){
     console.warn('Histórico de férias não gravado:', e && e.message ? e.message : e);
+    // Avisa uma única vez por sessão: sem isso a importação parece ter dado
+    // certo e o histórico simplesmente não aparece nos relatórios.
+    if(!window.__avisouFeriasHistorico){
+      window.__avisouFeriasHistorico = true;
+      toast(mensagemErroFirestore(e, 'ferias_historico'), 'err');
+    }
     return false;
   }
 }
@@ -5941,49 +6894,76 @@ function montarBlocosRelatorioRh(){
   const blocos = [];
 
   // ---------- FÉRIAS ----------
+  // O relatório mostra o período em QUALQUER etapa do fluxo, com a situação ao
+  // lado. Antes só apareciam as férias já aceitas pelo RH, então o que o líder
+  // acabara de lançar ficava invisível até o fim do trâmite — e parecia perdido.
   if(quer('rhRelFerias')){
     const vistos = new Set();
     const linhas = [];
+    const diasEntre = (a,b) => (a && b)
+      ? Math.round((new Date(b+'T00:00:00') - new Date(a+'T00:00:00'))/86400000) + 1
+      : '';
 
-    // 1) Períodos vivos no cadastro do colaborador
+    const incluir = (mat, nome, grupo, equipe, contrato, ini, fim, ret, dias, situacao) => {
+      const chave = `${mat}_${ini}`;
+      if(vistos.has(chave)) return;
+      vistos.add(chave);
+      linhas.push([
+        String(mat||''), nome||'', grupo||'', equipe||'', contrato||'',
+        ini? fmtDataPtBr(ini):'—', fim? fmtDataPtBr(fim):'—',
+        ret? fmtDataPtBr(ret):'—', dias||'—', situacao
+      ]);
+    };
+
+    // 1) Períodos já aplicados no cadastro (aceitos pelo RH ou lançados direto)
     colaboradoresCache.forEach(c=>{
       if(!c.feriasInicio) return;
       if(!passaFiltro(c)) return;
       if(!periodoCruzaMes(c.feriasInicio, c.feriasFim, mes)) return;
-      const retornoCad = retornoAposFimFerias(c.feriasFim);
-      const dias = (c.feriasInicio && c.feriasFim)
-        ? Math.round((new Date(c.feriasFim+'T00:00:00') - new Date(c.feriasInicio+'T00:00:00'))/86400000) + 1
-        : '';
-      vistos.add(`${c.matricula}_${c.feriasInicio}`);
-      linhas.push([
-        String(c.matricula||''), c.nome||'', c.grupo||c.classificacao||'', c.equipe||'', c.contrato||'',
-        fmtDataPtBr(c.feriasInicio), c.feriasFim? fmtDataPtBr(c.feriasFim):'—',
-        retornoCad? fmtDataPtBr(retornoCad):'—', dias||'—', 'Cadastro'
-      ]);
+      incluir(c.matricula, c.nome, c.grupo||c.classificacao, c.equipe, c.contrato,
+              c.feriasInicio, c.feriasFim, retornoAposFimFerias(c.feriasFim),
+              diasEntre(c.feriasInicio, c.feriasFim), 'Confirmada');
     });
 
-    // 2) Períodos do histórico (retroativos importados por planilha)
+    // 2) Aprovadas pelo gestor, aguardando o aceite do RH
+    colaboradoresCache.forEach(c=>{
+      if(!c.feriasPendenteInicio) return;
+      if(!passaFiltro(c)) return;
+      if(!periodoCruzaMes(c.feriasPendenteInicio, c.feriasPendenteFim, mes)) return;
+      incluir(c.matricula, c.nome, c.grupo||c.classificacao, c.equipe, c.contrato,
+              c.feriasPendenteInicio, c.feriasPendenteFim, retornoAposFimFerias(c.feriasPendenteFim),
+              c.feriasPendenteDias || diasEntre(c.feriasPendenteInicio, c.feriasPendenteFim),
+              'Aguardando RH');
+    });
+
+    // 3) Lançadas pelo líder e ainda na fila do gestor
+    (solicitacoesPendentesCache||[]).forEach(s=>{
+      if(s.tipoAlocacao !== 'ferias' || !s.feriasInicio) return;
+      const c = colaboradoresCache.find(x=>String(x.matricula)===String(s.colaboradorMatricula)) || {};
+      if(!passaFiltro({equipe:c.equipe, contrato:c.contrato, codContrato:c.codContrato})) return;
+      if(!periodoCruzaMes(s.feriasInicio, s.feriasFim, mes)) return;
+      incluir(s.colaboradorMatricula, s.colaboradorNome||c.nome, c.grupo||c.classificacao,
+              c.equipe, c.contrato, s.feriasInicio, s.feriasFim,
+              retornoAposFimFerias(s.feriasFim),
+              s.feriasDias || diasEntre(s.feriasInicio, s.feriasFim), 'Aguardando gestor');
+    });
+
+    // 4) Períodos do histórico (inclui os retroativos importados por planilha)
     if(incluirHist){
       feriasHistoricoCache.forEach(r=>{
-        const chave = `${r.matricula}_${r.inicio}`;
-        if(vistos.has(chave)) return;
         if(!periodoCruzaMes(r.inicio, r.fim, mes)) return;
         const c = colaboradoresCache.find(x=>String(x.matricula)===String(r.matricula)) || {};
         if(!passaFiltro({equipe:r.equipe||c.equipe, contrato:r.contrato||c.contrato, codContrato:c.codContrato})) return;
-        vistos.add(chave);
-        linhas.push([
-          String(r.matricula||''), r.nome||c.nome||'', c.grupo||c.classificacao||'',
-          r.equipe||c.equipe||'', r.contrato||c.contrato||'',
-          r.inicio? fmtDataPtBr(r.inicio):'—', r.fim? fmtDataPtBr(r.fim):'—',
-          r.retorno? fmtDataPtBr(r.retorno):'—', r.dias||'—', 'Histórico'
-        ]);
+        incluir(r.matricula, r.nome||c.nome, c.grupo||c.classificacao,
+                r.equipe||c.equipe, r.contrato||c.contrato,
+                r.inicio, r.fim, r.retorno, r.dias, 'Histórico');
       });
     }
 
     linhas.sort((a,b)=> String(a[5]).split('/').reverse().join('').localeCompare(String(b[5]).split('/').reverse().join('')) || String(a[1]).localeCompare(String(b[1])));
     blocos.push({
       titulo: 'FÉRIAS',
-      colunas: ['Matrícula','Nome','Função','Equipe','Contrato','Início','Fim','Retorno','Dias','Origem'],
+      colunas: ['Matrícula','Nome','Função','Equipe','Contrato','Início','Fim','Retorno','Dias','Situação'],
       linhas
     });
   }
@@ -6144,6 +7124,299 @@ function baixarModeloFerias(){
   toast('Modelo de férias baixado.', 'ok');
 }
 window.baixarModeloFerias = baixarModeloFerias;
+
+// ===================================================================
+// ZERAR FÉRIAS DO SISTEMA (manutenção — apenas administrador)
+// -------------------------------------------------------------------
+// Existe para o caso de recomeçar: limpar tudo o que é férias e subir a
+// planilha nova. Mexe SOMENTE em dados de férias:
+//   • colaboradores -> feriasInicio/Fim, período pendente e, se o status
+//     estiver FÉRIAS, ele volta para ATIVO (ninguém fica preso em férias);
+//   • ferias_historico -> apaga os períodos importados;
+//   • solicitações de férias que ainda não foram tratadas.
+// Cadastro, equipes, contratos, escalas, chamadas e lanches não são tocados.
+// ===================================================================
+
+// Colaboradores que hoje têm qualquer marca de férias.
+function colaboradoresComFerias(){
+  return colaboradoresCache.filter(c =>
+    c.feriasInicio || c.feriasFim ||
+    c.feriasPendenteInicio || c.feriasPendenteFim ||
+    normStatus(c.status) === 'FERIAS'
+  );
+}
+
+// TODOS os pedidos de férias das duas filas (gestor e RH), em qualquer situação:
+// pendentes, aprovados, aceitos, recusados. Zerar "tudo" inclui esse rastro —
+// senão sobrariam registros de férias antigas espalhados pelas coleções.
+// O filtro é rigoroso: só o que é FÉRIAS. Demissões e remanejamentos ficam intactos.
+async function solicitacoesDeFerias(){
+  const achados = { rh: [], movimentacao: [] };
+  try{
+    const s1 = await getDocs(query(collection(db,'solicitacoes_rh'), where('tipo','==','ferias')));
+    achados.rh = s1.docs
+      .filter(d => (d.data()||{}).tipo === 'ferias')   // dupla checagem antes de apagar
+      .map(d => ({ id: d.id, ...d.data() }));
+  }catch(e){ console.warn('solicitacoes_rh indisponível:', e && e.message); }
+  try{
+    const s2 = await getDocs(query(collection(db,'solicitacoes_movimentacao'), where('tipoAlocacao','==','ferias')));
+    achados.movimentacao = s2.docs
+      .filter(d => (d.data()||{}).tipoAlocacao === 'ferias')
+      .map(d => ({ id: d.id, ...d.data() }));
+  }catch(e){ console.warn('solicitacoes_movimentacao indisponível:', e && e.message); }
+  return achados;
+}
+
+let _zerarContagem = null;
+
+async function atualizarResumoZerarFerias(){
+  const box = document.getElementById('rhZerarResumo');
+  if(!box) return;
+  box.innerHTML = 'Verificando o que existe hoje…';
+  try{
+    await carregarHistoricoFerias(true);
+    const comFerias = colaboradoresComFerias();
+    const emFerias = comFerias.filter(c => normStatus(c.status) === 'FERIAS').length;
+    const sols = await solicitacoesDeFerias();
+
+    // Abre o histórico por origem para ficar claro que nada fica de fora.
+    const porOrigem = { planilha:0, rh:0, solicitacao:0, outros:0 };
+    feriasHistoricoCache.forEach(r=>{
+      const o = String(r.origem||'').toLowerCase();
+      if(porOrigem[o] !== undefined) porOrigem[o]++; else porOrigem.outros++;
+    });
+    const detalheHist = [
+      porOrigem.planilha ? `${porOrigem.planilha} de planilha` : null,
+      porOrigem.rh ? `${porOrigem.rh} lançada(s) pelo RH` : null,
+      porOrigem.solicitacao ? `${porOrigem.solicitacao} de solicitação aprovada` : null,
+      porOrigem.outros ? `${porOrigem.outros} de outras origens` : null
+    ].filter(Boolean).join(' · ');
+
+    _zerarContagem = {
+      cadastro: comFerias.length,
+      emFerias,
+      historico: feriasHistoricoCache.length,
+      solicitacoes: sols.rh.length + sols.movimentacao.length,
+      ids: sols
+    };
+    const total = _zerarContagem.cadastro + _zerarContagem.historico + _zerarContagem.solicitacoes;
+    box.innerHTML = total === 0
+      ? `<span class="zp-nada">Não há nenhum registro de férias no sistema. Já está zerado.</span>`
+      : `Serão apagados:<br>
+         • <b>${_zerarContagem.cadastro}</b> colaborador(es) com férias no cadastro${emFerias?` (<b>${emFerias}</b> com status FÉRIAS, que voltam para ATIVO)`:''}<br>
+         • <b>${_zerarContagem.historico}</b> registro(s) de <b>todo o histórico</b>${detalheHist?`<br>&nbsp;&nbsp;&nbsp;<span style="font-size:11px; color:var(--text-2);">${detalheHist}</span>`:''}<br>
+         • <b>${_zerarContagem.solicitacoes}</b> pedido(s) de férias (pendentes e já resolvidos)`;
+  }catch(e){
+    console.error(e);
+    box.innerHTML = `<span style="color:var(--red);">Não foi possível contar os registros: ${e && e.message ? e.message : e}</span>`;
+  }
+  validarConfirmacaoZerar();
+}
+window.atualizarResumoZerarFerias = atualizarResumoZerarFerias;
+
+// O botão só destrava com a frase exata digitada.
+function validarConfirmacaoZerar(){
+  const campo = document.getElementById('zerarConfirmacao');
+  const btn = document.getElementById('btnZerarFerias');
+  if(!campo || !btn) return;
+  const texto = String(campo.value || '').trim().toUpperCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const liberado = (texto === 'ZERAR FERIAS');
+  btn.style.opacity = liberado ? '1' : '.45';
+  btn.style.pointerEvents = liberado ? 'auto' : 'none';
+}
+window.validarConfirmacaoZerar = validarConfirmacaoZerar;
+
+// Backup em Excel do que está prestes a ser apagado. É a rede de segurança:
+// depois de zerar não há como voltar atrás pelo aplicativo.
+async function baixarBackupFerias(){
+  try{
+    const comFerias = colaboradoresComFerias();
+    const linhasCad = comFerias.map(c => [
+      String(c.matricula||''), c.nome||'', c.equipe||'', c.contrato||'',
+      c.feriasInicio||'', c.feriasFim||'',
+      c.feriasPendenteInicio||'', c.feriasPendenteFim||'',
+      normStatus(c.status)||'', c.dataStatus||''
+    ]);
+    const linhasHist = feriasHistoricoCache.map(r => [
+      String(r.matricula||''), r.nome||'', r.equipe||'', r.contrato||'',
+      r.inicio||'', r.fim||'', r.retorno||'', r.dias||'', r.origem||''
+    ]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+      ['MATRICULA','NOME','EQUIPE','CONTRATO','FERIAS INICIO','FERIAS FIM','PENDENTE INICIO','PENDENTE FIM','STATUS','DATA STATUS'],
+      ...linhasCad
+    ]), 'CADASTRO');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+      ['MATRICULA','NOME','EQUIPE','CONTRATO','DATA INICIO FERIAS','FIM','DATA RETORNO','QUANTIDADE DE DIAS','ORIGEM'],
+      ...linhasHist
+    ]), 'HISTORICO');
+
+    // Os pedidos também são apagados, então precisam entrar no backup.
+    let linhasSol = [];
+    try{
+      const sols = await solicitacoesDeFerias();
+      linhasSol = [
+        ...(sols.rh||[]).map(r => ['RH', r.id, String(r.colaboradorMatricula||''), r.colaboradorNome||'',
+          r.feriasInicio||'', r.feriasFim||'', r.feriasDias||'', r.status||'']),
+        ...(sols.movimentacao||[]).map(r => ['GESTOR', r.id, String(r.colaboradorMatricula||''), r.colaboradorNome||'',
+          r.feriasInicio||'', r.feriasFim||'', r.feriasDias||'', r.status||''])
+      ];
+    }catch(_){}
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+      ['FILA','ID','MATRICULA','NOME','FERIAS INICIO','FERIAS FIM','DIAS','SITUACAO'],
+      ...linhasSol
+    ]), 'PEDIDOS');
+
+    const hoje = hojeISOLocal().replace(/-/g,'');
+    XLSX.writeFile(wb, `BACKUP_FERIAS_${hoje}.xlsx`);
+    return true;
+  }catch(e){
+    console.error('Falha ao gerar o backup:', e);
+    return false;
+  }
+}
+window.baixarBackupFerias = baixarBackupFerias;
+
+async function zerarFeriasDoSistema(){
+  if(!session || session.role !== 'admin'){
+    toast('Apenas administradores podem zerar as férias.', 'err');
+    return;
+  }
+  const quer = id => !!(document.getElementById(id)||{}).checked;
+  const limparCadastro   = quer('zerarCadastro');
+  const limparHistorico  = quer('zerarHistorico');
+  const limparSolic      = quer('zerarSolicitacoes');
+  const fazerBackup      = quer('zerarBackup');
+  if(!limparCadastro && !limparHistorico && !limparSolic){
+    toast('Marque ao menos uma opção do que apagar.', 'err');
+    return;
+  }
+
+  if(!_zerarContagem) await atualizarResumoZerarFerias();
+  const c = _zerarContagem || {cadastro:0, historico:0, solicitacoes:0, ids:{rh:[],movimentacao:[]}};
+
+  const partes = [];
+  if(limparCadastro)  partes.push(`${c.cadastro} colaborador(es) com férias no cadastro`);
+  if(limparHistorico) partes.push(`${c.historico} registro(s) de TODO o histórico de férias`);
+  if(limparSolic)     partes.push(`${c.solicitacoes} pedido(s) de férias (inclusive os já resolvidos)`);
+  if(!confirm(`APAGAR DEFINITIVAMENTE:\n\n• ${partes.join('\n• ')}\n\nEsta ação não tem desfazer. Confirmar?`)) return;
+
+  const prog = document.getElementById('rhZerarProgresso');
+  const mostrar = txt => { if(prog){ prog.style.display='block'; prog.textContent = txt; } };
+
+  const btn = document.getElementById('btnZerarFerias');
+  if(btn){ btn.style.pointerEvents='none'; btn.style.opacity='.45'; }
+
+  let cadastroOk = 0, historicoOk = 0, solicOk = 0;
+  const erros = [];
+
+  try{
+    if(fazerBackup){
+      mostrar('Gerando backup…');
+      if(!(await baixarBackupFerias())){
+        if(!confirm('Não foi possível gerar o backup. Deseja continuar mesmo assim e apagar as férias?')) {
+          mostrar('Operação cancelada.');
+          validarConfirmacaoZerar();
+          return;
+        }
+      }
+    }
+
+    const hoje = hojeISOLocal();
+
+    // 1) Períodos no cadastro dos colaboradores — em lotes, para não estourar limite do batch.
+    if(limparCadastro){
+      const alvos = colaboradoresComFerias();
+      const LOTE = 300;
+      for(let i = 0; i < alvos.length; i += LOTE){
+        const fatia = alvos.slice(i, i + LOTE);
+        mostrar(`Limpando cadastro… ${Math.min(i + fatia.length, alvos.length)}/${alvos.length}`);
+        const batch = writeBatch(db);
+        fatia.forEach(col => {
+          const upd = {
+            feriasInicio: null, feriasFim: null,
+            feriasPendenteInicio: null, feriasPendenteFim: null, feriasPendenteDias: null
+          };
+          // Quem estava marcado como FÉRIAS não pode ficar preso nesse status.
+          if(normStatus(col.status) === 'FERIAS'){ upd.status = 'ATIVO'; upd.dataStatus = hoje; }
+          batch.update(doc(db,'colaboradores', String(col.matricula)), upd);
+        });
+        try{ await batch.commit(); cadastroOk += fatia.length; }
+        catch(e){ console.error(e); erros.push(`Cadastro (lote ${i/LOTE+1}): ${e && e.message ? e.message : e}`); }
+      }
+    }
+
+    // 2) Histórico importado.
+    if(limparHistorico){
+      await carregarHistoricoFerias(true);
+      const ids = feriasHistoricoCache.map(r => r.id).filter(Boolean);
+      const LOTE = 300;
+      for(let i = 0; i < ids.length; i += LOTE){
+        const fatia = ids.slice(i, i + LOTE);
+        mostrar(`Limpando histórico… ${Math.min(i + fatia.length, ids.length)}/${ids.length}`);
+        const batch = writeBatch(db);
+        fatia.forEach(id => batch.delete(doc(db,'ferias_historico', id)));
+        try{ await batch.commit(); historicoOk += fatia.length; }
+        catch(e){ console.error(e); erros.push(`Histórico (lote ${i/LOTE+1}): ${e && e.message ? e.message : e}`); }
+      }
+    }
+
+    // 3) Pedidos de férias — TODOS, em qualquer situação. É o que sobraria de
+    //    rastro das férias antigas se a gente só cancelasse os pendentes.
+    if(limparSolic){
+      // Relê do servidor: garante o filtro por tipo na hora de apagar.
+      const sols = await solicitacoesDeFerias();
+      const apagarLote = async (colecao, itens) => {
+        const LOTE = 300;
+        for(let i = 0; i < itens.length; i += LOTE){
+          const fatia = itens.slice(i, i + LOTE);
+          mostrar(`Limpando pedidos de férias… ${Math.min(i + fatia.length, itens.length)}/${itens.length}`);
+          const batch = writeBatch(db);
+          fatia.forEach(it => batch.delete(doc(db, colecao, it.id)));
+          try{ await batch.commit(); solicOk += fatia.length; }
+          catch(e){ console.error(e); erros.push(`${colecao} (lote ${Math.floor(i/LOTE)+1}): ${e && e.message ? e.message : e}`); }
+        }
+      };
+      await apagarLote('solicitacoes_rh', sols.rh || []);
+      await apagarLote('solicitacoes_movimentacao', sols.movimentacao || []);
+    }
+
+    // Deixa registrado quem zerou e quando (auditoria, sem poder derrubar a operação).
+    try{
+      await addDoc(collection(db,'exclusoes_log'), {
+        entidade: 'ferias_sistema', identificador: 'zerar_geral',
+        dados: { cadastro: cadastroOk, historico: historicoOk, solicitacoes: solicOk, backup: fazerBackup },
+        porMatricula: String(session.matricula||''), porNome: session.nome || '',
+        data: hoje, timestamp: serverTimestamp()
+      });
+    }catch(_){}
+
+    // Recarrega tudo para as telas refletirem a base limpa.
+    mostrar('Atualizando as telas…');
+    await carregarHistoricoFerias(true);
+    if(typeof carregarBaseInicial === 'function') await carregarBaseInicial();
+    renderHistoricoFerias();
+    if(typeof renderRhFerias === 'function') renderRhFerias();
+
+    const campo = document.getElementById('zerarConfirmacao');
+    if(campo) campo.value = '';
+    _zerarContagem = null;
+    await atualizarResumoZerarFerias();
+
+    const resumo = `${cadastroOk} cadastro(s), ${historicoOk} do histórico, ${solicOk} pedido(s).`;
+    mostrar(erros.length ? `Concluído com ${erros.length} aviso(s). ${resumo}` : `Férias zeradas. ${resumo} Pode subir a planilha nova.`);
+    toast(erros.length ? 'Concluído com avisos — veja o console.' : 'Férias zeradas com sucesso.', erros.length ? 'err' : 'ok');
+    if(erros.length) console.warn('Avisos ao zerar férias:', erros);
+  }catch(e){
+    console.error(e);
+    mostrar('Erro: ' + (e && e.message ? e.message : e));
+    toast('Erro ao zerar as férias.', 'err');
+  }finally{
+    validarConfirmacaoZerar();
+  }
+}
+window.zerarFeriasDoSistema = zerarFeriasDoSistema;
 
 async function processarPlanilhaFerias(file){
   if(!file) return;
@@ -6444,6 +7717,13 @@ function atualizarDatalistsControle(){
     equipesCache.forEach(e=>{ if(e.posTernium) ps.add(e.posTernium); });
     dp.innerHTML = [...ps].sort().map(n=>`<option value="${(n||'').replace(/"/g,'&quot;')}">`).join('');
   }
+  const da = document.getElementById('ctrlAtuacaoDatalist');
+  if(da){
+    const ats = new Set();
+    equipesCache.forEach(e=>{ if(e.atuacao) ats.add(e.atuacao); });
+    colaboradoresCache.forEach(c=>{ if(c.atuacao) ats.add(c.atuacao); });
+    da.innerHTML = [...ats].sort().map(n=>`<option value="${(n||'').replace(/"/g,'&quot;')}">`).join('');
+  }
   if(typeof popularSelectsEquipePai==='function') popularSelectsEquipePai();
 }
 
@@ -6702,13 +7982,14 @@ function abrirModalEquipeRapida(nomeEquipe){
   const q = membrosDaEquipe(eq.nome).length;
   const filhas = filhasDaEquipe(eq.nome).length;
   document.getElementById('eqRapMeta').textContent =
-    `${q} colaborador(es)${filhas?` · ${filhas} equipe(s) dentro`:''} · líder mat. ${eq.liderMatricula||'—'}`;
+    `${q} colaborador(es)${filhas?` · ${filhas} equipe(s) dentro`:''} · líder: ${rotuloLiderDaEquipe(eq.nome)}`;
   set('eqRapNome', eq.nome);
   set('eqRapPos', eq.posTernium);
   set('eqRapCC', eq.codContrato || eq.centroCusto);
   set('eqRapContrato', eq.contrato || eq.cc);
   set('eqRapResp', eq.responsavel);
   set('eqRapGestor', eq.gestor);
+  set('eqRapAtuacao', eq.atuacao || atributoPredominanteDaEquipe(eq.nome,'atuacao') || '');
   popularSelectsEquipePai();
   const selPai = document.getElementById('eqRapPai'); if(selPai) selPai.value = eq.equipePai || '';
   const aviso = document.getElementById('eqRapAviso');
@@ -6782,6 +8063,7 @@ async function salvarEquipeRapida(){
     posTernium: g('eqRapPos'),
     responsavel: g('eqRapResp'),
     gestor: g('eqRapGestor'),
+    atuacao: g('eqRapAtuacao'),
     equipePai: pai || null
   };
 
@@ -6903,6 +8185,7 @@ async function salvarEquipeControle(){
   const resp = (document.getElementById('ctrlEqResp').value||'').trim();
   const gestor = (document.getElementById('ctrlEqGestor').value||'').trim();
   const pos = (document.getElementById('ctrlEqPos').value||'').trim();
+  const atuacao = ((document.getElementById('ctrlEqAtuacao')||{}).value||'').trim();
   const pai = ((document.getElementById('ctrlEqPai')||{}).value||'').trim();
   if(pai && normEquipe(pai)===normEquipe(nome)){ toast('Uma equipe não pode ser pai de si mesma.', 'err'); return; }
   try{
@@ -6910,14 +8193,16 @@ async function salvarEquipeControle(){
       nome, contrato, cc: contrato,
       codContrato: cc, centroCusto: cc,
       responsavel: resp, gestor, posTernium: pos,
+      atuacao,
       equipePai: pai || null,
       atualizadoEm: serverTimestamp()
     }, {merge:true});
     toast('Equipe salva.', 'ok');
-    ['ctrlEqNome','ctrlEqContrato','ctrlEqCC','ctrlEqResp','ctrlEqGestor','ctrlEqPos'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
+    ['ctrlEqNome','ctrlEqContrato','ctrlEqCC','ctrlEqResp','ctrlEqGestor','ctrlEqPos','ctrlEqAtuacao'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
     const selPai = document.getElementById('ctrlEqPai'); if(selPai) selPai.value='';
     if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
     renderCtrlEquipes(); atualizarDatalistsControle(); popularSelectsEquipePai();
+    abrirPainelEquipe(nome);   // já abre o painel da equipe recém-salva
   }catch(e){ console.error(e); toast('Erro ao salvar equipe: '+(e&&e.message?e.message:e), 'err'); }
 }
 window.salvarEquipeControle = salvarEquipeControle;
@@ -6932,11 +8217,236 @@ function editarEquipeControle(nomeEquipe){
   document.getElementById('ctrlEqResp').value = eq.responsavel || '';
   document.getElementById('ctrlEqGestor').value = eq.gestor || '';
   document.getElementById('ctrlEqPos').value = eq.posTernium || '';
+  const elAt = document.getElementById('ctrlEqAtuacao');
+  if(elAt) elAt.value = eq.atuacao || atributoPredominanteDaEquipe(eq.nome,'atuacao') || '';
   popularSelectsEquipePai();
+  abrirPainelEquipe(eq.nome);   // abre líder + integrantes + incluir/remover
   const selPaiEd = document.getElementById('ctrlEqPai'); if(selPaiEd) selPaiEd.value = eq.equipePai || '';
   try{ document.getElementById('ctrlEqNome').scrollIntoView({behavior:'smooth', block:'center'}); }catch(_){}
 }
 window.editarEquipeControle = editarEquipeControle;
+
+// ===================================================================
+// PAINEL DA EQUIPE (Módulo de Controle → aba Equipes)
+// Reúne num lugar só o que faltava: quem lidera, quem são os integrantes,
+// e a inclusão/remoção de pessoas — sem precisar ir ao remanejar.
+// ===================================================================
+let equipePainelAtual = null;   // nome da equipe aberta no painel
+
+function abrirPainelEquipe(nomeEquipe){
+  equipePainelAtual = nomeEquipe || null;
+  renderPainelEquipe();
+}
+window.abrirPainelEquipe = abrirPainelEquipe;
+
+function fecharPainelEquipe(){
+  equipePainelAtual = null;
+  renderPainelEquipe();
+}
+window.fecharPainelEquipe = fecharPainelEquipe;
+
+function renderPainelEquipe(){
+  const box = document.getElementById('ctrlEquipePainel');
+  if(!box) return;
+  if(!equipePainelAtual){ box.style.display='none'; box.innerHTML=''; return; }
+
+  const eq = equipesCache.find(e=>normEquipe(e.nome)===normEquipe(equipePainelAtual));
+  if(!eq){ box.style.display='none'; box.innerHTML=''; equipePainelAtual=null; return; }
+
+  const esc1 = s => String(s||'').replace(/'/g,"\\'");
+  const membros = membrosDaEquipe(eq.nome);
+  const filhas = filhasDaEquipe(eq.nome);
+  const lider = liderDaEquipe(eq.nome);
+
+  // Candidatos a líder: os integrantes da equipe primeiro, depois o resto da base.
+  const daEquipe = membros.slice();
+  const foraDaEquipe = colaboradoresCache
+    .filter(c => statusPermiteChamada(c) && !daEquipe.some(m=>String(m.matricula)===String(c.matricula)))
+    .sort((a,b)=>String(a.nome||'').localeCompare(String(b.nome||'')));
+  const opcoesLider = [
+    `<option value="">— sem líder designado —</option>`,
+    daEquipe.length ? `<optgroup label="Integrantes da equipe">` +
+      daEquipe.map(c=>`<option value="${c.matricula}" ${lider&&String(lider.matricula)===String(c.matricula)?'selected':''}>${c.nome} · ${c.grupo||c.funcao||''}</option>`).join('') +
+      `</optgroup>` : '',
+    `<optgroup label="Demais colaboradores">` +
+      foraDaEquipe.slice(0,400).map(c=>`<option value="${c.matricula}" ${lider&&String(lider.matricula)===String(c.matricula)?'selected':''}>${c.nome} · ${c.equipe||'sem equipe'}</option>`).join('') +
+      `</optgroup>`
+  ].join('');
+
+  const ehTemp = !!(lider && lider.tipo==='temporario');
+
+  const listaMembros = membros.length
+    ? membros.map(c=>{
+        const ehLider = lider && String(lider.matricula)===String(c.matricula);
+        return `<div class="membro-linha ${ehLider?'e-lider':''}">
+          <div class="avatar" style="width:32px; height:32px; font-size:12px;">${(c.nome||'?').slice(0,2).toUpperCase()}</div>
+          <div class="ml-info">
+            <div class="ml-nome">${c.nome||'—'} ${ehLider?`<span class="alloc-chip" style="background:rgba(240,192,64,.18); color:var(--gold);">${ehTemp?'LÍDER TEMP.':'LÍDER'}</span>`:''}</div>
+            <div class="ml-meta">Mat. ${c.matricula} · ${c.grupo||c.classificacao||c.funcao||'—'}${c.atuacao?' · '+c.atuacao:''}</div>
+          </div>
+          <button class="btn btn-sm" style="background:rgba(255,92,108,.15); color:var(--red);"
+                  onclick="removerDaEquipePeloControle('${esc1(c.matricula)}')">remover</button>
+        </div>`;
+      }).join('')
+    : `<div class="rank-empty">Nenhum colaborador nesta equipe ainda.</div>`;
+
+  box.style.display = '';
+  box.innerHTML = `
+    <div class="painel-equipe">
+      <div class="pe-topo">
+        <div class="pe-nome">${eq.nome}
+          <div class="pe-sub">${eq.contrato||'—'} · CC ${eq.codContrato||eq.centroCusto||'—'}${eq.posTernium?' · Pos. '+eq.posTernium:''}${filhas.length?` · ${filhas.length} equipe(s) dentro`:''}</div>
+        </div>
+        <div class="icon-btn" onclick="fecharPainelEquipe()">✕</div>
+      </div>
+
+      <div class="section-title" style="margin-top:0;">Líder da equipe</div>
+      <div class="field" style="margin-bottom:8px;">
+        <select id="painelLiderSel">${opcoesLider}</select>
+      </div>
+      <div style="display:flex; gap:14px; align-items:center; flex-wrap:wrap; margin-bottom:8px; font-size:12.5px;">
+        <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+          <input type="radio" name="painelLiderTipo" value="permanente" ${ehTemp?'':'checked'} onchange="onChangeLiderPainel()"> Permanente
+        </label>
+        <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+          <input type="radio" name="painelLiderTipo" value="temporario" ${ehTemp?'checked':''} onchange="onChangeLiderPainel()"> Temporário
+        </label>
+        <div class="field" id="painelLiderFimWrap" style="margin:0; ${ehTemp?'':'display:none;'}">
+          <input type="date" id="painelLiderFim" value="${(lider&&lider.fim)||''}" min="${hojeISOLocal()}">
+        </div>
+      </div>
+      ${ehTemp && lider.titularNome ? `<div style="font-size:11px; color:var(--gold); margin-bottom:8px;">Titular a ser restaurado no vencimento: ${lider.titularNome}</div>` : ''}
+      <button class="btn btn-primary btn-sm" style="width:100%; margin-bottom:6px;" onclick="salvarLiderPeloPainel()">Salvar líder</button>
+
+      <div class="section-title">Integrantes (${membros.length})</div>
+      ${listaMembros}
+      ${filhas.length ? `<div style="font-size:11px; color:var(--text-2); margin-top:8px;">
+        Esta equipe é <b>pai</b> de: ${filhas.map(f=>`${f.nome} (${membrosDaEquipe(f.nome).length})`).join(' · ')}.
+        As pessoas das filhas aparecem no painel de cada uma.
+      </div>` : ''}
+
+      <div class="section-title">Incluir colaborador</div>
+      <div class="remanejar-hint" style="font-size:11.5px;">
+        Ao incluir, o colaborador recebe automaticamente <b>contrato, centro de custo, atuação, responsável, gestor, posição Ternium e líder</b> desta equipe.
+      </div>
+      <div class="search-row"><input type="text" id="painelBuscaColab" placeholder="Nome, matrícula ou função…" oninput="renderResultadoBuscaPainel()"></div>
+      <div id="painelResultadoBusca"></div>
+    </div>`;
+  renderResultadoBuscaPainel();
+}
+window.renderPainelEquipe = renderPainelEquipe;
+
+function onChangeLiderPainel(){
+  const tipo = (document.querySelector('input[name="painelLiderTipo"]:checked')||{}).value;
+  const wrap = document.getElementById('painelLiderFimWrap');
+  if(wrap) wrap.style.display = (tipo==='temporario') ? '' : 'none';
+}
+window.onChangeLiderPainel = onChangeLiderPainel;
+
+async function salvarLiderPeloPainel(){
+  if(!equipePainelAtual) return;
+  if(!session || session.role!=='admin'){ toast('Apenas administradores definem o líder.', 'err'); return; }
+  const eq = equipesCache.find(e=>normEquipe(e.nome)===normEquipe(equipePainelAtual));
+  if(!eq) return;
+
+  const novoLider = (document.getElementById('painelLiderSel')||{}).value || '';
+  const tipo = (document.querySelector('input[name="painelLiderTipo"]:checked')||{}).value || 'permanente';
+  const dados = { nome: eq.nome, liderMatricula: novoLider || null, liderTipo: tipo };
+
+  if(tipo === 'temporario'){
+    const fim = (document.getElementById('painelLiderFim')||{}).value || '';
+    if(!fim){ toast('Informe a data de término do líder temporário.', 'err'); return; }
+    dados.liderFim = fim;
+    // Guarda o titular só na primeira vez que a equipe entra em regime temporário.
+    dados.liderTitular = (eq.liderTipo==='temporario' && eq.liderTitular!==undefined)
+      ? (eq.liderTitular||null) : (eq.liderMatricula || null);
+  } else {
+    dados.liderFim = null;
+    dados.liderTitular = null;
+  }
+
+  try{
+    await setDoc(doc(db,'equipes', eq.nome), dados, {merge:true});
+    // O vínculo também vale para cada integrante (é o que a chamada usa).
+    const membros = colaboradoresCache.filter(c=>normEquipe(c.equipe)===normEquipe(eq.nome));
+    if(membros.length){
+      const batch = writeBatch(db);
+      membros.forEach(c=> batch.update(doc(db,'colaboradores', String(c.matricula)), { liderMatricula: novoLider || null }));
+      await batch.commit();
+    }
+    toast(tipo==='temporario' ? 'Líder temporário definido.' : 'Líder definido.', 'ok');
+    if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
+    renderPainelEquipe(); renderCtrlEquipes();
+  }catch(e){ console.error(e); toast('Erro ao salvar líder: '+(e&&e.message?e.message:e), 'err'); }
+}
+window.salvarLiderPeloPainel = salvarLiderPeloPainel;
+
+function renderResultadoBuscaPainel(){
+  const box = document.getElementById('painelResultadoBusca');
+  if(!box || !equipePainelAtual) return;
+  const termo = ((document.getElementById('painelBuscaColab')||{}).value||'').toLowerCase().trim();
+  if(termo.length < 2){
+    box.innerHTML = `<div class="rank-empty">Digite ao menos 2 caracteres para procurar.</div>`;
+    return;
+  }
+  const achados = colaboradoresCache.filter(c=>{
+    if(normStatus(c.status)==='DEMITIDO') return false;
+    if(normEquipe(c.equipe)===normEquipe(equipePainelAtual)) return false;   // já está aqui
+    const alvo = `${c.nome||''} ${c.matricula||''} ${c.grupo||''} ${c.classificacao||''} ${c.funcao||''}`.toLowerCase();
+    return alvo.includes(termo);
+  }).sort((a,b)=>String(a.nome||'').localeCompare(String(b.nome||'')));
+
+  if(!achados.length){ box.innerHTML = `<div class="rank-empty">Ninguém encontrado para "${termo}".</div>`; return; }
+  const esc1 = s => String(s||'').replace(/'/g,"\\'");
+  box.innerHTML = achados.slice(0,40).map(c=>`
+    <div class="membro-linha">
+      <div class="avatar" style="width:32px; height:32px; font-size:12px;">${(c.nome||'?').slice(0,2).toUpperCase()}</div>
+      <div class="ml-info">
+        <div class="ml-nome">${c.nome||'—'}</div>
+        <div class="ml-meta">Mat. ${c.matricula} · ${c.grupo||c.classificacao||'—'} · ${c.equipe||'sem equipe'}</div>
+      </div>
+      <button class="btn btn-sm" style="background:rgba(61,232,160,.16); color:var(--green);"
+              onclick="incluirNaEquipePeloControle('${esc1(c.matricula)}')">incluir</button>
+    </div>`).join('')
+    + (achados.length>40 ? `<div class="rank-empty">Mostrando 40 de ${achados.length}. Refine a busca.</div>` : '');
+}
+window.renderResultadoBuscaPainel = renderResultadoBuscaPainel;
+
+async function incluirNaEquipePeloControle(matricula){
+  if(!equipePainelAtual) return;
+  const c = colaboradoresCache.find(x=>String(x.matricula)===String(matricula));
+  if(!c) return;
+  if(!confirm(`Incluir ${c.nome} em "${equipePainelAtual}"?\n\nEle sai de "${c.equipe||'sem equipe'}" e passa a herdar os atributos desta equipe.`)) return;
+  const ok = await moverColaboradorParaEquipe(matricula, equipePainelAtual, {tipo:'inclusao_painel_equipe'});
+  if(ok){
+    const campo = document.getElementById('painelBuscaColab');
+    if(campo) campo.value = '';
+    renderPainelEquipe(); renderCtrlEquipes();
+  }
+}
+window.incluirNaEquipePeloControle = incluirNaEquipePeloControle;
+
+async function removerDaEquipePeloControle(matricula){
+  if(!session || session.role!=='admin'){ toast('Apenas administradores removem colaboradores da equipe.', 'err'); return; }
+  const c = colaboradoresCache.find(x=>String(x.matricula)===String(matricula));
+  if(!c) return;
+  if(!confirm(`Remover ${c.nome} de "${equipePainelAtual}"?\n\nEle fica SEM equipe e passa a aparecer em "Mão de obra" para ser realocado. O cadastro dele não é apagado.`)) return;
+  try{
+    await updateDoc(doc(db,'colaboradores', String(matricula)), {
+      equipe: null, rastreabilidade: '', liderMatricula: null, alocacaoTipo: null
+    });
+    await registrarLogMovimentacao({
+      colaboradorMatricula: String(matricula), colaboradorNome: c.nome||'',
+      de: equipePainelAtual, para: '', tipo: 'remocao_equipe',
+      porMatricula: String(session.matricula||''), porNome: session.nome||'',
+      data: hojeISOLocal()
+    });
+    toast(`${(c.nome||'Colaborador').split(' ')[0]} removido da equipe.`, 'ok');
+    if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
+    renderPainelEquipe(); renderCtrlEquipes();
+  }catch(e){ console.error(e); toast('Erro ao remover: '+(e&&e.message?e.message:e), 'err'); }
+}
+window.removerDaEquipePeloControle = removerDaEquipePeloControle;
 
 function renderCtrlEquipes(){
   const box = document.getElementById('ctrlEquipesLista');
@@ -6950,10 +8460,11 @@ function renderCtrlEquipes(){
     return `<div class="rank-row" style="align-items:center;">
       <div style="flex:1; cursor:pointer;" onclick="editarEquipeControle('${nomeEsc}')">
         <div class="rank-name">${e.nome}</div>
+        <div style="font-size:10.5px; color:var(--text-2);">${membrosDaEquipe(e.nome).length} pessoa(s) · líder: ${rotuloLiderDaEquipe(e.nome)}</div>
         <div style="font-size:10.5px; color:var(--text-2);">${e.contrato||'—'} · CC ${e.codContrato||e.centroCusto||'—'} · resp: ${e.responsavel||'—'} · gestor: ${e.gestor||'—'}</div>
         <div style="font-size:10px; color:var(--text-2);">${e.posTernium?('Pos. '+e.posTernium):'Pos. —'}${e.equipePai?(' · dentro de '+e.equipePai):''}${filhasDaEquipe(e.nome).length?(' · '+filhasDaEquipe(e.nome).length+' equipe(s) filha(s)'):''}</div>
       </div>
-      <button class="btn btn-sm" style="background:var(--bg-3); color:var(--cyan); margin-right:6px;" onclick="editarEquipeControle('${nomeEsc}')">editar</button>
+      <button class="btn btn-sm" style="background:var(--bg-3); color:var(--cyan); margin-right:6px;" onclick="editarEquipeControle('${nomeEsc}')">integrantes</button>
       <button class="btn btn-sm" style="background:rgba(255,92,108,.15); color:var(--red);" onclick="excluirEquipeControle('${nomeEsc}')">Excluir</button>
     </div>`;
   }).join('');
@@ -7136,7 +8647,10 @@ async function salvarEscala(){
     await recarregarEscalas();
     renderCtrlEscalas();
     rerenderScreenAtiva();
-  }catch(e){ console.error(e); toast('Erro ao salvar escala: '+(e&&e.message?e.message:e), 'err'); }
+  }catch(e){
+    console.error(e);
+    toast('Erro ao salvar escala: ' + mensagemErroFirestore(e, 'escalas'), 'err');
+  }
 }
 window.salvarEscala = salvarEscala;
 
@@ -7192,7 +8706,10 @@ async function excluirEscala(nome){
     await recarregarEscalas();
     renderCtrlEscalas();
     rerenderScreenAtiva();
-  }catch(e){ console.error(e); toast('Erro ao excluir: '+(e&&e.message?e.message:e), 'err'); }
+  }catch(e){
+    console.error(e);
+    toast('Erro ao excluir escala: ' + mensagemErroFirestore(e, 'escalas'), 'err');
+  }
 }
 window.excluirEscala = excluirEscala;
 
@@ -7242,6 +8759,111 @@ function renderCtrlEscalas(){
     }).join('');
 }
 window.renderCtrlEscalas = renderCtrlEscalas;
+
+// ===================================================================
+// CONFERÊNCIA E REPARO DOS ATRIBUTOS DE EQUIPE
+// -------------------------------------------------------------------
+// Movimentações feitas antes desta regra podiam deixar no colaborador
+// atributos da equipe anterior — a atuação antiga reaparecendo na árvore
+// genealógica é o sintoma mais visível disso. Aqui a base inteira é
+// comparada com o cadastro das equipes e realinhada.
+// Alocações temporárias (apoio / hora extra) ficam de fora de propósito.
+// ===================================================================
+const CAMPOS_DA_EQUIPE = ['atuacao','contrato','codContrato','responsavel','gestor','posTernium','rastreabilidade','liderMatricula'];
+
+function divergenciasDeAtributos(){
+  const achados = [];
+  colaboradoresCache.forEach(c => {
+    const eqNome = String(c.equipe || '').trim();
+    if(!eqNome) return;                                          // sem equipe: nada a comparar
+    if(c.alocacaoTipo && c.alocacaoTipo !== 'permanente') return; // temporário não é alterado
+    const eq = equipesCache.find(e => normEquipe(e.nome) === normEquipe(eqNome));
+    if(!eq) return;                                              // equipe não cadastrada: não inventa valor
+    const esperado = camposMovimentacao(eq.nome);
+    const difs = [];
+    CAMPOS_DA_EQUIPE.forEach(campo => {
+      const atual = String(c[campo] == null ? '' : c[campo]).trim();
+      const alvo  = String(esperado[campo] == null ? '' : esperado[campo]).trim();
+      if(atual !== alvo) difs.push({campo, de: atual || '—', para: alvo || '—'});
+    });
+    if(difs.length) achados.push({matricula: String(c.matricula), nome: c.nome || '', equipe: eq.nome, difs});
+  });
+  return achados;
+}
+window.divergenciasDeAtributos = divergenciasDeAtributos;
+
+let _divergenciasCache = [];
+
+function conferirAtributosEquipes(){
+  const box = document.getElementById('ctrlDivergenciasBox');
+  const btn = document.getElementById('btnSincronizarAtributos');
+  if(!box) return;
+  _divergenciasCache = divergenciasDeAtributos();
+
+  if(!_divergenciasCache.length){
+    box.innerHTML = `<span class="zp-nada">Tudo alinhado: nenhum colaborador está com atributo de outra equipe.</span>`;
+    if(btn){ btn.style.opacity='.45'; btn.style.pointerEvents='none'; }
+    return;
+  }
+  // Agrupa por campo para o resumo ficar legível.
+  const porCampo = {};
+  _divergenciasCache.forEach(d => d.difs.forEach(x => { porCampo[x.campo] = (porCampo[x.campo]||0) + 1; }));
+  const rotulos = {
+    atuacao:'atuação', contrato:'contrato', codContrato:'centro de custo',
+    responsavel:'responsável', gestor:'gestor', posTernium:'posição Ternium',
+    rastreabilidade:'rastreabilidade', liderMatricula:'líder'
+  };
+  const linhas = Object.keys(porCampo).sort((a,b)=>porCampo[b]-porCampo[a])
+    .map(k => `• <b>${porCampo[k]}</b> em ${rotulos[k]||k}`).join('<br>');
+  const exemplos = _divergenciasCache.slice(0,3).map(d => {
+    const x = d.difs[0];
+    return `<span style="color:var(--text-2);">${d.nome} (${d.equipe}): ${rotulos[x.campo]||x.campo} "${x.de}" → "${x.para}"</span>`;
+  }).join('<br>');
+  box.innerHTML = `<b>${_divergenciasCache.length}</b> colaborador(es) com atributo fora do padrão da equipe:<br>${linhas}
+    <div style="margin-top:8px; font-size:11px;">${exemplos}${_divergenciasCache.length>3?'<br><span style="color:var(--text-2);">…</span>':''}</div>`;
+  if(btn){ btn.style.opacity='1'; btn.style.pointerEvents='auto'; btn.textContent = `🔧 Corrigir ${_divergenciasCache.length} agora`; }
+}
+window.conferirAtributosEquipes = conferirAtributosEquipes;
+
+async function sincronizarAtributosComEquipes(){
+  if(!session || session.role!=='admin'){ toast('Apenas administradores podem corrigir a base.', 'err'); return; }
+  if(!_divergenciasCache.length) conferirAtributosEquipes();
+  if(!_divergenciasCache.length) return;
+
+  if(!confirm(`Alinhar ${_divergenciasCache.length} colaborador(es) com os atributos da equipe atual de cada um?\n\nNome, matrícula, CPF, admissão, grupo e função não são alterados.`)) return;
+
+  const box = document.getElementById('ctrlDivergenciasBox');
+  let ok = 0; const erros = [];
+  const LOTE = 300;
+  for(let i = 0; i < _divergenciasCache.length; i += LOTE){
+    const fatia = _divergenciasCache.slice(i, i + LOTE);
+    if(box) box.innerHTML = `Corrigindo… ${Math.min(i+fatia.length, _divergenciasCache.length)}/${_divergenciasCache.length}`;
+    const batch = writeBatch(db);
+    fatia.forEach(d => {
+      const upd = camposMovimentacao(d.equipe);
+      delete upd.alocadoEm;            // não é uma nova movimentação, é um reparo
+      delete upd.alocacaoTipo;
+      batch.update(doc(db,'colaboradores', d.matricula), upd);
+    });
+    try{ await batch.commit(); ok += fatia.length; }
+    catch(e){ console.error(e); erros.push(e && e.message ? e.message : String(e)); }
+  }
+
+  try{
+    await addDoc(collection(db,'movimentacoes_log'), {
+      tipo: 'sincronizacao_atributos', colaboradorMatricula: '', colaboradorNome: '',
+      de: '', para: '', quantidade: ok,
+      porMatricula: String(session.matricula||''), porNome: session.nome||'',
+      data: hojeISOLocal(), timestamp: serverTimestamp()
+    });
+  }catch(_){}
+
+  if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
+  _divergenciasCache = [];
+  conferirAtributosEquipes();
+  toast(erros.length ? `${ok} corrigido(s), com ${erros.length} erro(s).` : `${ok} colaborador(es) realinhado(s).`, erros.length ? 'err' : 'ok');
+}
+window.sincronizarAtributosComEquipes = sincronizarAtributosComEquipes;
 
 // ---------- CENTROS DE CUSTO ----------
 async function salvarCentroCusto(){
@@ -7484,7 +9106,22 @@ window.abrirModalAlocacaoExterno = abrirModalAlocacaoExterno;
 function abrirModalAlocacao(colaborador){
   alocacaoAlvo = colaborador;
   document.getElementById('alocNome').textContent = colaborador.nome;
-  document.getElementById('alocMeta').textContent = 'Mat. ' + colaborador.matricula + ' → Mover para: ' + (session.equipe||'—');
+
+  // Quem lidera mais de uma equipe precisa dizer para qual delas a pessoa vai —
+  // com uma equipe só, o comportamento continua direto como antes.
+  const escopo = escopoDeEquipesDaSessao();
+  const wrap = document.getElementById('alocEquipeWrap');
+  const sel = document.getElementById('alocEquipeSel');
+  if(wrap && sel){
+    if(escopo.length > 1){
+      sel.innerHTML = escopo.map(n=>`<option value="${String(n).replace(/"/g,'&quot;')}" ${n===session.equipe?'selected':''}>${n}</option>`).join('');
+      wrap.style.display = '';
+      document.getElementById('alocMeta').textContent = 'Mat. ' + colaborador.matricula;
+    } else {
+      wrap.style.display = 'none';
+      document.getElementById('alocMeta').textContent = 'Mat. ' + colaborador.matricula + ' → Mover para: ' + (escopo[0] || session.equipe || '—');
+    }
+  }
   document.getElementById('modalAlocacao').classList.add('active');
 }
 window.abrirModalAlocacao = abrirModalAlocacao;
@@ -7498,11 +9135,16 @@ window.fecharModalAlocacao = fecharModalAlocacao;
 async function confirmarAlocacao(tipo){
   if(!alocacaoAlvo) return;
   if(!session || !session.matricula){ toast('Sessão inválida. Refaça o login.', 'err'); return; }
+  const selEq = document.getElementById('alocEquipeSel');
+  const wrapEq = document.getElementById('alocEquipeWrap');
+  const destinoEscolhido = (wrapEq && wrapEq.style.display !== 'none' && selEq && selEq.value)
+    ? selEq.value
+    : (escopoDeEquipesDaSessao()[0] || session.equipe || null);
   const baseInfo = {
     colaboradorMatricula: String(alocacaoAlvo.matricula || ''),
     colaboradorNome: alocacaoAlvo.nome || '',
     colaboradorFuncao: alocacaoAlvo.funcao || alocacaoAlvo.classificacao || '',
-    equipeDestino: session.equipe || null,
+    equipeDestino: destinoEscolhido,
     liderMatricula: String(session.matricula || ''),
     liderNome: session.nome || ''
   };
@@ -7574,7 +9216,7 @@ function renderAdminEquipes(){
     const membrosCount = colaboradoresCache.filter(c=>c.equipe===eq.nome).length;
     return `<div class="equipe-card">
       <div class="eq-nome">${eq.nome}</div>
-      <div class="eq-meta">Matrícula Líder: ${eq.liderMatricula||'Nenhum'} · Efetivo: ${membrosCount}</div>
+      <div class="eq-meta">Líder: ${rotuloLiderDaEquipe(eq.nome)} · Efetivo: ${membrosCount}</div>
     </div>`;
   }).join('');
 }
@@ -7694,7 +9336,7 @@ async function processarUploadEfetivo(file){
         const chaveEq = equipe.toUpperCase();
         conjuntoEquipes.set(chaveEq, {
           nome: equipe, contrato, cc: contrato,
-          codContrato, responsavel, gestor, posTernium,
+          codContrato, responsavel, gestor, posTernium, atuacao,
           liderMatricula: lideresPorEquipe[chaveEq] || null
         });
       }
@@ -7714,7 +9356,7 @@ async function processarUploadEfetivo(file){
         nome: eq.nome, cc: eq.cc, contrato: eq.contrato,
         codContrato: eq.codContrato || '', centroCusto: eq.codContrato || '',
         responsavel: eq.responsavel || '', gestor: eq.gestor || '',
-        posTernium: eq.posTernium || '',
+        posTernium: eq.posTernium || '', atuacao: eq.atuacao || '',
         liderMatricula: eq.liderMatricula, atualizadoEm: serverTimestamp()
       }, {merge:true});
     }
@@ -8025,33 +9667,56 @@ function renderAtuacaoNode(cc, rastr, at, atTree) {
 }
 
 function renderTeamBlock(cc, rastr, at, eq, members) {
-  const leader = members.find(m => m.grupo === 'LÍDER' || m.grupo === 'SUPERVISOR' || m.grupo === 'COORDENADOR');
-  const leaderName = leader ? leader.nome : (members[0]?.responsavel || '—');
+  // Quem lidera é quem foi DESIGNADO na Gestão de Equipes, com a marcação de
+  // permanente ou temporário. O cargo na planilha (grupo "LÍDER") só entra
+  // quando a equipe ainda não tem ninguém designado.
+  const desig = (typeof window.liderDaEquipe === 'function') ? window.liderDaEquipe(eq) : null;
+  const porCargo = members.find(m => m.grupo === 'LÍDER' || m.grupo === 'SUPERVISOR' || m.grupo === 'COORDENADOR');
+  const leaderMat = desig ? String(desig.matricula) : (porCargo ? String(porCargo.matricula) : '');
+  const leaderName = desig ? (desig.nome || desig.matricula)
+                           : (porCargo ? porCargo.nome : (members[0]?.responsavel || '—'));
+
+  let selo = '';
+  if (desig && desig.tipo === 'temporario') {
+    const fmtD = (typeof window.fmtDataPtBr === 'function') ? window.fmtDataPtBr : (v => v);
+    const ate = desig.fim ? ` até ${fmtD(desig.fim)}` : '';
+    const titular = desig.titularNome ? ` · titular: ${esc(desig.titularNome)}` : '';
+    selo = `<span class="lider-selo temp" title="Líder temporário${titular}">TEMPORÁRIO${esc(ate)}</span>`;
+  } else if (desig) {
+    selo = `<span class="lider-selo perm">PERMANENTE</span>`;
+  }
+
   const sorted = [...members].sort((a, b) => {
-    const rank = g => g === 'LÍDER' ? 0 : g === 'SUPERVISOR' ? 1 : g === 'COORDENADOR' ? 2 : 3;
-    if (rank(a.grupo) !== rank(b.grupo)) return rank(a.grupo) - rank(b.grupo);
+    // O líder designado vem sempre primeiro, mesmo que o cargo dele não seja LÍDER.
+    const rank = m => (leaderMat && String(m.matricula) === leaderMat) ? -1
+      : (m.grupo === 'LÍDER' ? 0 : m.grupo === 'SUPERVISOR' ? 1 : m.grupo === 'COORDENADOR' ? 2 : 3);
+    if (rank(a) !== rank(b)) return rank(a) - rank(b);
     return normalize(a.nome).localeCompare(normalize(b.nome));
   });
-  const membersHtml = sorted.map(p => renderPersonChip(p)).join('');
+  const membersHtml = sorted.map(p => renderPersonChip(p, leaderMat, desig)).join('');
   return `
     <div class="team" data-drop-target="team"
          data-cc="${esc(cc)}" data-rastr="${esc(rastr)}"
          data-atuacao="${esc(at)}" data-equipe="${esc(eq)}">
       <div class="team-head">
         <div class="team-name">Equipe · ${esc(eq)}</div>
-        <div class="team-leader">Líder: <b>${esc(leaderName)}</b> · ${members.length} pessoa${members.length !== 1 ? 's' : ''}</div>
+        <div class="team-leader">Líder: <b>${esc(leaderName)}</b>${selo} · ${members.length} pessoa${members.length !== 1 ? 's' : ''}</div>
       </div>
       <div class="team-members">${membersHtml}</div>
     </div>`;
 }
 
-function renderPersonChip(p) {
-  const isLeader = p.grupo === 'LÍDER';
+function renderPersonChip(p, leaderMat, desig) {
+  // Marca como líder quem foi designado para a equipe; sem designação, cai no cargo.
+  const ehDesignado = !!(leaderMat && String(p.matricula) === String(leaderMat));
+  const isLeader = ehDesignado || (!leaderMat && p.grupo === 'LÍDER');
+  const temp = ehDesignado && desig && desig.tipo === 'temporario';
+  const papel = ehDesignado ? (temp ? 'LÍDER TEMP.' : 'LÍDER') : (p.grupo || '');
   return `
-    <div class="person ${isLeader ? 'leader' : ''}" draggable="true" data-mat="${esc(p.matricula)}" title="${esc(p.nome)}">
+    <div class="person ${isLeader ? 'leader' : ''} ${temp ? 'leader-temp' : ''}" draggable="true" data-mat="${esc(p.matricula)}" title="${esc(p.nome)}">
       <span class="p-mat">${esc(p.matricula)}</span>
       <span class="p-name">${esc(p.nome)}</span>
-      <span class="p-role">${esc(p.grupo || '')}</span>
+      <span class="p-role">${esc(papel)}</span>
       <span class="p-actions">
         <button class="p-btn" data-act="view" title="Ver detalhes">👁</button>
       </span>

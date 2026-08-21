@@ -1,6 +1,7 @@
 /* ============================================================================
    Service Worker — REFRAMAX Central Operacional (PWA)
-   Versão do app: central_30 (RH/Férias · Escalas · Hierarquia de equipes)
+   Versão do app: central_37 (RH/Férias · Escalas · Hierarquia de equipes ·
+   Reset de senha aprovado · Falta justificada · Escopo de liderança)
 
    ONDE PUBLICAR
    Este arquivo precisa ficar no MESMO diretório do HTML do app (o mesmo lugar
@@ -8,7 +9,7 @@
    https://usuario.github.io/repo/, o sw.js tem que estar em .../repo/sw.js.
 
    IMPORTANTE A CADA PUBLICAÇÃO
-   Suba o número em CACHE (central-v4 -> central-v5 -> ...). É isso que apaga o
+   Suba o número em CACHE (central-v5 -> central-v6 -> ...). É isso que apaga o
    cache antigo e força todo mundo a receber a versão nova. Se o número não
    mudar, o navegador pode continuar servindo arquivos estáticos antigos.
 
@@ -22,7 +23,7 @@
      então guardar é seguro e o app abre rápido (e funciona offline).
    ========================================================================== */
 
-const CACHE = 'central-v4';
+const CACHE = 'central-v5';
 
 /* Casca mínima pré-carregada na instalação: garante que o app abra offline
    já no primeiro uso. Falha aqui não pode impedir a instalação do SW. */

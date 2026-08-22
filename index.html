@@ -660,7 +660,8 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
   font-size: 15px; letter-spacing: 0.5px; text-transform: uppercase;
   color: var(--text);}
 #efetivoModule .node-title .path-part {color: var(--text-3); font-weight: 400;}
-#efetivoModule .node-count {margin-left: auto; padding: 2px 8px; background: var(--bg);
+#efetivoModule .node-count {margin-left: auto; flex-shrink: 0; white-space: nowrap;
+  padding: 2px 8px; background: var(--bg);
   border: 1px solid var(--border-2); border-radius: 2px;
   font-family: 'JetBrains Mono', monospace; font-size: 11px;
   color: var(--text-2);}
@@ -670,9 +671,21 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
 #efetivoModule .node.cc-node > .node-header {background: linear-gradient(90deg, rgba(255,255,255,0.02), transparent);
   padding: 12px 14px;}
 #efetivoModule .node.cc-node > .node-header .node-title {font-size: 17px; color: var(--cc-color);}
-#efetivoModule .node.rastr-node > .node-header .node-title {font-size: 14px;}
-#efetivoModule .node.atuacao-node > .node-header {background: var(--panel);}
-#efetivoModule .node.atuacao-node > .node-header .node-title {font-size: 13px; color: var(--text-2); font-weight: 500;}
+/* EQUIPE agora é um nó recolhível como os antigos, para a árvore voltar a ficar
+   compacta: só o cabeçalho aparece até você clicar. */
+#efetivoModule .node.equipe-node > .node-header {padding: 8px 10px; background: var(--panel);}
+/* O chevron gira 45°: com padding curto a ponta encostava na borda e o "v"
+   aparecia cortado. Uma folga de 3px resolve. */
+#efetivoModule .node.equipe-node > .node-header .chevron {margin: 3px 5px 3px 2px;}
+#efetivoModule .node.equipe-node > .node-header .node-title {font-size: 14px; color: var(--accent);}
+#efetivoModule .node.equipe-node > .node-header .node-count {margin-left: 0;}
+#efetivoModule .node.equipe-node > .node-children {padding-left: 20px; margin-top: 3px; margin-bottom: 8px;}
+#efetivoModule .node-lider {margin-left: auto; display: flex; align-items: center; gap: 5px;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-2);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 46%;}
+#efetivoModule .node-lider b {color: var(--text); font-weight: 500;}
+/* Níveis "Rastreabilidade" e "Atuação" foram removidos da árvore: repetiam o
+   nome da equipe. Regras mantidas vazias apenas para não quebrar temas antigos. */
 #efetivoModule .team {padding: 10px 12px 12px; margin: 4px 0;
   background: var(--panel); border: 1px solid var(--border);
   border-radius: 3px;}
@@ -696,7 +709,8 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
 #efetivoModule .person.leader {border-left: 3px solid var(--accent);}
 #efetivoModule .person .p-mat {font-family: 'JetBrains Mono', monospace; font-size: 10px;
   color: var(--text-3); flex-shrink: 0;}
-#efetivoModule .person .p-name {flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+#efetivoModule .person {min-width: 0;}
+#efetivoModule .person .p-name {flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   color: var(--text);}
 #efetivoModule .person .p-role {font-size: 10px; color: var(--text-3); padding: 1px 5px;
   background: var(--panel); border-radius: 2px; text-transform: uppercase;
@@ -904,6 +918,14 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
   #efetivoModule .tree-header .tree-actions,
   #efetivoModule .resumo-actions{ flex-wrap:wrap; }
   #efetivoModule .team-members{ grid-template-columns:1fr; }
+  #efetivoModule .node-lider{ display:none; }
+  #efetivoModule .node.equipe-node > .node-children{ padding-left:10px; }
+  #efetivoModule .node-children{ padding-left:14px; }
+  /* Sem o rótulo do líder, o contador precisa voltar a ser empurrado para a direita. */
+  #efetivoModule .node.equipe-node > .node-header .node-count{ margin-left:auto; }
+  /* "Equipe ·" ocupa uma linha inteira em tela estreita; o nome basta. */
+  #efetivoModule .node.equipe-node .node-title .path-part{ display:none; }
+  #efetivoModule .node.equipe-node > .node-header .node-title{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 }
 
 
@@ -1734,10 +1756,7 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
           <div class="field"><label>C.C (Diretos/Indiretos)</label><input type="text" id="rhNovCC"></div>
           <div class="field"><label>Tipo de KPI</label><input type="text" id="rhNovKpi"></div>
         </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-          <div class="field"><label>Centro de Custo</label><input type="text" id="rhNovCentro"></div>
-          <div class="field"><label>Atuação</label><input type="text" id="rhNovAtuacao"></div>
-        </div>
+        <div class="field"><label>Centro de Custo</label><input type="text" id="rhNovCentro"></div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
           <div class="field"><label>Admissão</label><input type="date" id="rhNovAdmissao"></div>
           <div class="field"><label>Data Status</label><input type="date" id="rhNovDataStatus"></div>
@@ -1842,11 +1861,7 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
           <div class="field"><label>Responsável (supervisor)</label><input type="text" id="ctrlEqResp"></div>
           <div class="field"><label>Gestor</label><input type="text" id="ctrlEqGestor"></div>
         </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-          <div class="field"><label>Posição Ternium</label><input type="text" id="ctrlEqPos" list="ctrlPosDatalist"></div>
-          <div class="field"><label>Atuação (nível da árvore)</label><input type="text" id="ctrlEqAtuacao" list="ctrlAtuacaoDatalist" placeholder="Ex.: RG, OFICINA DE PORTAS"></div>
-        </div>
-        <datalist id="ctrlAtuacaoDatalist"></datalist>
+        <div class="field"><label>Posição Ternium</label><input type="text" id="ctrlEqPos" list="ctrlPosDatalist"></div>
         <datalist id="ctrlPosDatalist"></datalist>
         <button class="btn btn-primary btn-sm" style="width:100%;" onclick="salvarEquipeControle()">Salvar equipe</button>
 
@@ -1859,7 +1874,7 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
         <!-- Reparo de dados: realinha quem ficou com atributos da equipe antiga -->
         <div class="section-title" style="margin-top:20px;">Conferência de atributos</div>
         <div class="remanejar-hint">
-          Confere se cada colaborador está com <b>atuação, contrato, centro de custo, responsável, gestor, posição Ternium e líder</b> iguais aos da equipe em que ele está hoje. Movimentações antigas podem ter deixado valores da equipe anterior. <b>Alocações temporárias</b> (apoio e hora extra) não são alteradas.
+          Confere se cada colaborador está com <b>contrato, centro de custo, responsável, gestor, posição Ternium, líder e atuação</b> iguais aos da equipe em que ele está hoje. A <b>atuação</b> passou a ser sempre o nome da própria equipe — use a correção abaixo para alinhar quem ainda carrega a atuação de uma equipe antiga. <b>Alocações temporárias</b> (apoio e hora extra) não são alteradas.
         </div>
         <div id="ctrlDivergenciasBox" class="zp-resumo" style="background:var(--bg-1);">Toque em conferir para verificar.</div>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
@@ -1976,7 +1991,6 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
         <div class="field"><label>Responsável</label><input type="text" id="eqRapResp"></div>
         <div class="field"><label>Gestor</label><input type="text" id="eqRapGestor"></div>
       </div>
-      <div class="field"><label>Atuação (nível da árvore)</label><input type="text" id="eqRapAtuacao" list="ctrlAtuacaoDatalist"></div>
       <div id="eqRapAviso" style="font-size:11px; color:var(--text-2); margin-bottom:10px;"></div>
       <div class="actions-row">
         <button class="btn btn-ghost" onclick="fecharModalEquipeRapida()">Cancelar</button>
@@ -3064,7 +3078,7 @@ function efetivoSyncFirebase(){
         // 2º nível da árvore = EQUIPE (rastreabilidade); folha = equipe
         rastreabilidade: up(c.rastreabilidade) || equipe || rico.rastreabilidade || '(sem rastreabilidade)',
         equipe: equipe,
-        atuacao: up(c.atuacao) || rico.atuacao || '(sem atuação)',
+        atuacao: equipe,                 // espelha a equipe (ver dadosDaEquipe)
         tipoKpi: up(c.tipoKpi) || rico.tipoKpi || '',
         codContrato: up(c.codContrato) || rico.codContrato || '',
         respCampo: up(c.respCampo) || rico.respCampo || '',
@@ -5386,7 +5400,7 @@ function expandirTudoRemanejar(expandir){
     remanejarRecolhidos.clear();
     equipesCache.forEach(eq=>{
       remanejarRecolhidos.add('EQ::'+eq.nome);
-      remanejarRecolhidos.add('AR::'+(eq.atuacao || 'COQUERIA REFRAMAX'));
+      remanejarRecolhidos.add('AR::'+(eq.contrato || eq.cc || 'SEM CONTRATO'));
     });
   }
   renderAdminRemanejar();
@@ -5403,7 +5417,8 @@ function renderAdminRemanejar(){
   // Agrupar por área/bateria
   const porArea = {};
   equipesCache.forEach(eq=>{
-    const area = eq.atuacao || 'COQUERIA REFRAMAX';
+    // Agrupa por CONTRATO: a antiga "área de atuação" repetia o nome da equipe.
+    const area = eq.contrato || eq.cc || 'SEM CONTRATO';
     if(busca && !area.toLowerCase().includes(busca) && !(eq.nome||'').toLowerCase().includes(busca)) return;
     porArea[area] = porArea[area] || [];
     porArea[area].push(eq);
@@ -5790,6 +5805,17 @@ function rotuloLiderDaEquipe(nomeEquipe){
 }
 window.rotuloLiderDaEquipe = rotuloLiderDaEquipe;
 
+// Contrato OFICIAL de uma equipe (o do cadastro dela). A árvore usa isto em vez
+// do contrato gravado em cada pessoa: se um registro antigo estiver sem contrato
+// ou com outro, a equipe apareceria partida em duas caixas na árvore.
+function contratoDaEquipe(nomeEquipe){
+  if(!nomeEquipe) return '';
+  const eq = equipesCache.find(e => normEquipe(e.nome) === normEquipe(nomeEquipe));
+  if(!eq) return '';
+  return eq.contrato || eq.cc || '';
+}
+window.contratoDaEquipe = contratoDaEquipe;
+
 function dadosDaEquipe(nomeEquipe){
   if(!nomeEquipe) return null;
   const alvo = normEquipe(nomeEquipe);
@@ -5797,10 +5823,11 @@ function dadosDaEquipe(nomeEquipe){
   if(!eq) return null;
   const contrato = eq.contrato || eq.cc || atributoPredominanteDaEquipe(eq.nome,'contrato') || '';
   const cc = eq.codContrato || eq.centroCusto || atributoPredominanteDaEquipe(eq.nome,'codContrato') || ccPadraoDoContrato(contrato) || '';
-  // Atuação é atributo da EQUIPE (é um nível da árvore genealógica). Quando a
-  // equipe ainda não tem a sua cadastrada, usamos a que os integrantes dela já
-  // têm; em último caso, o próprio nome da equipe — nunca a da equipe anterior.
-  const atuacao = eq.atuacao || atributoPredominanteDaEquipe(eq.nome,'atuacao') || eq.nome;
+  // ATUAÇÃO = EQUIPE, sempre. Era um campo à parte e virava bagunça: ao mudar
+  // alguém de equipe a atuação antiga sobrevivia e a pessoa aparecia sublocada
+  // numa área que não era mais a dela. O campo continua existindo no banco
+  // (relatórios e planilhas antigas leem ele), mas espelha o nome da equipe.
+  const atuacao = eq.nome;
   return {
     contrato,
     cc: contrato,                    // alias usado pela árvore do efetivo
@@ -5823,7 +5850,7 @@ function camposMovimentacao(nomeEquipe){
   return {
     equipe: nomeEquipe,
     rastreabilidade: nomeEquipe,
-    atuacao: d.atuacao || nomeEquipe,
+    atuacao: nomeEquipe,          // espelha a equipe — ver comentário em dadosDaEquipe
     contrato: d.contrato || '',
     cc: d.contrato || '',
     codContrato: d.codContrato || '',
@@ -6013,7 +6040,7 @@ function renderAdminChamadaObrig(){
     return;
   }
   const lista = equipesCache
-    .filter(eq => !busca || (eq.nome||'').toLowerCase().includes(busca) || (eq.atuacao||'').toLowerCase().includes(busca))
+    .filter(eq => !busca || (eq.nome||'').toLowerCase().includes(busca) || (eq.contrato||'').toLowerCase().includes(busca))
     .sort((a,b)=> (a.nome||'').localeCompare(b.nome||''));
   if(!lista.length){
     container.innerHTML = `<div class="empty">Nenhuma equipe encontrada.</div>`;
@@ -6028,7 +6055,7 @@ function renderAdminChamadaObrig(){
     return `<div class="rank-row" style="align-items:center;">
       <div style="flex:1;">
         <div class="rank-name" style="color:${faz?'var(--text-1)':'var(--text-2)'};">${eq.nome}</div>
-        <div style="font-size:10.5px; color:var(--text-2);">${eq.atuacao||'—'} · ${membros} colaborador${membros!==1?'es':''}${emFolga?' · <span style="color:var(--cyan);">EM FOLGA HOJE</span>':''}</div>
+        <div style="font-size:10.5px; color:var(--text-2);">${eq.contrato||'—'} · CC ${eq.codContrato||eq.centroCusto||'—'} · ${membros} colaborador${membros!==1?'es':''}${emFolga?' · <span style="color:var(--cyan);">EM FOLGA HOJE</span>':''}</div>
       </div>
       <label class="chamada-switch">
         <input type="checkbox" ${faz?'checked':''} onchange="toggleEquipeChamada('${nomeEsc}', this.checked)">
@@ -6094,7 +6121,7 @@ function renderAdminLider(){
   const pessoas = colaboradoresCache.slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
   const nomeMat = mat => { const c = colaboradoresCache.find(x=>String(x.matricula)===String(mat)); return c ? `${c.nome} (Mat. ${c.matricula})` : (mat||'—'); };
   const lista = equipesCache
-    .filter(eq => !busca || (eq.nome||'').toLowerCase().includes(busca) || (eq.atuacao||'').toLowerCase().includes(busca))
+    .filter(eq => !busca || (eq.nome||'').toLowerCase().includes(busca) || (eq.contrato||'').toLowerCase().includes(busca))
     .sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
   if(!lista.length){ container.innerHTML = `<div class="empty">Nenhuma equipe encontrada.</div>`; return; }
 
@@ -6111,7 +6138,7 @@ function renderAdminLider(){
       <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
         <div style="flex:1; min-width:180px;">
           <div class="rank-name">${eq.nome}</div>
-          <div style="font-size:10.5px; color:var(--text-2);">${eq.atuacao||'—'} · líder atual: ${nomeMat(eq.liderMatricula)}</div>
+          <div style="font-size:10.5px; color:var(--text-2);">${eq.contrato||'—'} · líder atual: ${nomeMat(eq.liderMatricula)}</div>
           ${tempInfo}
         </div>
       </div>
@@ -7632,7 +7659,7 @@ async function salvarNovatoRh(){
     grupo: '', classificacao: g('rhNovClass'), funcao: g('rhNovClass'),
     ccTipo: g('rhNovCC'),
     equipe: null, rastreabilidade: '',
-    atuacao: g('rhNovAtuacao'), tipoKpi: g('rhNovKpi'), codContrato: g('rhNovCentro'),
+    atuacao: '', tipoKpi: g('rhNovKpi'), codContrato: g('rhNovCentro'),   // atuação = equipe, definida ao alocar
     respCampo:'', responsavel:'', gestor:'',
     posTernium:'', admissao: g('rhNovAdmissao'), matTernium: g('rhNovMatTernium'), cpf: g('rhNovCpf'),
     status, dataStatus: g('rhNovDataStatus') || hojeISOLocal(),
@@ -7642,7 +7669,7 @@ async function salvarNovatoRh(){
   try{
     await setDoc(doc(db,'colaboradores', String(mat)), dados, {merge:true});
     toast('Colaborador cadastrado com status ' + status + '.', 'ok');
-    ['rhNovMat','rhNovNome','rhNovContrato','rhNovClass','rhNovCC','rhNovKpi','rhNovCentro','rhNovAtuacao','rhNovAdmissao','rhNovDataStatus','rhNovMatTernium','rhNovCpf'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+    ['rhNovMat','rhNovNome','rhNovContrato','rhNovClass','rhNovCC','rhNovKpi','rhNovCentro','rhNovAdmissao','rhNovDataStatus','rhNovMatTernium','rhNovCpf'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
     if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
   }catch(e){ console.error(e); toast('Erro ao cadastrar: ' + (e && e.message ? e.message : e), 'err'); }
 }
@@ -7716,13 +7743,6 @@ function atualizarDatalistsControle(){
     const ps = new Set(posicoesCache.map(p=>p.cod).filter(Boolean));
     equipesCache.forEach(e=>{ if(e.posTernium) ps.add(e.posTernium); });
     dp.innerHTML = [...ps].sort().map(n=>`<option value="${(n||'').replace(/"/g,'&quot;')}">`).join('');
-  }
-  const da = document.getElementById('ctrlAtuacaoDatalist');
-  if(da){
-    const ats = new Set();
-    equipesCache.forEach(e=>{ if(e.atuacao) ats.add(e.atuacao); });
-    colaboradoresCache.forEach(c=>{ if(c.atuacao) ats.add(c.atuacao); });
-    da.innerHTML = [...ats].sort().map(n=>`<option value="${(n||'').replace(/"/g,'&quot;')}">`).join('');
   }
   if(typeof popularSelectsEquipePai==='function') popularSelectsEquipePai();
 }
@@ -7989,7 +8009,6 @@ function abrirModalEquipeRapida(nomeEquipe){
   set('eqRapContrato', eq.contrato || eq.cc);
   set('eqRapResp', eq.responsavel);
   set('eqRapGestor', eq.gestor);
-  set('eqRapAtuacao', eq.atuacao || atributoPredominanteDaEquipe(eq.nome,'atuacao') || '');
   popularSelectsEquipePai();
   const selPai = document.getElementById('eqRapPai'); if(selPai) selPai.value = eq.equipePai || '';
   const aviso = document.getElementById('eqRapAviso');
@@ -8063,7 +8082,6 @@ async function salvarEquipeRapida(){
     posTernium: g('eqRapPos'),
     responsavel: g('eqRapResp'),
     gestor: g('eqRapGestor'),
-    atuacao: g('eqRapAtuacao'),
     equipePai: pai || null
   };
 
@@ -8185,7 +8203,6 @@ async function salvarEquipeControle(){
   const resp = (document.getElementById('ctrlEqResp').value||'').trim();
   const gestor = (document.getElementById('ctrlEqGestor').value||'').trim();
   const pos = (document.getElementById('ctrlEqPos').value||'').trim();
-  const atuacao = ((document.getElementById('ctrlEqAtuacao')||{}).value||'').trim();
   const pai = ((document.getElementById('ctrlEqPai')||{}).value||'').trim();
   if(pai && normEquipe(pai)===normEquipe(nome)){ toast('Uma equipe não pode ser pai de si mesma.', 'err'); return; }
   try{
@@ -8193,12 +8210,11 @@ async function salvarEquipeControle(){
       nome, contrato, cc: contrato,
       codContrato: cc, centroCusto: cc,
       responsavel: resp, gestor, posTernium: pos,
-      atuacao,
       equipePai: pai || null,
       atualizadoEm: serverTimestamp()
     }, {merge:true});
     toast('Equipe salva.', 'ok');
-    ['ctrlEqNome','ctrlEqContrato','ctrlEqCC','ctrlEqResp','ctrlEqGestor','ctrlEqPos','ctrlEqAtuacao'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
+    ['ctrlEqNome','ctrlEqContrato','ctrlEqCC','ctrlEqResp','ctrlEqGestor','ctrlEqPos'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
     const selPai = document.getElementById('ctrlEqPai'); if(selPai) selPai.value='';
     if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
     renderCtrlEquipes(); atualizarDatalistsControle(); popularSelectsEquipePai();
@@ -8217,8 +8233,6 @@ function editarEquipeControle(nomeEquipe){
   document.getElementById('ctrlEqResp').value = eq.responsavel || '';
   document.getElementById('ctrlEqGestor').value = eq.gestor || '';
   document.getElementById('ctrlEqPos').value = eq.posTernium || '';
-  const elAt = document.getElementById('ctrlEqAtuacao');
-  if(elAt) elAt.value = eq.atuacao || atributoPredominanteDaEquipe(eq.nome,'atuacao') || '';
   popularSelectsEquipePai();
   abrirPainelEquipe(eq.nome);   // abre líder + integrantes + incluir/remover
   const selPaiEd = document.getElementById('ctrlEqPai'); if(selPaiEd) selPaiEd.value = eq.equipePai || '';
@@ -8282,7 +8296,7 @@ function renderPainelEquipe(){
           <div class="avatar" style="width:32px; height:32px; font-size:12px;">${(c.nome||'?').slice(0,2).toUpperCase()}</div>
           <div class="ml-info">
             <div class="ml-nome">${c.nome||'—'} ${ehLider?`<span class="alloc-chip" style="background:rgba(240,192,64,.18); color:var(--gold);">${ehTemp?'LÍDER TEMP.':'LÍDER'}</span>`:''}</div>
-            <div class="ml-meta">Mat. ${c.matricula} · ${c.grupo||c.classificacao||c.funcao||'—'}${c.atuacao?' · '+c.atuacao:''}</div>
+            <div class="ml-meta">Mat. ${c.matricula} · ${c.grupo||c.classificacao||c.funcao||'—'}</div>
           </div>
           <button class="btn btn-sm" style="background:rgba(255,92,108,.15); color:var(--red);"
                   onclick="removerDaEquipePeloControle('${esc1(c.matricula)}')">remover</button>
@@ -9295,7 +9309,7 @@ async function processarUploadEfetivo(file){
       const cpf         = pick(n,'CPF') || antigo.cpf || '';
       // Campos REMOVIDOS da planilha (C.C, ATUAÇÃO, TIPO DE KPI, RESP. CAMPO): preserva o que já existe.
       const ccTipo      = antigo.ccTipo || '';                               // DIRETOS/INDIRETOS (legado)
-      const atuacao     = antigo.atuacao || '';                              // legado (árvore usa CC agora)
+      const atuacao     = equipe || '';                                      // atuação espelha a equipe
       const tipoKpi     = antigo.tipoKpi || '';
       const respCampo   = antigo.respCampo || '';
       // Colunas do RH: STATUS e DATA STATUS
@@ -9336,7 +9350,7 @@ async function processarUploadEfetivo(file){
         const chaveEq = equipe.toUpperCase();
         conjuntoEquipes.set(chaveEq, {
           nome: equipe, contrato, cc: contrato,
-          codContrato, responsavel, gestor, posTernium, atuacao,
+          codContrato, responsavel, gestor, posTernium,
           liderMatricula: lideresPorEquipe[chaveEq] || null
         });
       }
@@ -9356,7 +9370,7 @@ async function processarUploadEfetivo(file){
         nome: eq.nome, cc: eq.cc, contrato: eq.contrato,
         codContrato: eq.codContrato || '', centroCusto: eq.codContrato || '',
         responsavel: eq.responsavel || '', gestor: eq.gestor || '',
-        posTernium: eq.posTernium || '', atuacao: eq.atuacao || '',
+        posTernium: eq.posTernium || '',
         liderMatricula: eq.liderMatricula, atualizadoEm: serverTimestamp()
       }, {merge:true});
     }
@@ -9574,23 +9588,32 @@ function renderCards() {
 }
 
 /* -------- Tree -------- */
-/* Structure: CC -> Rastreabilidade -> Atuação -> Equipe -> [persons] */
+/* Estrutura: CONTRATO -> EQUIPE -> [pessoas]
+   Antes existiam mais dois níveis, "Rastreabilidade" e "Atuação". Os dois
+   sempre repetem o nome da equipe, então a árvore mostrava a mesma coisa três
+   vezes seguidas e a atuação antiga ainda podia sobreviver a uma movimentação.
+   A equipe é a unidade real de organização — a árvore passa a refletir isso. */
 function buildTree(list) {
   const tree = {};
+  const contratoDe = (typeof window.contratoDaEquipe === 'function') ? window.contratoDaEquipe : (() => '');
   list.forEach(p => {
-    const cc = p.cc || '(sem CC)';
-    const r = p.rastreabilidade || '(sem rastreabilidade)';
-    const a = p.atuacao || '(sem atuação)';
     const e = p.equipe || '(sem equipe)';
+    // O contrato vem do cadastro da EQUIPE. Um registro antigo com o contrato
+    // em branco ou diferente faria a mesma equipe aparecer em duas caixas.
+    const cc = contratoDe(e) || p.cc || '(sem contrato)';
     tree[cc] = tree[cc] || {};
-    tree[cc][r] = tree[cc][r] || {};
-    tree[cc][r][a] = tree[cc][r][a] || {};
-    tree[cc][r][a][e] = tree[cc][r][a][e] || [];
-    tree[cc][r][a][e].push(p);
+    tree[cc][e] = tree[cc][e] || [];
+    tree[cc][e].push(p);
   });
   return tree;
 }
 function nodeKey(...parts) { return parts.join('||'); }
+
+/* Com a equipe recolhida por padrão, um resultado de busca ficaria escondido
+   dentro do nó fechado. Quando há filtro ativo, a árvore abre sozinha. */
+function filtroDeArvoreAtivo() {
+  return !!(filters.search || filters.funcao || filters.kpi || filters.classificacao);
+}
 
 function renderTree() {
   const body = document.getElementById('ef_treeBody');
@@ -9617,56 +9640,23 @@ function renderTree() {
 
 function renderCCNode(cc, ccTree) {
   const key = nodeKey('cc', cc);
-  const total = Object.values(ccTree).reduce((s, r) => s + Object.values(r).reduce((s2, a) => s2 + Object.values(a).reduce((s3, e) => s3 + e.length, 0), 0), 0);
-  const isExp = expandedNodes.has(key) || selectedCC === cc;
+  const total = Object.values(ccTree).reduce((s, membros) => s + membros.length, 0);
+  const isExp = expandedNodes.has(key) || selectedCC === cc || filtroDeArvoreAtivo();
   const color = CC_COLOR[cc] || 'var(--border-2)';
-  const children = Object.keys(ccTree).sort().map(rastr => renderRastrNode(cc, rastr, ccTree[rastr])).join('');
+  const nEquipes = Object.keys(ccTree).length;
+  const children = Object.keys(ccTree).sort().map(eq => renderTeamBlock(cc, eq, ccTree[eq])).join('');
   return `
     <div class="node cc-node ${isExp ? 'expanded' : ''}" data-key="${esc(key)}" style="--cc-color: ${color}">
       <div class="node-header" data-drop-target="cc" data-cc="${esc(cc)}">
         <span class="chevron"></span>
         <span class="node-title">${esc(CC_LABEL[cc] || cc)}</span>
-        <span class="node-count"><b>${total}</b> colab.</span>
+        <span class="node-count">${nEquipes} equipe${nEquipes !== 1 ? 's' : ''} · <b>${total}</b> colab.</span>
       </div>
       <div class="node-children">${children}</div>
     </div>`;
 }
 
-function renderRastrNode(cc, rastr, rastrTree) {
-  const key = nodeKey('rastr', cc, rastr);
-  const total = Object.values(rastrTree).reduce((s, a) => s + Object.values(a).reduce((s2, e) => s2 + e.length, 0), 0);
-  const isExp = expandedNodes.has(key);
-  const color = CC_COLOR[cc] || 'var(--border-2)';
-  const children = Object.keys(rastrTree).sort().map(at => renderAtuacaoNode(cc, rastr, at, rastrTree[at])).join('');
-  return `
-    <div class="node rastr-node ${isExp ? 'expanded' : ''}" data-key="${esc(key)}" style="--cc-color: ${color}">
-      <div class="node-header" data-drop-target="rastr" data-cc="${esc(cc)}" data-rastr="${esc(rastr)}">
-        <span class="chevron"></span>
-        <span class="node-title"><span class="path-part">Rastreab.</span> · ${esc(rastr)}</span>
-        <span class="node-count"><b>${total}</b></span>
-      </div>
-      <div class="node-children">${children}</div>
-    </div>`;
-}
-
-function renderAtuacaoNode(cc, rastr, at, atTree) {
-  const key = nodeKey('atuacao', cc, rastr, at);
-  const total = Object.values(atTree).reduce((s, e) => s + e.length, 0);
-  const isExp = expandedNodes.has(key);
-  const color = CC_COLOR[cc] || 'var(--border-2)';
-  const children = Object.keys(atTree).sort().map(eq => renderTeamBlock(cc, rastr, at, eq, atTree[eq])).join('');
-  return `
-    <div class="node atuacao-node ${isExp ? 'expanded' : ''}" data-key="${esc(key)}" style="--cc-color: ${color}">
-      <div class="node-header" data-drop-target="atuacao" data-cc="${esc(cc)}" data-rastr="${esc(rastr)}" data-atuacao="${esc(at)}">
-        <span class="chevron"></span>
-        <span class="node-title"><span class="path-part">Atuação</span> · ${esc(at)}</span>
-        <span class="node-count"><b>${total}</b></span>
-      </div>
-      <div class="node-children">${children}</div>
-    </div>`;
-}
-
-function renderTeamBlock(cc, rastr, at, eq, members) {
+function renderTeamBlock(cc, eq, members) {
   // Quem lidera é quem foi DESIGNADO na Gestão de Equipes, com a marcação de
   // permanente ou temporário. O cargo na planilha (grupo "LÍDER") só entra
   // quando a equipe ainda não tem ninguém designado.
@@ -9694,15 +9684,23 @@ function renderTeamBlock(cc, rastr, at, eq, members) {
     return normalize(a.nome).localeCompare(normalize(b.nome));
   });
   const membersHtml = sorted.map(p => renderPersonChip(p, leaderMat, desig)).join('');
+  // A equipe volta a ser um NÓ recolhível (como era antes): a árvore abre
+  // compacta, mostrando só os cabeçalhos, e você expande o que quiser ver.
+  // O que sumiu de vez foram os níveis repetidos Rastreabilidade/Atuação.
+  const key = nodeKey('eq', cc, eq);
+  const isExp = expandedNodes.has(key) || filtroDeArvoreAtivo();
   return `
-    <div class="team" data-drop-target="team"
-         data-cc="${esc(cc)}" data-rastr="${esc(rastr)}"
-         data-atuacao="${esc(at)}" data-equipe="${esc(eq)}">
-      <div class="team-head">
-        <div class="team-name">Equipe · ${esc(eq)}</div>
-        <div class="team-leader">Líder: <b>${esc(leaderName)}</b>${selo} · ${members.length} pessoa${members.length !== 1 ? 's' : ''}</div>
+    <div class="node equipe-node ${isExp ? 'expanded' : ''}" data-key="${esc(key)}">
+      <div class="node-header" data-drop-target="team"
+           data-cc="${esc(cc)}" data-equipe="${esc(eq)}">
+        <span class="chevron"></span>
+        <span class="node-title"><span class="path-part">Equipe ·</span> ${esc(eq)}</span>
+        <span class="node-lider">Líder: <b>${esc(leaderName)}</b>${selo}</span>
+        <span class="node-count"><b>${members.length}</b> colab.</span>
       </div>
-      <div class="team-members">${membersHtml}</div>
+      <div class="node-children">
+        <div class="team-members">${membersHtml}</div>
+      </div>
     </div>`;
 }
 
@@ -9797,13 +9795,12 @@ async function onDrop(e) {
   if (!person) return;
 
   const kind = target.dataset.dropTarget;
-  const newRastr = target.dataset.rastr;
   const newEq = target.dataset.equipe;
 
   // A movimentação real é sempre "colaborador -> EQUIPE". A equipe é a chave de negócio:
-  // dela saem contrato, centro de custo, responsável, gestor e posição Ternium.
+  // dela saem contrato, centro de custo, atuação, responsável, gestor e posição Ternium.
   // Soltar sobre um nó de contrato não define equipe, então pedimos um alvo mais específico.
-  const equipeDestino = (newEq || newRastr || '').trim();
+  const equipeDestino = (newEq || '').trim();
   if (!equipeDestino || kind === 'cc') {
     toast('Solte o colaborador sobre uma EQUIPE para concluir a movimentação.', 'danger');
     return;
@@ -10144,12 +10141,8 @@ document.getElementById('ef_btnExpand').addEventListener('click', () => {
   const tree = buildTree(vis);
   Object.keys(tree).forEach(cc => {
     expandedNodes.add(nodeKey('cc', cc));
-    Object.keys(tree[cc]).forEach(r => {
-      expandedNodes.add(nodeKey('rastr', cc, r));
-      Object.keys(tree[cc][r]).forEach(a => {
-        expandedNodes.add(nodeKey('atuacao', cc, r, a));
-      });
-    });
+    // "Expandir tudo" precisa abrir também as equipes, que agora são nós.
+    Object.keys(tree[cc]).forEach(eq => expandedNodes.add(nodeKey('eq', cc, eq)));
   });
   renderTree();
 });

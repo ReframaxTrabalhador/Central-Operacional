@@ -700,6 +700,14 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
 #efetivoModule .team-leader b {color: var(--text); font-weight: 500;}
 #efetivoModule .team-members {display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 5px;}
+/* Cadeia de responsabilidade da equipe: líder no cabeçalho, supervisor e
+   gestor aqui dentro — quem responde pelo quê, sem precisar abrir outra tela. */
+#efetivoModule .team-hierarquia {display: flex; flex-wrap: wrap; gap: 4px 16px;
+  margin: 0 0 8px; padding: 6px 9px; border-radius: 8px;
+  background: var(--panel-2); border: 1px solid var(--border);
+  font-size: 11px; color: var(--text-2);}
+#efetivoModule .team-hierarquia b {color: var(--text-2); font-weight: 600;}
+#efetivoModule .team-hierarquia span {white-space: nowrap;}
 #efetivoModule .person {display: flex; align-items: center; gap: 8px;
   padding: 6px 8px; background: var(--bg); border: 1px solid var(--border);
   border-radius: 2px; cursor: grab; transition: all 0.12s;
@@ -986,16 +994,278 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
 .escala-card .es-meta{font-size:11.5px; color:var(--text-2); margin-top:2px;}
 .escala-letras{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px;}
 .escala-letra{display:flex; flex-direction:column; gap:2px; background:var(--bg-2); border:1px solid var(--line);
-  border-radius:10px; padding:7px 10px; font-size:11px; min-width:104px;}
-.escala-letra .el-tag{font-family:'Barlow Condensed'; font-weight:800; font-size:14px; color:var(--cyan);}
+  border-radius:10px; padding:7px 10px; font-size:11px; min-width:104px; max-width:230px;}
+/* O nome da turma virou texto livre (até 50 caracteres): precisa quebrar
+   dentro da caixa em vez de esticá-la e empurrar o resto da tela. */
+.escala-letra .el-tag{font-family:'Barlow Condensed'; font-weight:800; font-size:14px; color:var(--cyan);
+  line-height:1.15; overflow-wrap:anywhere; word-break:break-word;}
 .escala-letra.trab{border-color:rgba(61,232,160,.45); background:rgba(61,232,160,.08);}
 .escala-letra.folga{border-color:rgba(240,192,64,.35); background:rgba(240,192,64,.06);}
 .escala-legenda{font-size:10.5px; color:var(--text-2); margin-top:6px;}
+/* ===========================================================================
+   PLANILHA DE EDIÇÃO
+   ---------------------------------------------------------------------------
+   Uma grade que se comporta como planilha: cabeçalho fixo, primeira coluna
+   fixa, célula que vira campo ao clicar, navegação por teclado e colagem de
+   bloco vindo do Excel. Tudo em memória — o banco só é tocado na confirmação.
+   =========================================================================== */
+.pln-barra{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px;}
+.pln-barra .btn{flex:0 0 auto;}
+.pln-busca{flex:1 1 180px; min-width:140px; padding:9px 11px; border-radius:10px;
+  border:1px solid var(--line); background:var(--bg-2); color:var(--text-0); font-size:13px;}
+.pln-sel{flex:0 1 160px; padding:9px 11px; border-radius:10px; border:1px solid var(--line);
+  background:var(--bg-2); color:var(--text-0); font-size:12.5px;}
+
+.pln-status{display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+  background:var(--bg-1); border:1px solid var(--line); border-radius:12px;
+  padding:9px 12px; margin-bottom:10px; font-size:12px; color:var(--text-2);}
+.pln-status b{color:var(--text-0);}
+.pln-status .pill{padding:2px 8px; border-radius:999px; font-size:11px; font-weight:700;}
+.pln-status .pill.edit{background:rgba(240,192,64,.16); color:var(--gold);}
+.pln-status .pill.nova{background:rgba(61,232,160,.16); color:var(--green);}
+.pln-status .pill.rem{background:rgba(255,92,108,.16); color:var(--red);}
+.pln-status .pill.limpo{background:rgba(61,232,160,.14); color:var(--green);}
+
+/* A grade ocupa a largura toda e rola por dentro — nunca empurra a página. */
+/* A grade é a peça principal da tela: ela recebe TODA a altura que sobra e
+   rola por dentro. Antes tinha altura fixa e sobrava um vazio embaixo em
+   monitor grande — espaço que é justamente onde caberiam mais linhas. */
+#app.planilha-cheia{height:100vh; max-height:100vh; overflow:hidden;}
+#screen-planilha{padding:0; overflow:hidden;}
+#screen-planilha .screen-body{padding:10px 12px calc(78px + env(safe-area-inset-bottom)) !important;
+  flex:1; min-height:0; display:flex; flex-direction:column; overflow:hidden;}
+.pln-wrap{position:relative; width:100%; overflow:auto; border:1px solid var(--line);
+  border-radius:12px; background:var(--bg-1); flex:1 1 auto; min-height:160px;}
+/* Cabeçalho e barras não podem encolher quando a grade cresce. */
+#screen-planilha .pln-barra,
+#screen-planilha .pln-status,
+#screen-planilha .pln-colunas,
+#screen-planilha .remanejar-hint,
+#screen-planilha .pln-dica{flex:0 0 auto;}
+.pln-ajuda-btn{width:32px; height:32px; border-radius:9px; border:1px solid var(--line);
+  background:var(--bg-2); color:var(--text-1); cursor:pointer; flex:0 0 auto; font-size:14px;}
+.pln-ajuda-btn:hover{border-color:var(--cyan); color:var(--cyan);}
+.pln-acoes{display:flex; gap:8px; margin-left:auto; flex:0 0 auto;}
+.pln-tab{border-collapse:separate; border-spacing:0; table-layout:fixed; font-size:12px;}
+.pln-tab th, .pln-tab td{border-right:1px solid var(--line); border-bottom:1px solid var(--line);
+  padding:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;}
+.pln-tab thead th{position:sticky; top:0; z-index:3; background:var(--bg-3);
+  font-family:'Barlow Condensed',sans-serif; font-weight:700; letter-spacing:.04em;
+  text-transform:uppercase; color:var(--text-1); font-size:11px;}
+.pln-th-in{display:flex; align-items:center; gap:4px; padding:7px 8px;}
+.pln-th-in .tt{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; cursor:pointer;}
+.pln-th-in .x{cursor:pointer; color:var(--text-2); font-size:13px; line-height:1; padding:0 2px;}
+.pln-th-in .x:hover{color:var(--red);}
+.pln-th-in .lock{color:var(--text-2); font-size:10px;}
+.pln-resize{position:absolute; top:0; right:0; width:6px; height:100%; cursor:col-resize; z-index:4;}
+.pln-tab tbody td{background:var(--bg-1); color:var(--text-0); height:26px;}
+.pln-cel{padding:5px 8px; height:26px; line-height:16px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:cell;}
+.pln-cel.ro{color:var(--text-2); background:rgba(255,255,255,.02); cursor:not-allowed;}
+.pln-tab td.sel{outline:2px solid var(--cyan); outline-offset:-2px; z-index:2; position:relative;}
+.pln-tab td.alterada{background:rgba(240,192,64,.13);}
+.pln-tab td.alterada .pln-cel{color:var(--gold); font-weight:600;}
+.pln-tab tr.nova td{background:rgba(61,232,160,.08);}
+.pln-tab tr.removida td{background:rgba(255,92,108,.09);}
+.pln-tab tr.removida .pln-cel{text-decoration:line-through; opacity:.65;}
+.pln-tab td.fixa, .pln-tab th.fixa{position:sticky; left:0; z-index:2; background:var(--bg-2);}
+.pln-tab thead th.fixa{z-index:5; background:var(--bg-3);}
+.pln-tab td.fixa2, .pln-tab th.fixa2{position:sticky; z-index:2; background:var(--bg-2);}
+.pln-tab thead th.fixa2{z-index:5; background:var(--bg-3);}
+.pln-editor{width:100%; height:26px; padding:4px 7px; border:none; outline:2px solid var(--cyan);
+  outline-offset:-2px; background:var(--bg-3); color:var(--text-0); font-family:'Barlow',sans-serif;
+  font-size:12px;}
+.pln-lixo{cursor:pointer; color:var(--text-2); text-align:center;}
+.pln-lixo:hover{color:var(--red);}
+.pln-vazio{padding:30px; text-align:center; color:var(--text-2); font-size:13px;}
+.pln-dica{font-size:11px; color:var(--text-2); margin-top:8px; line-height:1.6;}
+.pln-dica kbd{background:var(--bg-3); border:1px solid var(--line); border-radius:4px;
+  padding:1px 5px; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text-1);}
+.pln-colunas{background:var(--bg-1); border:1px solid var(--line); border-radius:12px;
+  padding:12px; margin-bottom:10px;}
+.pln-colunas .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:6px; margin-bottom:10px;}
+.pln-colunas label{display:flex; align-items:center; gap:7px; font-size:11.5px; color:var(--text-1);
+  background:var(--bg-2); border:1px solid var(--line); border-radius:8px; padding:7px 9px; cursor:pointer;}
+.pln-colunas input[type="checkbox"]{width:15px; height:15px; accent-color:var(--cyan);}
+@media (max-width:600px){
+  .pln-wrap{max-height:calc(100vh - 360px);}
+  .pln-tab{font-size:11px;}
+}
+
+/* ===========================================================================
+   BLOCOS DE AJUDA RETRÁTEIS
+   ---------------------------------------------------------------------------
+   Todo aquele texto explicativo é útil na primeira vez e ruído nas outras
+   quinhentas. Vira um bloco recolhido: fica uma linha fina, e só abre quem quiser
+   ler. Sem JavaScript nenhum — é o próprio HTML que retrai.
+   =========================================================================== */
+details.ajuda{background:var(--bg-1); border:1px solid var(--line); border-radius:11px;
+  margin-bottom:10px; overflow:hidden;}
+details.ajuda>summary{list-style:none; cursor:pointer; padding:9px 12px;
+  display:flex; align-items:center; gap:8px; font-size:11.5px; letter-spacing:.05em;
+  text-transform:uppercase; color:var(--text-2);
+  font-family:'Barlow Condensed',sans-serif; font-weight:700;}
+details.ajuda>summary::-webkit-details-marker{display:none;}
+details.ajuda>summary::before{content:'?'; width:16px; height:16px; border-radius:5px;
+  background:var(--bg-3); color:var(--cyan); display:flex; align-items:center;
+  justify-content:center; font-size:10px; flex:0 0 auto; font-weight:800;}
+details.ajuda>summary::after{content:'▾'; margin-left:auto; color:var(--text-2);
+  transition:transform .15s ease; font-size:11px;}
+details.ajuda[open]>summary::after{transform:rotate(180deg);}
+details.ajuda[open]>summary{color:var(--cyan); border-bottom:1px solid var(--line);}
+details.ajuda>summary:hover{color:var(--cyan);}
+details.ajuda .aj-corpo{padding:10px 12px 11px; font-size:12px; line-height:1.65; color:var(--text-2);}
+details.ajuda .aj-corpo b{color:var(--text-1);}
+
+/* --- Formulário de escala: só aparece quando é chamado --- */
+.esc-form{background:var(--bg-1); border:1px solid var(--cyan); border-radius:14px;
+  padding:14px; margin-bottom:12px;}
+.esc-form .ef-tit{display:flex; align-items:center; gap:8px; margin-bottom:10px;}
+.esc-form .ef-tit .t{flex:1; font-family:'Barlow Condensed',sans-serif; font-weight:800;
+  font-size:16px; letter-spacing:.05em; text-transform:uppercase; color:var(--cyan);}
+
+/* --- Escolha de quais escalas aparecem no calendário --- */
+.cal-barra{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px;}
+.cal-barra .cal-mes{flex:1 1 auto;}
+.cal-picker{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;}
+.cal-pick{display:flex; align-items:center; gap:7px; padding:7px 11px; border-radius:10px;
+  border:1px solid var(--line); background:var(--bg-1); cursor:pointer; color:var(--text-1);
+  transition:border-color .15s ease, background .15s ease;}
+.cal-pick:hover{border-color:var(--cyan);}
+.cal-pick.on{border-color:var(--cyan); background:var(--bg-2); color:var(--text-0);}
+.cal-pick input{accent-color:var(--cyan); cursor:pointer; margin:0;}
+.cal-pick .cp-n{font-family:'Barlow Condensed',sans-serif; font-weight:700;
+  letter-spacing:.04em; text-transform:uppercase; font-size:13px;}
+.cal-pick .cp-m{font-size:10.5px; color:var(--text-2);}
+.cal-titulo{flex:1 1 auto; font-family:'Barlow Condensed',sans-serif; font-weight:800;
+  font-size:16px; letter-spacing:.05em; text-transform:uppercase; color:var(--cyan);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+
+/* ===========================================================================
+   CALENDÁRIO DE ESCALA
+   ---------------------------------------------------------------------------
+   Uma linha por turma, uma coluna por dia. A célula diz o TURNO daquele dia
+   (dia/noite) ou marca a folga. É a mesma leitura da planilha impressa que a
+   operação já usa, só que legível: o dia da semana em cima, hoje destacado,
+   domingo em vermelho, e a cor da turma na lateral.
+   =========================================================================== */
+.cal-wrap{background:var(--bg-1); border:1px solid var(--line); border-radius:14px;
+  padding:12px; margin-bottom:12px; overflow:hidden;}
+.cal-topo{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px;}
+.cal-topo .cal-mes{flex:1 1 auto; font-family:'Barlow Condensed',sans-serif; font-weight:800;
+  font-size:17px; letter-spacing:.06em; text-transform:uppercase; color:var(--text-0);}
+.cal-nav{width:32px; height:32px; border-radius:9px; border:1px solid var(--line);
+  background:var(--bg-2); color:var(--text-1); cursor:pointer; font-size:15px; line-height:1; flex:0 0 auto;}
+.cal-nav:hover{border-color:var(--cyan); color:var(--cyan);}
+.cal-rolagem{overflow-x:auto; overflow-y:hidden; padding-bottom:4px;}
+.cal-grade{display:grid; gap:2px; min-width:max-content;}
+.cal-cab{display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:3px 0 5px; border-radius:6px; background:var(--bg-2);}
+.cal-cab .d{font-size:9px; letter-spacing:.06em; text-transform:uppercase; color:var(--text-2); line-height:1.2;}
+.cal-cab .n{font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:14px;
+  color:var(--text-1); line-height:1.1;}
+.cal-cab.dom .d, .cal-cab.dom .n{color:var(--red);}
+.cal-cab.hoje{background:var(--bg-3); box-shadow:inset 0 0 0 1.5px var(--cyan);}
+.cal-cab.hoje .n{color:var(--cyan);}
+.cal-turma{display:flex; align-items:center; gap:7px; padding:0 8px 0 6px; border-radius:7px;
+  background:var(--bg-2); min-width:120px;}
+.cal-turma i{width:11px; height:11px; border-radius:3px; flex:0 0 auto; border:1px solid rgba(0,0,0,.25);}
+.cal-turma .tn{font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:12.5px;
+  letter-spacing:.04em; text-transform:uppercase; color:var(--text-0);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.cal-cel{display:flex; align-items:center; justify-content:center; border-radius:6px;
+  font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:12.5px; letter-spacing:.03em;
+  background:var(--bg-2); color:var(--text-2); min-height:26px;}
+.cal-cel.folga{background:var(--trilho); color:var(--text-2); opacity:.55;}
+.cal-cel.dia{background:rgba(240,192,64,.20); color:var(--gold); box-shadow:inset 0 0 0 1px rgba(240,192,64,.35);}
+.cal-cel.noite{background:rgba(120,140,255,.20); color:#93a4ff; box-shadow:inset 0 0 0 1px rgba(120,140,255,.4);}
+.cal-cel.trab{background:rgba(61,232,160,.18); color:var(--green); box-shadow:inset 0 0 0 1px rgba(61,232,160,.35);}
+.cal-cel.hoje{outline:1.5px solid var(--cyan); outline-offset:-1.5px;}
+.cal-legenda{display:flex; flex-wrap:wrap; gap:6px 14px; margin-top:10px; font-size:11px; color:var(--text-2);}
+.cal-legenda span{display:flex; align-items:center; gap:5px;}
+.cal-legenda i{width:13px; height:13px; border-radius:4px; display:inline-block;}
+.cal-resumo{margin-top:8px; font-size:11px; color:var(--text-2); line-height:1.7;}
+.cal-resumo b{color:var(--text-1);}
+.cal-vazio{padding:22px; text-align:center; color:var(--text-2); font-size:12.5px;}
+
+/* --- Aba Equipes: lista limpa, formulário sob demanda --- */
+.eq-barra{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px;}
+.eq-barra .search-row{flex:1 1 180px; margin:0;}
+.eq-form{background:var(--bg-1); border:1px solid var(--cyan); border-radius:14px;
+  padding:14px; margin-bottom:12px;}
+.eq-form .ef-tit{display:flex; align-items:center; gap:8px; margin-bottom:10px;}
+.eq-form .ef-tit .t{flex:1; font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:16px;
+  letter-spacing:.05em; text-transform:uppercase; color:var(--cyan);}
+.eq-item{display:flex; align-items:center; gap:10px; padding:10px 12px; margin-bottom:6px;
+  background:var(--bg-1); border:1px solid var(--line); border-radius:11px; cursor:pointer;
+  transition:border-color .15s ease, background .15s ease;}
+.eq-item:hover{border-color:var(--border-2, var(--line)); background:var(--bg-2);}
+.eq-item.ativa{border-color:var(--cyan); background:var(--bg-2);}
+.eq-item .ei-corpo{flex:1; min-width:0;}
+.eq-item .ei-nome{font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:14.5px;
+  letter-spacing:.03em; color:var(--text-0);}
+.eq-item .ei-meta{font-size:10.5px; color:var(--text-2); margin-top:2px; line-height:1.5;}
+.eq-item .ei-acoes{display:flex; gap:6px; flex:0 0 auto;}
+.eq-vazio{padding:22px; text-align:center; color:var(--text-2); font-size:12.5px;}
+@media (max-width:600px){
+  .eq-item{flex-wrap:wrap;}
+  .eq-item .ei-acoes{width:100%; }
+  .eq-item .ei-acoes .btn{flex:1;}
+  .cal-turma{min-width:96px;}
+  .cal-topo .cal-mes{flex:1 1 100%; order:-1; font-size:15.5px;}
+}
+
+/* --- Revisão de equipes --- */
+.rev-cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:8px; margin-bottom:14px;}
+.rev-card{background:var(--bg-1); border:1px solid var(--line); border-radius:12px; padding:10px 8px; text-align:center;}
+.rev-card .n{font-family:'Barlow Condensed'; font-weight:800; font-size:24px; line-height:1;}
+.rev-card .l{font-size:9.5px; color:var(--text-2); text-transform:uppercase; letter-spacing:.05em; margin-top:4px;}
+.rev-card.alerta{border-color:rgba(240,192,64,.45);}
+.rev-card.alerta .n{color:var(--gold);}
+.rev-card.ok .n{color:var(--green);}
+.rev-linha{display:flex; align-items:flex-start; gap:10px; padding:9px 10px; margin-bottom:6px;
+  background:var(--bg-1); border:1px solid var(--line); border-radius:10px;}
+.rev-linha.bloqueada{opacity:.72; border-style:dashed;}
+.rev-linha input[type="checkbox"]{width:18px; height:18px; flex:0 0 auto; margin-top:2px; accent-color:var(--cyan);}
+.rev-linha .rv-corpo{flex:1; min-width:0;}
+.rev-linha .rv-nome{font-family:'Barlow Condensed'; font-weight:700; font-size:14px; letter-spacing:.03em;}
+.rev-linha .rv-meta{font-size:10.5px; color:var(--text-2); margin-top:2px; line-height:1.5;}
+.rev-tag{display:inline-block; padding:1px 7px; border-radius:999px; font-size:9.5px; font-weight:700;
+  letter-spacing:.04em; margin-right:5px; border:1px solid transparent;}
+.rev-tag.vazia{background:rgba(0,196,255,.14); color:var(--cyan); border-color:rgba(0,196,255,.4);}
+.rev-tag.bloq{background:rgba(255,92,108,.14); color:var(--red); border-color:rgba(255,92,108,.4);}
+.rev-tag.aviso{background:rgba(240,192,64,.14); color:var(--gold); border-color:rgba(240,192,64,.4);}
+.rev-barra{position:sticky; bottom:0; background:var(--bg-2); border:1px solid var(--line);
+  border-radius:12px; padding:10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:10px;}
+.rev-barra .rv-cont{flex:1 1 120px; font-size:12px; color:var(--text-1);}
+.rev-secao{margin-top:18px;}
+/* --- Aviso de data fora do dia vigente --- */
+.aviso-data-antiga{
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  background:rgba(240,192,64,.10); border:1px solid rgba(240,192,64,.45);
+  border-radius:12px; padding:10px 12px; margin-bottom:14px;
+}
+.aviso-data-antiga .ada-txt{flex:1 1 190px; min-width:0; font-size:12px; color:var(--text-1); line-height:1.45;}
+.aviso-data-antiga .ada-txt b{color:var(--gold); display:block; font-size:12.5px;}
+.aviso-data-antiga .btn{flex:0 0 auto; background:var(--gold); color:#221a00; font-weight:700;}
 .escala-calendario{display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-top:10px;}
 .escala-dia{border:1px solid var(--line); border-radius:7px; padding:5px 2px; text-align:center; font-size:10px; background:var(--bg-2);}
 .escala-dia.on{background:rgba(61,232,160,.16); border-color:rgba(61,232,160,.45); color:var(--green);}
 .escala-dia.off{background:rgba(240,192,64,.08); border-color:rgba(240,192,64,.28); color:var(--gold);}
 .escala-dia .ed-n{font-family:'Barlow Condensed'; font-weight:800; font-size:13px; display:block;}
+.escala-dia .ed-h{display:block; font-size:8.5px; line-height:1.25; margin-top:2px; opacity:.95; font-family:'JetBrains Mono',monospace;}
+.escala-dia.noite{background:rgba(120,140,255,.14); border-color:rgba(120,140,255,.45); color:#93a4ff;}
+/* --- Horários do turno --- */
+.hora-linha{display:grid; grid-template-columns:60px 1fr 1fr 1.2fr; gap:6px; align-items:end; margin-bottom:6px;}
+.hora-linha .hl-dia{font-family:'Barlow Condensed'; font-weight:800; font-size:13px; color:var(--cyan);
+  background:var(--bg-2); border:1px solid var(--line); border-radius:8px; padding:9px 4px; text-align:center;}
+.hora-linha .field{margin-bottom:0;}
+.hora-resumo{font-size:11px; color:var(--text-2); margin:6px 0 10px; line-height:1.6;}
+.hora-resumo b{color:var(--text-1);}
+.turno-selo{display:inline-block; padding:1px 6px; border-radius:999px; font-size:10px; font-weight:700;
+  letter-spacing:.4px; border:1px solid transparent; vertical-align:middle;}
+.turno-selo.dia{background:rgba(240,192,64,.16); color:var(--gold); border-color:rgba(240,192,64,.4);}
+.turno-selo.noite{background:rgba(120,140,255,.16); color:#93a4ff; border-color:rgba(120,140,255,.45);}
+.escala-letra .turno-selo{align-self:flex-start;}
 
 /* --- Foco de equipe (equipe pai com as filhas, sobreposto e desfocado ao fundo) --- */
 .focus-overlay{position:fixed; inset:0; z-index:120; display:none; align-items:center; justify-content:center;
@@ -1044,6 +1314,9 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
   .focus-membros{grid-template-columns:1fr;}
   .escala-calendario{grid-template-columns:repeat(7,1fr); gap:3px;}
   .escala-dia{font-size:9px; padding:4px 1px;}
+  .escala-dia .ed-h{font-size:7.5px;}
+  .hora-linha{grid-template-columns:46px 1fr 1fr; }
+  .hora-linha .hl-rot{grid-column:1 / -1;}
   .mini-toolbar .btn{min-width:0; flex:1 1 46%;}
   .actions-row{flex-wrap:wrap;}
   .actions-row .btn{flex:1 1 46%;}
@@ -1217,7 +1490,16 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
     </div>
     <div class="screen-body" style="padding:18px;">
       <button class="btn btn-sm" style="width:100%; margin-bottom:10px;" onclick="recarregarBase()">🔄 Atualizar lista</button>
-      <input type="date" id="homeData" onchange="renderHome()" style="width:100%; padding:11px 12px; border-radius:10px; border:1px solid var(--line); background:var(--bg-2); color:var(--text-0); margin-bottom:14px;">
+      <input type="date" id="homeData" onchange="onMudarDataChamada()" style="width:100%; padding:11px 12px; border-radius:10px; border:1px solid var(--line); background:var(--bg-2); color:var(--text-0); margin-bottom:10px;">
+      <!-- Enquanto a data não for a de hoje, o aviso fica na tela. É a proteção
+           contra lançar a chamada do dia num dia que já passou. -->
+      <div id="homeAvisoDataAntiga" class="aviso-data-antiga" style="display:none;">
+        <div class="ada-txt">
+          <b>Você não está vendo hoje.</b>
+          <span id="homeAvisoDataTxt"></span>
+        </div>
+        <button class="btn btn-sm" onclick="voltarChamadaParaHoje()">Voltar para hoje</button>
+      </div>
       <!-- Escolha de equipe: só aparece para quem lidera mais de uma -->
       <div id="homeSeletorEquipes" style="display:none;"></div>
       <div id="homeBarraEquipe" style="display:none;"></div>
@@ -1556,8 +1838,71 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
         <div class="tt">Toque para escolher a planilha</div>
         <div class="sub">.xlsx ou .xls</div>
       </label>
+      <!-- Coluna EQUIPE vazia: "não mexe" ou "tira da equipe". Duas leituras
+           legítimas da mesma planilha, então quem decide é quem sobe. -->
+      <label class="rh-check" style="display:flex; align-items:flex-start; gap:10px; margin-top:12px; padding:11px 12px;">
+        <input type="checkbox" id="uploadEquipeVaziaRemove" checked style="width:18px; height:18px; margin-top:2px; accent-color:var(--cyan);">
+        <span style="font-size:11.5px; line-height:1.5; color:var(--text-1);">
+          <b>Célula de EQUIPE vazia (ou escrita “SEM EQUIPE”) tira a pessoa da equipe.</b><br>
+          <span style="color:var(--text-2);">
+            Marcado (padrão): a pessoa fica <b>sem equipe</b> e aparece na árvore dentro do contrato dela,
+            na caixa (sem equipe) — é o que a planilha extraída da árvore quer dizer.
+            Desmarque só se a sua planilha vier com a coluna EQUIPE incompleta e você não quiser mexer em quem está fora dela.
+          </span>
+        </span>
+      </label>
       <div id="uploadLoading" style="display:none;" class="loading-wrap"><div class="spinner"></div><div>Processando planilha…</div></div>
       <div id="uploadResumo"></div>
+    </div>
+  </div>
+
+  <!-- ================= ADMIN: PLANILHA DE EDIÇÃO ================= -->
+  <div class="screen" id="screen-planilha">
+    <div class="topbar">
+      <div class="icon-btn" onclick="sairPlanilhaEdicao()">‹</div>
+      <div class="brand-text" style="text-align:center;">
+        <div class="k1">PLANILHA DE EDIÇÃO</div>
+        <div class="k2" id="plnSubtitulo">Efetivo · edição em massa</div>
+      </div>
+      <div style="width:38px;"></div>
+    </div>
+    <div class="screen-body" style="padding:14px;">
+      <!-- A explicação fica recolhida: quem já conhece o módulo não precisa
+           gastar três linhas de tela com ela todo dia. -->
+      <div class="remanejar-hint" id="plnAjuda" style="margin-bottom:10px; display:none;">
+        Edite como numa planilha: clique na célula, digite, use <kbd>Tab</kbd> e <kbd>Enter</kbd> para andar,
+        cole blocos vindos do Excel. <b>Nada vai para o banco até você confirmar</b> —
+        até lá é tudo rascunho, e <b>Descartar</b> desfaz o dia inteiro.
+        Férias ficam de fora de propósito: são lançadas pelo RH e pela liderança.
+        <br><br>
+        <kbd>Enter</kbd> confirma e desce · <kbd>Tab</kbd> confirma e vai para o lado ·
+        <kbd>Esc</kbd> cancela a célula · setas navegam · <kbd>Ctrl</kbd>+<kbd>V</kbd> cola um bloco do Excel
+        a partir da célula marcada · <kbd>Delete</kbd> limpa a célula.
+      </div>
+
+          <div class="pln-barra">
+        <label class="rh-check" style="flex:0 0 auto; padding:8px 10px; gap:7px; display:flex; align-items:center;">
+          <input type="checkbox" id="plnCaber" checked onchange="renderPlanilha()" style="width:16px; height:16px; accent-color:var(--cyan);">
+          <span style="font-size:11.5px; color:var(--text-1); white-space:nowrap;">Caber na tela</span>
+        </label>
+        <input type="text" class="pln-busca" id="plnBusca" placeholder="Buscar por nome, matrícula, equipe…" oninput="renderPlanilha()">
+        <select class="pln-sel" id="plnFiltroContrato" onchange="renderPlanilha()"><option value="">Todos os contratos</option></select>
+        <select class="pln-sel" id="plnFiltroEquipe" onchange="renderPlanilha()"><option value="">Todas as equipes</option></select>
+        <button class="btn btn-ghost btn-sm" onclick="togglePainelColunas()">🧱 Colunas</button>
+        <button class="btn btn-ghost btn-sm" onclick="adicionarLinhaPlanilha()">＋ Linha</button>
+        <button class="btn btn-ghost btn-sm" onclick="desfazerPlanilha()">↶ Desfazer</button>
+        <button class="pln-ajuda-btn" onclick="togglePlnAjuda()" title="Como usar">?</button>
+        <div class="pln-acoes">
+          <button class="btn btn-ghost btn-sm" onclick="descartarPlanilha()">Descartar</button>
+          <button class="btn btn-primary btn-sm" id="plnBtnCommit" onclick="confirmarPlanilha()">✔ Confirmar e gravar</button>
+        </div>
+      </div>
+
+      <div id="plnPainelColunas" class="pln-colunas" style="display:none;"></div>
+
+      <div class="pln-status" id="plnStatus"></div>
+
+      <div class="pln-wrap" id="plnWrap"><div class="pln-vazio">Carregando…</div></div>
     </div>
   </div>
 
@@ -1813,6 +2158,7 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
         <div class="tab-pill" id="tabCtrlCC" onclick="mudarAbaControle('cc')">💰 Centros de Custo</div>
         <div class="tab-pill" id="tabCtrlPos" onclick="mudarAbaControle('pos')">🏷️ Posições</div>
         <div class="tab-pill" id="tabCtrlAcessos" onclick="mudarAbaControle('acessos')">🔑 Acessos</div>
+        <div class="tab-pill" id="tabCtrlRevisao" onclick="mudarAbaControle('revisao')">🧹 Revisar</div>
       </div>
 
       <!-- ÁRVORE (visão em caixas por contrato / CC) -->
@@ -1844,38 +2190,63 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
 
       <!-- EQUIPES (com correlação editável) -->
       <div id="paneCtrlEquipes" style="display:none;">
-        <div class="remanejar-hint">
-          Crie equipes e defina a correlação: contrato, centro de custo, responsável (supervisor), gestor e posição Ternium. Ao mover um colaborador para a equipe, esses valores são aplicados automaticamente.<br>
-          A <b>equipe pai</b> agrupa equipes menores numa macro. Exemplo: <b>SESMT</b> como pai de <b>MEIO AMBIENTE</b>, <b>SEGURANÇA</b> e <b>MEDICINA</b>.
+        <details class="ajuda">
+          <summary>Como as equipes se encaixam</summary>
+          <div class="aj-corpo">
+            Crie equipes e defina a correlação: contrato, centro de custo, responsável (supervisor), gestor e posição Ternium. Ao mover um colaborador para a equipe, esses valores são aplicados automaticamente.<br>
+            A <b>equipe pai</b> agrupa equipes menores numa macro. Exemplo: <b>SESMT</b> como pai de <b>MEIO AMBIENTE</b>, <b>SEGURANÇA</b> e <b>MEDICINA</b>.
+          </div>
+        </details>
+        <!-- Ações: criar e filtrar. O formulário só aparece quando é chamado. -->
+        <div class="eq-barra">
+          <button class="btn btn-primary btn-sm" style="flex:0 0 auto; padding:9px 14px;" onclick="novaEquipeControle()">＋ Nova equipe</button>
+          <div class="search-row"><input type="text" id="ctrlEqSearch" placeholder="Filtrar equipes…" oninput="renderCtrlEquipes()"></div>
         </div>
-        <div class="field"><label>Nome da equipe</label><input type="text" id="ctrlEqNome" placeholder="Ex.: PU - CABECEIRA"></div>
-        <div class="field"><label>Equipe pai (macro) — opcional</label>
-          <select id="ctrlEqPai"><option value="">Nenhuma (equipe de primeiro nível)</option></select>
+
+        <div class="eq-form" id="ctrlEqForm" style="display:none;">
+          <div class="ef-tit">
+            <div class="t" id="ctrlEqFormTitulo">Nova equipe</div>
+            <div class="icon-btn" onclick="cancelarEdicaoEquipe()" title="Fechar sem salvar">✕</div>
+          </div>
+          <div class="field"><label>Nome da equipe</label><input type="text" id="ctrlEqNome" placeholder="Ex.: PU - CABECEIRA"></div>
+          <div id="ctrlEqNomeAviso" style="display:none; font-size:11px; color:var(--text-2); margin:-6px 0 10px;">
+            O nome é a chave do cadastro (é por ele que colaboradores, escalas e equipes filhas
+            apontam para cá), por isso não é editável aqui. Para renomear, crie a equipe nova e
+            mova as pessoas para ela.
+          </div>
+          <div class="field"><label>Equipe pai (macro) — opcional</label>
+            <select id="ctrlEqPai"><option value="">Nenhuma (equipe de primeiro nível)</option></select>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <div class="field"><label>Contrato</label><input type="text" id="ctrlEqContrato" list="ctrlContratosDatalist" placeholder="Ex.: CABECEIRA" oninput="sugerirCCporContrato()"></div>
+            <div class="field"><label>Centro de custo</label><input type="text" id="ctrlEqCC" placeholder="Ex.: 2012"></div>
+          </div>
+          <datalist id="ctrlContratosDatalist"></datalist>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <div class="field"><label>Responsável (supervisor)</label><input type="text" id="ctrlEqResp"></div>
+            <div class="field"><label>Gestor</label><input type="text" id="ctrlEqGestor"></div>
+          </div>
+          <div class="field"><label>Posição Ternium</label><input type="text" id="ctrlEqPos" list="ctrlPosDatalist"></div>
+          <datalist id="ctrlPosDatalist"></datalist>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="cancelarEdicaoEquipe()">Cancelar</button>
+            <button class="btn btn-primary btn-sm" style="flex:2;" onclick="salvarEquipeControle()">Salvar equipe</button>
+          </div>
         </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-          <div class="field"><label>Contrato</label><input type="text" id="ctrlEqContrato" list="ctrlContratosDatalist" placeholder="Ex.: CABECEIRA" oninput="sugerirCCporContrato()"></div>
-          <div class="field"><label>Centro de custo</label><input type="text" id="ctrlEqCC" placeholder="Ex.: 2012"></div>
-        </div>
-        <datalist id="ctrlContratosDatalist"></datalist>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-          <div class="field"><label>Responsável (supervisor)</label><input type="text" id="ctrlEqResp"></div>
-          <div class="field"><label>Gestor</label><input type="text" id="ctrlEqGestor"></div>
-        </div>
-        <div class="field"><label>Posição Ternium</label><input type="text" id="ctrlEqPos" list="ctrlPosDatalist"></div>
-        <datalist id="ctrlPosDatalist"></datalist>
-        <button class="btn btn-primary btn-sm" style="width:100%;" onclick="salvarEquipeControle()">Salvar equipe</button>
 
         <!-- PAINEL DA EQUIPE: líder, integrantes, incluir e remover -->
         <div id="ctrlEquipePainel" style="display:none;"></div>
 
-        <div class="search-row" style="margin-top:12px;"><input type="text" id="ctrlEqSearch" placeholder="Filtrar equipes…" oninput="renderCtrlEquipes()"></div>
         <div id="ctrlEquipesLista"></div>
 
         <!-- Reparo de dados: realinha quem ficou com atributos da equipe antiga -->
         <div class="section-title" style="margin-top:20px;">Conferência de atributos</div>
-        <div class="remanejar-hint">
-          Confere se cada colaborador está com <b>contrato, centro de custo, responsável, gestor, posição Ternium, líder e atuação</b> iguais aos da equipe em que ele está hoje. A <b>atuação</b> passou a ser sempre o nome da própria equipe — use a correção abaixo para alinhar quem ainda carrega a atuação de uma equipe antiga. <b>Alocações temporárias</b> (apoio e hora extra) não são alteradas.
-        </div>
+        <details class="ajuda">
+          <summary>O que a conferência verifica</summary>
+          <div class="aj-corpo">
+            Confere se cada colaborador está com <b>contrato, centro de custo, responsável, gestor, posição Ternium, líder e atuação</b> iguais aos da equipe em que ele está hoje. A <b>atuação</b> passou a ser sempre o nome da própria equipe — use a correção abaixo para alinhar quem ainda carrega a atuação de uma equipe antiga. <b>Alocações temporárias</b> (apoio e hora extra) não são alteradas.
+          </div>
+        </details>
         <div id="ctrlDivergenciasBox" class="zp-resumo" style="background:var(--bg-1);">Toque em conferir para verificar.</div>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <button class="btn btn-ghost btn-sm" style="flex:1; min-width:150px;" onclick="conferirAtributosEquipes()">🔍 Conferir divergências</button>
@@ -1883,13 +2254,51 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
         </div>
       </div>
 
-      <!-- ESCALAS (turnos rotativos por letra) -->
-      <div id="paneCtrlEscala" style="display:none;">
-        <div class="remanejar-hint">
-          A escala define <b>quem trabalha em qual dia</b>. Numa escala cíclica (4x4, 5x1, 6x2…) cada <b>letra</b> tem a sua própria data de virada: a letra A pode começar hoje, a B daqui a quatro dias, e assim por diante — elas vão <b>rodando o turno</b>. Equipes vinculadas a uma letra <b>não aparecem como pendentes</b> na chamada nos dias de folga, e o <b>retorno de férias</b> é sempre empurrado para o primeiro dia de trabalho da escala (nunca cai na folga).
+      <!-- REVISÃO DE EQUIPES (faxina depois de subir a planilha) -->
+      <div id="paneCtrlRevisao" style="display:none;">
+        <details class="ajuda">
+          <summary>O que esta revisão faz</summary>
+          <div class="aj-corpo">
+            Depois de subir a planilha de efetivo, a estrutura muda: gente troca de equipe,
+            equipe antiga fica sem ninguém, líder designado pode ter ido para outro lugar.
+            Esta tela mostra tudo isso de uma vez e deixa você <b>apagar as equipes vazias em lote</b>.
+            <br><br>Uma equipe só pode ser apagada quando <b>nenhum cadastro aponta para ela</b> —
+            nem colaborador ativo, nem demitido, nem equipe filha, nem turma de escala.
+            Quem ficar <b>sem equipe</b> continua aparecendo na árvore, dentro do contrato dele,
+            na caixa <b>(sem equipe)</b>.
+          </div>
+        </details>
+
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
+          <button class="btn btn-ghost btn-sm" style="flex:1 1 150px;" onclick="renderRevisaoEquipes(true)">🔄 Reconferir agora</button>
         </div>
 
-        <div class="section-title">Nova escala</div>
+        <div class="rev-cards" id="revCards"></div>
+        <div id="revConteudo"></div>
+      </div>
+
+      <!-- ESCALAS (turnos rotativos por letra) -->
+      <div id="paneCtrlEscala" style="display:none;">
+        <details class="ajuda">
+          <summary>Como a escala funciona</summary>
+          <div class="aj-corpo">
+            A escala define <b>quem trabalha em qual dia</b> e, se você quiser, <b>a que horas</b>. Numa escala cíclica (4x4, 5x1, 6x2…) cada <b>turma</b> tem a sua própria data de virada: a primeira pode começar hoje, a segunda daqui a quatro dias, e assim por diante — elas vão <b>rodando o turno</b>. A turma é identificada por letra (A, B, C) ou por nome (AMARELA, VERDE, TURMA DA MANHÃ). Equipes vinculadas a uma turma <b>não aparecem como pendentes</b> na chamada nos dias de folga, e o <b>retorno de férias</b> é sempre empurrado para o primeiro dia de trabalho da escala (nunca cai na folga).
+            <br><br>O bloco <b>Horários do turno</b> é opcional e serve para descrever a rotina em detalhe — por exemplo, na 4x4: dia 1 e 2 das 08:00 às 20:00, dia 3 e 4 das 20:00 às 08:00. O horário aparece na prévia, no cartão da escala e no aviso da chamada.
+          </div>
+        </details>
+
+        <div class="eq-barra">
+          <button class="btn btn-primary btn-sm" style="flex:0 0 auto; padding:9px 14px;" onclick="novaEscalaControle()">＋ Nova escala</button>
+          <div style="flex:1 1 140px; font-size:11.5px; color:var(--text-2); line-height:1.4;">
+            O formulário só abre quando você cria ou edita uma escala.
+          </div>
+        </div>
+
+        <div class="esc-form" id="escFormWrap" style="display:none;">
+        <div class="ef-tit">
+          <div class="t" id="escFormTitulo">Nova escala</div>
+          <div class="icon-btn" onclick="cancelarFormEscala()" title="Fechar sem salvar">✕</div>
+        </div>
         <div class="field"><label>Nome da escala *</label><input type="text" id="escNome" placeholder="Ex.: TURNO 4X4 COQUERIA"></div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
           <div class="field"><label>Tipo de rotina</label>
@@ -1898,40 +2307,100 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
               <option value="semanal">Semanal (dias fixos da semana)</option>
             </select>
           </div>
-          <div class="field"><label>Turno (opcional)</label>
-            <input type="text" id="escTurno" placeholder="Ex.: 07h–19h">
+          <div class="field"><label>Apelido do turno (opcional)</label>
+            <input type="text" id="escTurno" placeholder="Ex.: TURNO A · 07h–19h">
           </div>
         </div>
 
         <div id="escBlocoCiclica">
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-            <div class="field"><label>Dias de trabalho</label><input type="number" id="escDiasTrab" min="1" max="30" value="4" oninput="atualizarPreviaEscala()"></div>
-            <div class="field"><label>Dias de folga</label><input type="number" id="escDiasFolga" min="1" max="30" value="4" oninput="atualizarPreviaEscala()"></div>
+            <div class="field"><label>Dias de trabalho</label><input type="number" id="escDiasTrab" min="1" max="30" value="4" oninput="onMudarDiasEscala()"></div>
+            <div class="field"><label>Dias de folga</label><input type="number" id="escDiasFolga" min="1" max="30" value="4" oninput="onMudarDiasEscala()"></div>
           </div>
         </div>
 
         <div id="escBlocoSemanal" style="display:none;">
           <div class="field"><label>Dias da semana que trabalha</label></div>
           <div class="rh-check-grid" id="escDiasSemana">
-            <label class="rh-check"><input type="checkbox" value="1" checked> <span>Seg</span></label>
-            <label class="rh-check"><input type="checkbox" value="2" checked> <span>Ter</span></label>
-            <label class="rh-check"><input type="checkbox" value="3" checked> <span>Qua</span></label>
-            <label class="rh-check"><input type="checkbox" value="4" checked> <span>Qui</span></label>
-            <label class="rh-check"><input type="checkbox" value="5" checked> <span>Sex</span></label>
-            <label class="rh-check"><input type="checkbox" value="6"> <span>Sáb</span></label>
-            <label class="rh-check"><input type="checkbox" value="0"> <span>Dom</span></label>
+            <label class="rh-check"><input type="checkbox" value="1" checked onchange="onMudarDiasEscala()"> <span>Seg</span></label>
+            <label class="rh-check"><input type="checkbox" value="2" checked onchange="onMudarDiasEscala()"> <span>Ter</span></label>
+            <label class="rh-check"><input type="checkbox" value="3" checked onchange="onMudarDiasEscala()"> <span>Qua</span></label>
+            <label class="rh-check"><input type="checkbox" value="4" checked onchange="onMudarDiasEscala()"> <span>Qui</span></label>
+            <label class="rh-check"><input type="checkbox" value="5" checked onchange="onMudarDiasEscala()"> <span>Sex</span></label>
+            <label class="rh-check"><input type="checkbox" value="6" onchange="onMudarDiasEscala()"> <span>Sáb</span></label>
+            <label class="rh-check"><input type="checkbox" value="0" onchange="onMudarDiasEscala()"> <span>Dom</span></label>
           </div>
         </div>
 
-        <div class="section-title">Letras / turmas</div>
-        <div class="remanejar-hint" style="font-size:11.5px;">
-          Cada letra precisa da <b>data em que ela começa o ciclo</b> (o primeiro dia de trabalho dela) e das equipes que pertencem a ela. Numa 4x4 com quatro letras, o normal é A começar num dia, B quatro dias depois, e assim por diante.
+        <!-- HORÁRIOS DO TURNO (modus operandi) — opcional -->
+        <div class="section-title">Horários do turno</div>
+        <details class="ajuda">
+          <summary>Para que serve o horário</summary>
+          <div class="aj-corpo">
+            Opcional. Sem isso a escala continua funcionando: ela só diz <b>quem trabalha em qual dia</b>.
+            Preenchendo, você descreve também <b>a que horas</b> — inclusive quando o horário muda
+            <b>dentro do próprio ciclo</b>. É o caso da 4x4 da Coqueria: dia 1 e dia 2 das
+            <b>08:00 às 20:00</b>, dia 3 e dia 4 das <b>20:00 às 08:00</b> do dia seguinte.
+            Quando o fim é menor ou igual ao início, o sistema entende que o turno
+            <b>atravessa a meia-noite</b> e termina no dia seguinte.
+          </div>
+        </details>
+        <div class="field"><label>Detalhamento</label>
+          <select id="escHorarioModo" onchange="onChangeModoHorario()">
+            <option value="nenhum">Sem detalhamento — só o apelido do turno</option>
+            <option value="unico">Mesmo horário em todo dia de trabalho</option>
+            <option value="detalhado">Detalhado dia a dia do ciclo (dia, dia, noite, noite…)</option>
+          </select>
         </div>
+
+        <div id="escBlocoHorarioUnico" style="display:none;">
+          <div style="display:grid; grid-template-columns:1fr 1fr 1.2fr; gap:8px;">
+            <div class="field"><label>Entrada</label><input type="time" id="escHoraIni" value="07:00" onchange="atualizarPreviaEscala()"></div>
+            <div class="field"><label>Saída</label><input type="time" id="escHoraFim" value="17:00" onchange="atualizarPreviaEscala()"></div>
+            <div class="field"><label>Rótulo</label><input type="text" id="escHoraRot" maxlength="14" placeholder="DIA" onchange="atualizarPreviaEscala()"></div>
+          </div>
+        </div>
+
+        <div id="escBlocoHorarioDetalhado" style="display:none;">
+          <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;">
+            <button class="btn btn-ghost btn-sm" style="flex:1 1 auto;" onclick="preencherHorarioDiaNoite()">↻ metade dia (08–20) · metade noite (20–08)</button>
+            <button class="btn btn-ghost btn-sm" style="flex:1 1 auto;" onclick="preencherHorarioIgual()">↻ mesmo horário em todos</button>
+          </div>
+          <div id="escHorariosWrap"></div>
+          <div id="escHorariosResumo" class="hora-resumo"></div>
+        </div>
+
+        <div class="section-title">Turmas da escala</div>
+        <details class="ajuda">
+          <summary>Como preencher as turmas</summary>
+          <div class="aj-corpo">
+            Cada turma precisa de uma <b>identificação</b>, da <b>data em que ela começa o ciclo</b> (o primeiro dia de trabalho dela) e das equipes que pertencem a ela. Numa 4x4 com quatro turmas, o normal é a primeira começar num dia, a segunda quatro dias depois, e assim por diante.
+            <br><br>A identificação aceita <b>até 50 caracteres</b>: pode ser uma letra (A, B, C, D) ou um nome — <b>AMARELA</b>, <b>VERDE</b>, <b>TURMA DA MANHÃ</b>. Use o que a equipe já chama no dia a dia; é esse texto que vai aparecer na chamada e nos relatórios.
+          </div>
+        </details>
         <div id="escLetrasWrap"></div>
-        <button class="btn btn-ghost btn-sm" style="width:100%; margin-bottom:10px;" onclick="adicionarLetraEscala()">+ Adicionar letra</button>
+        <button class="btn btn-ghost btn-sm" style="width:100%; margin-bottom:10px;" onclick="adicionarLetraEscala()">+ Adicionar turma</button>
 
         <div id="escPrevia" style="margin-bottom:10px;"></div>
-        <button class="btn btn-primary btn-sm" style="width:100%;" onclick="salvarEscala()">Salvar escala</button>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="cancelarFormEscala()">Cancelar</button>
+          <button class="btn btn-primary btn-sm" style="flex:2;" onclick="salvarEscala()">Salvar escala</button>
+        </div>
+        </div><!-- /escFormWrap -->
+
+        <div class="section-title" style="margin-top:18px;">Calendário do mês</div>
+        <details class="ajuda">
+          <summary>Como ler o calendário</summary>
+          <div class="aj-corpo">
+            Uma linha por turma, uma coluna por dia. A célula mostra o turno daquele dia
+            (ou a folga), do jeito que a operação lê na parede — só que sempre atualizado.
+            <br><br>Marque abaixo as escalas que você quer ver: elas aparecem <b>uma embaixo da
+            outra</b>, todas no mesmo mês. Desmarcando, o calendário some da tela.
+          </div>
+        </details>
+        <div id="calEscalaBarra"></div>
+        <div id="calEscalaPicker" class="cal-picker"></div>
+        <div id="calEscalaBox"></div>
 
         <div class="section-title" style="margin-top:18px;">Escalas cadastradas</div>
         <div class="field" style="margin-bottom:10px;">
@@ -3037,6 +3506,14 @@ async function _rodarManutencaoUnicaVez(){
   try{
     if(typeof migrarStatusInicial==='function') await migrarStatusInicial();
     if(typeof aplicarExpiracaoLideresTemporarios==='function') await aplicarExpiracaoLideresTemporarios();
+    // Quem já voltou de férias volta a constar como ATIVO.
+    if(typeof normalizarStatusFeriasVencidas==='function'){
+      const n = await normalizarStatusFeriasVencidas();
+      if(n){
+        if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
+        toast(`${n} colaborador(es) voltaram de férias e foram reativados.`, 'ok');
+      }
+    }
   }catch(e){ console.warn('Manutenção inicial falhou:', e); }
 }
 
@@ -3128,7 +3605,13 @@ function goScreenRaw(name){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-'+name).classList.add('active');
   const appEl = document.getElementById('app');
-  if(appEl){ appEl.classList.toggle('efetivo-full', name==='efetivo'); }
+  // Efetivo e Planilha de Edição precisam da janela inteira: uma grade de 15
+  // colunas não cabe na faixa de 1000px usada pelas telas de celular.
+  if(appEl){
+    appEl.classList.toggle('efetivo-full', name==='efetivo' || name==='planilha');
+    // A planilha ainda trava a rolagem da página: quem rola é a grade.
+    appEl.classList.toggle('planilha-cheia', name==='planilha');
+  }
   // Sobreposições vivem fora das telas: ao trocar de tela elas precisam sair junto.
   document.querySelectorAll('.focus-overlay.active').forEach(o=>o.classList.remove('active'));
   document.querySelectorAll('.modal-overlay.active').forEach(o=>o.classList.remove('active'));
@@ -3142,7 +3625,7 @@ function goScreen(name){
   if(name==='config') document.getElementById('nav-config').classList.add('active');
 
   if(name==='hub') renderHub();
-  else if(name==='home') renderHome();
+  else if(name==='home'){ prepararTelaChamada(); renderHome(); }
   else if(name==='lanche-solicitar') renderLancheSolicitar();
   else if(name==='lanche-historico') renderLancheHistorico();
   else if(name==='lanche-painel') {
@@ -3156,6 +3639,7 @@ function goScreen(name){
   else if(name==='efetivo'){ if(typeof window.bootEfetivoModule==='function'){ window.bootEfetivoModule(); } efetivoSyncFirebase(); }
   else if(name==='admin-aprovacoes') renderAprovacoes();
   else if(name==='admin-dashboard') renderDashboard();
+  else if(name==='planilha') abrirPlanilhaEdicao();
   else if(name==='admin-equipes') renderAdminEquipes();
   else if(name==='mao-obra') renderMaoObra();
   else if(name==='config') renderConfig();
@@ -3187,6 +3671,7 @@ function renderHub(){
     cards.push({ic:'🛂', label:'Aprovações', sub:'Contas · mão de obra · senhas', screen:'admin-aprovacoes', accent:'accent-purple'});
     cards.push({ic:'🎛️', label:'Módulo de Controle', sub:'Contratos · equipes · acessos', screen:'controle', accent:'accent-cyan'});
     cards.push({ic:'📊', label:'Dashboard', sub:'Indicadores', screen:'admin-dashboard', accent:'accent-green'});
+    cards.push({ic:'🧮', label:'Planilha de Edição', sub:'Editar o efetivo em massa', screen:'planilha', accent:'accent-purple'});
   }
 
   if(cards.length === 0){
@@ -3332,9 +3817,103 @@ function trocarEquipeChamada(){
 }
 window.trocarEquipeChamada = trocarEquipeChamada;
 
+// ===========================================================================
+// DATA DA CHAMADA — o padrão é sempre HOJE
+// ---------------------------------------------------------------------------
+// Antes o campo só era preenchido quando estava vazio. Bastava consultar um dia
+// anterior uma vez (ou deixar o aplicativo aberto virando a meia-noite) para a
+// data velha ficar grudada — e a chamada do dia ia parar no dia errado, sem
+// ninguém perceber, porque a tela fica idêntica.
+//
+// Agora:
+//   • entrar na tela de chamada sempre traz a data de hoje;
+//   • escolher outro dia é uma ação deliberada e vale só enquanto você estiver
+//     ali: ao sair e voltar, a data é hoje de novo;
+//   • enquanto a data não for hoje, um aviso fica visível com o botão de
+//     voltar — é a diferença entre "estou revendo o dia 12" e "achei que era
+//     hoje";
+//   • se o dia virar com o aplicativo aberto, a tela acompanha sozinha.
+// ===========================================================================
+let dataChamadaEscolhidaManualmente = false;
+
+// Chamado ao ENTRAR na tela de chamada: zera qualquer escolha anterior.
+function prepararTelaChamada(){
+  dataChamadaEscolhidaManualmente = false;
+  const inputData = document.getElementById('homeData');
+  if(inputData) inputData.value = hojeISO();
+}
+window.prepararTelaChamada = prepararTelaChamada;
+
+// O usuário mexeu no campo de data.
+function onMudarDataChamada(){
+  const inputData = document.getElementById('homeData');
+  if(!inputData) return;
+  if(!inputData.value){ inputData.value = hojeISO(); }   // limpar o campo volta para hoje
+  dataChamadaEscolhidaManualmente = (inputData.value !== hojeISO());
+  renderHome();
+}
+window.onMudarDataChamada = onMudarDataChamada;
+
+function voltarChamadaParaHoje(){
+  const inputData = document.getElementById('homeData');
+  if(!inputData) return;
+  dataChamadaEscolhidaManualmente = false;
+  inputData.value = hojeISO();
+  renderHome();
+  toast('Voltou para a chamada de hoje.', 'ok');
+}
+window.voltarChamadaParaHoje = voltarChamadaParaHoje;
+
+// Mostra (ou esconde) o aviso de que a data na tela não é a de hoje.
+function atualizarAvisoDataChamada(){
+  const box = document.getElementById('homeAvisoDataAntiga');
+  const txt = document.getElementById('homeAvisoDataTxt');
+  const inputData = document.getElementById('homeData');
+  if(!box || !inputData) return;
+  const hoje = hojeISO();
+  const v = inputData.value;
+  if(!v || v === hoje){ box.style.display = 'none'; return; }
+  box.style.display = '';
+  if(txt){
+    const passado = v < hoje;
+    txt.textContent = `A tela mostra ${fmtDataPtBr(v)}`
+      + (passado ? ' (um dia que já passou). ' : ' (uma data futura). ')
+      + `Qualquer lançamento feito agora entra em ${fmtDataPtBr(v)}, não em ${fmtDataPtBr(hoje)}.`;
+  }
+}
+window.atualizarAvisoDataChamada = atualizarAvisoDataChamada;
+
+// O aplicativo pode ficar aberto por dias no celular. Um relógio simples devolve
+// a tela para o dia novo quando a data do sistema muda; quem escolheu outro dia
+// de propósito não é interrompido — para esse caso o aviso já está na tela.
+let _diaCorrenteObservado = hojeISO();
+function verificarViradaDeDia(){
+  const agora = hojeISO();
+  if(agora === _diaCorrenteObservado) return;
+  _diaCorrenteObservado = agora;
+  const tela = document.getElementById('screen-home');
+  const inputData = document.getElementById('homeData');
+  if(!inputData) return;
+  if(!dataChamadaEscolhidaManualmente){
+    inputData.value = agora;
+    if(tela && tela.classList.contains('active')){
+      renderHome();
+      toast('O dia virou. A chamada agora é de ' + fmtDataPtBr(agora) + '.', 'ok');
+    }
+  } else {
+    atualizarAvisoDataChamada();
+  }
+}
+window.verificarViradaDeDia = verificarViradaDeDia;
+setInterval(verificarViradaDeDia, 60000);
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) verificarViradaDeDia(); });
+
 function renderHome(){
   const inputData = document.getElementById('homeData');
-  if(!inputData.value) inputData.value = hojeISO();
+  // Sem escolha ativa do usuário, a data é sempre a de hoje — inclusive se o
+  // aplicativo ficou aberto e o dia virou.
+  if(!inputData.value || !dataChamadaEscolhidaManualmente) inputData.value = hojeISO();
+  atualizarAvisoDataChamada();
   const escopoHome = escopoDeEquipesDaSessao();
   const varias = escopoHome.length > 1;
 
@@ -3414,7 +3993,13 @@ function renderHomeList(){
       const info = escalaDaEquipe(nomeEq);
       if(!info) return null;
       const trabalha = letraTrabalhaNaData(info.escala, info.letra, dataChamadaAtual);
-      return `<div style="margin-top:4px;">🗓️ <b>${nomeEq}</b> · ${info.escala.nome} letra ${info.letra.tag} — <b style="color:${trabalha?'var(--green)':'var(--gold)'};">${trabalha?'trabalha':'folga'}</b></div>`;
+      // O horário do dia entra aqui: numa 4x4 o líder precisa saber se hoje a
+      // turma dele entra às 08:00 ou às 20:00.
+      const h = trabalha ? horarioDaEscalaNaData(info.escala, info.letra, dataChamadaAtual) : null;
+      const turno = h
+        ? ` · <span class="turno-selo ${h.viraDia?'noite':'dia'}">${h.rotulo}</span> <b>${h.inicio}–${h.fim}</b>${h.viraDia?' <span style="color:var(--text-2);">(sai no dia seguinte)</span>':''}`
+        : '';
+      return `<div style="margin-top:4px;">🗓️ <b>${nomeEq}</b> · ${info.escala.nome} · turma <b>${escHtml(info.letra.tag)}</b> — <b style="color:${trabalha?'var(--green)':'var(--gold)'};">${trabalha?'trabalha':'folga'}</b>${turno}</div>`;
     }).filter(Boolean);
     if(porEquipe.length){
       avisoEsc.style.display = '';
@@ -3428,12 +4013,18 @@ function renderHomeList(){
     if(infoEsc && dataChamadaAtual && !letraTrabalhaNaData(infoEsc.escala, infoEsc.letra, dataChamadaAtual)){
       avisoEsc.style.display = '';
       avisoEsc.innerHTML = `<div class="remanejar-hint" style="border-color:rgba(240,192,64,.4); background:rgba(240,192,64,.08);">
-        🗓️ <b>Dia de folga</b> pela escala <b>${infoEsc.escala.nome}</b> (letra ${infoEsc.letra.tag}). A equipe não é cobrada na chamada de ${fmtDataPtBr(dataChamadaAtual)}.
+        🗓️ <b>Dia de folga</b> pela escala <b>${infoEsc.escala.nome}</b> (turma <b>${escHtml(infoEsc.letra.tag)}</b>). A equipe não é cobrada na chamada de ${fmtDataPtBr(dataChamadaAtual)}.
       </div>`;
     } else if(infoEsc){
+      const h = horarioDaEscalaNaData(infoEsc.escala, infoEsc.letra, dataChamadaAtual);
+      const turno = h
+        ? `<br><span class="turno-selo ${h.viraDia?'noite':'dia'}">${h.rotulo}</span>
+           Entrada <b>${h.inicio}</b> · saída <b>${h.fim}</b>${h.viraDia?` de ${fmtDataPtBr(h.dataFim)}`:''}
+           <span style="color:var(--text-2);">· ${h.horas}h${h.diaCiclo?` · dia ${h.diaCiclo} do ciclo`:''}</span>`
+        : (infoEsc.escala.turno ? `<br><span style="color:var(--text-2);">Turno: ${infoEsc.escala.turno}</span>` : '');
       avisoEsc.style.display = '';
       avisoEsc.innerHTML = `<div class="remanejar-hint" style="border-color:rgba(61,232,160,.35); background:rgba(61,232,160,.06);">
-        🗓️ Escala <b>${infoEsc.escala.nome}</b> · letra <b>${infoEsc.letra.tag}</b> — dia de trabalho.
+        🗓️ Escala <b>${infoEsc.escala.nome}</b> · turma <b>${escHtml(infoEsc.letra.tag)}</b> — dia de trabalho.${turno}
       </div>`;
     } else {
       avisoEsc.style.display = 'none';
@@ -3836,7 +4427,7 @@ async function salvarFerias() {
   const aj = ajustarFeriasPelaEscala(c.equipe || '', fInicio, dias) || { inicio:fInicio, fim:rBruto.fim, retorno:rBruto.retorno, ajustado:false };
   if(aj.ajustado){
     const ok = confirm(
-      `A equipe "${c.equipe}" está na escala ${aj.escala} (letra ${aj.letra}).\n\n` +
+      `A equipe "${c.equipe}" está na escala ${aj.escala} (turma ${aj.letra}).\n\n` +
       `Período ajustado para respeitar a escala:\n` +
       `Início: ${fmtDataPtBr(aj.inicio)}\nÚltimo dia: ${fmtDataPtBr(aj.fim)}\nRetorno: ${fmtDataPtBr(aj.retorno)}\n\nConfirmar com estas datas?`
     );
@@ -5662,6 +6253,111 @@ function letraTrabalhaNaData(escala, letra, dataISO){
 }
 window.letraTrabalhaNaData = letraTrabalhaNaData;
 
+// -------------------------------------------------------------------
+// HORÁRIOS DO TURNO ("modus operandi")
+// -------------------------------------------------------------------
+// Saber QUE a letra trabalha não basta: numa 4x4 é comum trabalhar os dois
+// primeiros dias do ciclo das 08:00 às 20:00 e os dois últimos das 20:00 às
+// 08:00 do dia seguinte. Quem descreve isso é o campo `horarios` da escala,
+// uma linha por DIA DO CICLO (dia 1, dia 2, dia 3, dia 4…).
+//
+// Três modos, todos opcionais — escala sem horário continua funcionando
+// exatamente como antes:
+//   • 'nenhum'    -> nada configurado; vale o texto livre do campo `turno`;
+//   • 'unico'     -> mesmo horário em todo dia de trabalho (horarioUnico);
+//   • 'detalhado' -> um horário por dia do ciclo (horarios[]) ou, na escala
+//                    semanal, um horário por dia da semana (horariosSemana{}).
+//
+// Fim <= início significa que o turno ATRAVESSA A MEIA-NOITE: 20:00–08:00
+// começa hoje e termina amanhã. É o que faz o turno da noite ser noite.
+// -------------------------------------------------------------------
+function _minutosDaHora(hhmm){
+  const m = /^(\d{1,2}):(\d{2})$/.exec(String(hhmm||'').trim());
+  if(!m) return null;
+  const h = parseInt(m[1],10), mi = parseInt(m[2],10);
+  if(h<0 || h>23 || mi<0 || mi>59) return null;
+  return h*60 + mi;
+}
+window.minutosDaHora = _minutosDaHora;
+
+// Em que dia DO CICLO esta letra está nesta data? 1..diasTrabalho.
+// Devolve 0 quando é folga (ou quando não dá para saber).
+function diaDoCicloDaLetra(escala, letra, dataISO){
+  if(!escala || !dataISO) return 0;
+  if(String(escala.tipo||'ciclica') === 'semanal'){
+    return letraTrabalhaNaData(escala, letra, dataISO) ? 1 : 0;
+  }
+  const trab  = Math.max(parseInt(escala.diasTrabalho,10) || 0, 1);
+  const folga = Math.max(parseInt(escala.diasFolga,10) || 0, 0);
+  const ciclo = trab + folga;
+  const inicio = letra && letra.dataInicio ? letra.dataInicio : null;
+  if(!inicio || ciclo <= 0) return 0;
+  let pos = _difDias(inicio, dataISO) % ciclo;
+  if(pos < 0) pos += ciclo;
+  return pos < trab ? (pos + 1) : 0;
+}
+window.diaDoCicloDaLetra = diaDoCicloDaLetra;
+
+// Horário desta letra nesta data. null quando é folga ou quando a escala não
+// tem horário configurado (aí quem exibe cai no texto livre do turno).
+function horarioDaEscalaNaData(escala, letra, dataISO){
+  if(!escala || !dataISO) return null;
+  const modo = String(escala.horarioModo || 'nenhum');
+  if(modo === 'nenhum') return null;
+  if(!letraTrabalhaNaData(escala, letra, dataISO)) return null;
+
+  let h = null, diaCiclo = 0;
+  if(modo === 'unico'){
+    h = escala.horarioUnico || null;
+    diaCiclo = diaDoCicloDaLetra(escala, letra, dataISO);
+  } else if(String(escala.tipo||'ciclica') === 'semanal'){
+    const dow = _dataDeISO(dataISO).getDay();
+    h = (escala.horariosSemana || {})[String(dow)] || null;
+  } else {
+    diaCiclo = diaDoCicloDaLetra(escala, letra, dataISO);
+    if(!diaCiclo) return null;
+    const lista = Array.isArray(escala.horarios) ? escala.horarios : [];
+    h = lista.find(x => Number(x.dia) === diaCiclo) || lista[diaCiclo-1] || null;
+  }
+  if(!h) return null;
+
+  const ini = _minutosDaHora(h.inicio), fim = _minutosDaHora(h.fim);
+  if(ini == null || fim == null) return null;
+  const viraDia = fim <= ini;                       // 20:00 -> 08:00 vira o dia
+  const minutos = (fim - ini) + (viraDia ? 1440 : 0);
+  const rotulo = String(h.rotulo || '').trim() || (viraDia ? 'NOITE' : 'DIA');
+  return {
+    inicio: h.inicio,
+    fim: h.fim,
+    rotulo,
+    diaCiclo,
+    viraDia,
+    dataFim: viraDia ? _somaDias(dataISO, 1) : String(dataISO).slice(0,10),
+    horas: Math.round((minutos/60) * 100) / 100,
+    texto: `${h.inicio}–${h.fim}${viraDia ? ' (+1)' : ''}`,
+    completo: `${rotulo} ${h.inicio}–${h.fim}${viraDia ? ' (+1)' : ''}`
+  };
+}
+window.horarioDaEscalaNaData = horarioDaEscalaNaData;
+
+// Mesma coisa, mas partindo do nome da equipe.
+function horarioDaEquipeNaData(nomeEquipe, dataISO){
+  const info = escalaDaEquipe(nomeEquipe);
+  if(!info) return null;
+  return horarioDaEscalaNaData(info.escala, info.letra, dataISO);
+}
+window.horarioDaEquipeNaData = horarioDaEquipeNaData;
+
+// Texto curto para telas: usa o horário calculado; sem ele, cai no texto livre
+// do campo `turno`; sem nada, devolve string vazia.
+function rotuloTurnoDaEquipe(nomeEquipe, dataISO){
+  const h = horarioDaEquipeNaData(nomeEquipe, dataISO);
+  if(h) return h.completo;
+  const info = escalaDaEquipe(nomeEquipe);
+  return (info && info.escala && info.escala.turno) ? String(info.escala.turno) : '';
+}
+window.rotuloTurnoDaEquipe = rotuloTurnoDaEquipe;
+
 // Em qual escala/letra esta equipe está? (null se a equipe não estiver em escala)
 function escalaDaEquipe(nomeEquipe){
   if(!nomeEquipe) return null;
@@ -6238,6 +6934,50 @@ window.aplicarExpiracaoLideresTemporarios = aplicarExpiracaoLideresTemporarios;
 // Status possíveis: ATIVO, ADMITIDO, DEMITIDO, FÉRIAS, AFASTADO.
 // Regra: base existente sem status -> ATIVO (migração no 1º acesso, feita pelo admin).
 let _migracaoStatusEmCurso = false;
+// Devolve para ATIVO quem está com o status "FÉRIAS" mas cujo período já
+// terminou. Sem isto o cadastro continuaria mostrando "FÉRIAS" para quem já
+// voltou — e o relatório do RH mostraria de férias quem está trabalhando.
+// Conservadora de propósito: só mexe em quem tem período COMPLETO e VENCIDO,
+// nunca em quem está com o status sem período (esse é decisão do RH).
+let _normalizacaoFeriasEmCurso = false;
+async function normalizarStatusFeriasVencidas(){
+  if(_normalizacaoFeriasEmCurso) return 0;
+  if(!session || (session.role !== 'admin' && session.role !== 'rh')) return 0;
+  const hoje = hojeISOLocal();
+  const vencidas = colaboradoresCache.filter(c =>
+    normStatus(c.status) === 'FERIAS' && c.feriasInicio && c.feriasFim && c.feriasFim < hoje
+  );
+  if(!vencidas.length) return 0;
+  _normalizacaoFeriasEmCurso = true;
+  try{
+    for(let i=0; i<vencidas.length; i+=400){
+      const lote = writeBatch(db);
+      vencidas.slice(i, i+400).forEach(c => {
+        // O período NÃO é apagado: ele é o histórico do que aconteceu.
+        lote.update(doc(db,'colaboradores', String(c.matricula)), {
+          status: 'ATIVO',
+          dataStatus: retornoAposFimFerias(c.feriasFim) || hoje
+        });
+      });
+      await lote.commit();
+    }
+    try{
+      await addDoc(collection(db,'movimentacoes_log'), {
+        tipo: 'retorno_ferias_automatico',
+        detalhe: `${vencidas.length} colaborador(es) voltaram de férias: ` +
+                 vencidas.slice(0,40).map(c=>`${c.matricula} (fim ${c.feriasFim})`).join(', '),
+        porMatricula: String(session.matricula||''), porNome: session.nome||'',
+        data: hoje, timestamp: serverTimestamp()
+      });
+    }catch(_){}
+    return vencidas.length;
+  }catch(e){
+    console.warn('Falha ao normalizar férias vencidas:', e && e.message);
+    return 0;
+  }finally{ _normalizacaoFeriasEmCurso = false; }
+}
+window.normalizarStatusFeriasVencidas = normalizarStatusFeriasVencidas;
+
 async function migrarStatusInicial(){
   if(_migracaoStatusEmCurso) return;
   if(!session || session.role !== 'admin') return; // só admin escreve a migração
@@ -6271,12 +7011,24 @@ function statusPermiteChamada(c){
 }
 window.statusPermiteChamada = statusPermiteChamada;
 
-// Ausência JÁ JUSTIFICADA na data: férias (por status ou por período) ou afastado.
-// Quem está justificado não deve contar como "pendente / sem chamada" no dashboard.
+// Ausência JÁ JUSTIFICADA na data: férias (pelo período) ou afastado.
+// Quem está justificado não conta como "pendente / sem chamada" no dashboard.
+//
+// CUIDADO COM O STATUS "FÉRIAS": ele é um rótulo que fica gravado no cadastro e
+// ninguém volta para apagar. Antes, o status sozinho justificava a ausência em
+// QUALQUER data — com duas consequências ruins e silenciosas:
+//   • quem voltou de férias em agosto continuava fora da cobrança em setembro,
+//     e o líder nunca era avisado de que faltava lançar a chamada dele;
+//   • quem tinha férias marcadas para o mês seguinte já saía da cobrança de hoje.
+// Agora, havendo PERÍODO informado, quem decide é a data. O status sozinho (RH
+// marcou "FÉRIAS" sem informar o período) continua valendo, porque nesse caso a
+// data é a única informação que não existe.
 function estaJustificadoNaData(c, dataISO){
   const s = normStatus(c.status);
-  if(s === 'FERIAS' || s === 'AFASTADO') return true;
-  if(typeof estaEmFeriasNaData === 'function' && estaEmFeriasNaData(c, dataISO)) return true;
+  if(s === 'AFASTADO') return true;
+  const temPeriodo = !!(c.feriasInicio && c.feriasFim);
+  if(temPeriodo) return estaEmFeriasNaData(c, dataISO);
+  if(s === 'FERIAS') return true;      // status sem período: nada a comparar
   return false;
 }
 window.estaJustificadoNaData = estaJustificadoNaData;
@@ -7712,7 +8464,7 @@ window.abrirModuloControle = abrirModuloControle;
 
 function mudarAbaControle(aba){
   abaControleAtiva = aba;
-  const abas = ['arvore','contratos','equipes','escala','cc','pos','acessos'];
+  const abas = ['arvore','contratos','equipes','escala','cc','pos','acessos','revisao'];
   const nome = a => a==='cc'?'CC':(a==='pos'?'Pos':(a.charAt(0).toUpperCase()+a.slice(1)));
   abas.forEach(a=>{
     const tab = document.getElementById('tabCtrl'+nome(a));
@@ -7724,10 +8476,16 @@ function mudarAbaControle(aba){
   if(aba==='arvore') renderCtrlArvore();
   if(aba==='contratos') renderCtrlContratos();
   if(aba==='equipes') renderCtrlEquipes();
-  if(aba==='escala'){ if(!escalaLetrasTmp.length && !escalaEditando) adicionarLetraEscala(); else renderLetrasEscala(); renderCtrlEscalas(); }
+  if(aba==='escala'){
+    if(!escalaLetrasTmp.length && !escalaEditando) adicionarLetraEscala(); else renderLetrasEscala();
+    renderCtrlEscalas();
+    // A aba abre limpa: calendário e lista à vista, formulário fechado.
+    if(typeof _escAplicarForm === 'function') _escAplicarForm();
+  }
   if(aba==='cc') renderCtrlCC();
   if(aba==='pos') renderCtrlPos();
   if(aba==='acessos') renderCtrlAcessos();
+  if(aba==='revisao') renderRevisaoEquipes();
 }
 window.mudarAbaControle = mudarAbaControle;
 
@@ -8195,9 +8953,85 @@ function sugerirCCporContrato(){
 window.sugerirCCporContrato = sugerirCCporContrato;
 
 // ---------- EQUIPES (correlação) ----------
+// Modo do formulário: null = fechado, 'criar' = equipe nova, 'editar' = mexendo
+// numa existente. Antes o formulário vivia sempre aberto e pré-preenchido, o
+// que confundia (não dava para "largar" a equipe selecionada) e, pior, deixava
+// trocar o nome durante uma edição — como o nome é a CHAVE do documento no
+// Firebase, isso criava silenciosamente uma segunda equipe, e a antiga ficava
+// com as pessoas. Agora o nome fica travado na edição.
+let ctrlEqModo = null;
+let ctrlEqEditandoNome = null;
+
+function _ctrlEqLimparCampos(){
+  ['ctrlEqNome','ctrlEqContrato','ctrlEqCC','ctrlEqResp','ctrlEqGestor','ctrlEqPos']
+    .forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  const selPai = document.getElementById('ctrlEqPai'); if(selPai) selPai.value='';
+}
+
+function _ctrlEqAplicarModo(){
+  const form = document.getElementById('ctrlEqForm');
+  const tit  = document.getElementById('ctrlEqFormTitulo');
+  const nomeEl = document.getElementById('ctrlEqNome');
+  const aviso = document.getElementById('ctrlEqNomeAviso');
+  if(!form) return;
+  if(!ctrlEqModo){ form.style.display='none'; return; }
+  form.style.display = '';
+  const editando = ctrlEqModo === 'editar';
+  if(tit) tit.textContent = editando ? ('Editar · ' + (ctrlEqEditandoNome||'')) : 'Nova equipe';
+  if(nomeEl){
+    nomeEl.readOnly = editando;
+    nomeEl.style.opacity = editando ? '.65' : '';
+    nomeEl.style.cursor = editando ? 'not-allowed' : '';
+  }
+  if(aviso) aviso.style.display = editando ? '' : 'none';
+}
+
+function novaEquipeControle(){
+  ctrlEqModo = 'criar';
+  ctrlEqEditandoNome = null;
+  _ctrlEqLimparCampos();
+  popularSelectsEquipePai();
+  equipePainelAtual = null;
+  renderPainelEquipe();
+  _ctrlEqAplicarModo();
+  renderCtrlEquipes();
+  const el = document.getElementById('ctrlEqNome');
+  if(el){ try{ el.scrollIntoView({behavior:'smooth', block:'center'}); }catch(_){ } el.focus(); }
+}
+window.novaEquipeControle = novaEquipeControle;
+
+function cancelarEdicaoEquipe(){
+  ctrlEqModo = null;
+  ctrlEqEditandoNome = null;
+  _ctrlEqLimparCampos();
+  _ctrlEqAplicarModo();
+  renderCtrlEquipes();
+}
+window.cancelarEdicaoEquipe = cancelarEdicaoEquipe;
+
+// Clique na linha: abre a equipe; clique de novo na mesma linha, larga.
+function alternarEquipeControle(nomeEquipe){
+  const mesma = equipePainelAtual && normEquipe(equipePainelAtual) === normEquipe(nomeEquipe);
+  if(ctrlEqModo){ ctrlEqModo = null; ctrlEqEditandoNome = null; _ctrlEqLimparCampos(); _ctrlEqAplicarModo(); }
+  equipePainelAtual = mesma ? null : nomeEquipe;
+  renderPainelEquipe();
+  renderCtrlEquipes();
+  if(!mesma){
+    const p = document.getElementById('ctrlEquipePainel');
+    if(p){ try{ p.scrollIntoView({behavior:'smooth', block:'start'}); }catch(_){ } }
+  }
+}
+window.alternarEquipeControle = alternarEquipeControle;
+
 async function salvarEquipeControle(){
-  const nome = (document.getElementById('ctrlEqNome').value||'').trim();
+  const digitado = (document.getElementById('ctrlEqNome').value||'').trim();
+  // Na edição vale sempre a chave original: o campo está travado, mas se
+  // alguém driblar isso pelo devtools o documento continua sendo o certo.
+  const nome = (ctrlEqModo === 'editar' && ctrlEqEditandoNome) ? ctrlEqEditandoNome : digitado;
   if(!nome){ toast('Informe o nome da equipe.', 'err'); return; }
+  if(ctrlEqModo !== 'editar' && equipesCache.some(e=>normEquipe(e.nome)===normEquipe(nome))){
+    toast('Já existe uma equipe com esse nome. Use o botão Editar na lista.', 'err'); return;
+  }
   const contrato = (document.getElementById('ctrlEqContrato').value||'').trim();
   const cc = (document.getElementById('ctrlEqCC').value||'').trim();
   const resp = (document.getElementById('ctrlEqResp').value||'').trim();
@@ -8214,11 +9048,12 @@ async function salvarEquipeControle(){
       atualizadoEm: serverTimestamp()
     }, {merge:true});
     toast('Equipe salva.', 'ok');
-    ['ctrlEqNome','ctrlEqContrato','ctrlEqCC','ctrlEqResp','ctrlEqGestor','ctrlEqPos'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
-    const selPai = document.getElementById('ctrlEqPai'); if(selPai) selPai.value='';
+    ctrlEqModo = null; ctrlEqEditandoNome = null;
+    _ctrlEqLimparCampos(); _ctrlEqAplicarModo();
     if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
-    renderCtrlEquipes(); atualizarDatalistsControle(); popularSelectsEquipePai();
+    atualizarDatalistsControle(); popularSelectsEquipePai();
     abrirPainelEquipe(nome);   // já abre o painel da equipe recém-salva
+    renderCtrlEquipes();
   }catch(e){ console.error(e); toast('Erro ao salvar equipe: '+(e&&e.message?e.message:e), 'err'); }
 }
 window.salvarEquipeControle = salvarEquipeControle;
@@ -8227,6 +9062,9 @@ function editarEquipeControle(nomeEquipe){
   mudarAbaControle('equipes');
   const eq = equipesCache.find(e=>normEquipe(e.nome)===normEquipe(nomeEquipe));
   if(!eq) return;
+  ctrlEqModo = 'editar';
+  ctrlEqEditandoNome = eq.nome;
+  _ctrlEqAplicarModo();
   document.getElementById('ctrlEqNome').value = eq.nome || '';
   document.getElementById('ctrlEqContrato').value = eq.contrato || '';
   document.getElementById('ctrlEqCC').value = eq.codContrato || eq.centroCusto || '';
@@ -8236,7 +9074,9 @@ function editarEquipeControle(nomeEquipe){
   popularSelectsEquipePai();
   abrirPainelEquipe(eq.nome);   // abre líder + integrantes + incluir/remover
   const selPaiEd = document.getElementById('ctrlEqPai'); if(selPaiEd) selPaiEd.value = eq.equipePai || '';
-  try{ document.getElementById('ctrlEqNome').scrollIntoView({behavior:'smooth', block:'center'}); }catch(_){}
+  _ctrlEqAplicarModo();
+  if(typeof renderCtrlEquipes==='function') renderCtrlEquipes();
+  try{ document.getElementById('ctrlEqForm').scrollIntoView({behavior:'smooth', block:'center'}); }catch(_){}
 }
 window.editarEquipeControle = editarEquipeControle;
 
@@ -8256,6 +9096,7 @@ window.abrirPainelEquipe = abrirPainelEquipe;
 function fecharPainelEquipe(){
   equipePainelAtual = null;
   renderPainelEquipe();
+  if(typeof renderCtrlEquipes === 'function') renderCtrlEquipes();
 }
 window.fecharPainelEquipe = fecharPainelEquipe;
 
@@ -8314,7 +9155,10 @@ function renderPainelEquipe(){
         <div class="icon-btn" onclick="fecharPainelEquipe()">✕</div>
       </div>
 
-      <div class="section-title" style="margin-top:0;">Líder da equipe</div>
+      <div class="section-title" style="margin-top:0;">Calendário da escala</div>
+      <div id="calEquipeBox"></div>
+
+      <div class="section-title">Líder da equipe</div>
       <div class="field" style="margin-bottom:8px;">
         <select id="painelLiderSel">${opcoesLider}</select>
       </div>
@@ -8347,6 +9191,7 @@ function renderPainelEquipe(){
       <div id="painelResultadoBusca"></div>
     </div>`;
   renderResultadoBuscaPainel();
+  if(typeof renderCalendarioEquipe === 'function') renderCalendarioEquipe();
 }
 window.renderPainelEquipe = renderPainelEquipe;
 
@@ -8462,24 +9307,1143 @@ async function removerDaEquipePeloControle(matricula){
 }
 window.removerDaEquipePeloControle = removerDaEquipePeloControle;
 
+
+// ===========================================================================
+// PLANILHA DE EDIÇÃO — edição em massa do efetivo
+// ---------------------------------------------------------------------------
+// Uma grade que se comporta como planilha, por cima da coleção `colaboradores`.
+//
+// O princípio que organiza tudo aqui: NADA vai para o banco antes da
+// confirmação. Ao abrir, o módulo tira uma cópia da base; todas as edições
+// acontecem nessa cópia; a comparação com o original é feita na hora de
+// gravar, e só o que realmente mudou é escrito, campo a campo, com merge.
+// Assim uma sessão de edição pode ser abandonada sem deixar rastro, e um erro
+// de digitação não vira um `update` perdido no meio de 400 registros.
+//
+// FÉRIAS FICAM DE FORA de propósito. São lançadas pelo RH e pela liderança,
+// com regras de escala e histórico próprios; deixá-las editáveis aqui
+// convidaria a sobrescrever, no braço, um período que o sistema calculou.
+// ===========================================================================
+
+// Campos que o módulo conhece. `fixa` = não pode ser removida da visão;
+// `ro` = mostrada mas não editável (deriva de outro campo ou é chave).
+const PLN_CAMPOS = [
+  {campo:'matricula',   titulo:'Matrícula',       largura:100, fixa:true, ro:true},
+  {campo:'nome',        titulo:'Nome',            largura:230, fixa:true},
+  {campo:'contrato',    titulo:'Contrato',        largura:150},
+  {campo:'grupo',       titulo:'Grupo/Função',    largura:150},
+  {campo:'classificacao',titulo:'Classificação',  largura:170},
+  {campo:'equipe',      titulo:'Equipe',          largura:180},
+  {campo:'codContrato', titulo:'Centro de Custo', largura:120},
+  {campo:'responsavel', titulo:'Responsável',     largura:170},
+  {campo:'gestor',      titulo:'Gestor',          largura:170},
+  {campo:'posTernium',  titulo:'Posição Ternium', largura:130},
+  {campo:'admissao',    titulo:'Admissão',        largura:110},
+  {campo:'dataStatus',  titulo:'Data Status',     largura:110},
+  {campo:'matTernium',  titulo:'Mat. Ternium',    largura:120},
+  {campo:'cpf',         titulo:'CPF',             largura:130},
+  {campo:'status',      titulo:'Status',          largura:110},
+  // Campos do sistema que não estão na planilha de importação, mas existem no
+  // cadastro. Vêm ocultos: quem quiser, liga em "Colunas".
+  {campo:'atuacao',       titulo:'Atuação',          largura:160, oculta:true, ro:true, nota:'espelha a equipe'},
+  {campo:'rastreabilidade',titulo:'Rastreabilidade', largura:160, oculta:true, ro:true, nota:'espelha a equipe'},
+  {campo:'liderMatricula',titulo:'Líder (matrícula)',largura:130, oculta:true},
+  {campo:'alocacaoTipo',  titulo:'Tipo de alocação', largura:140, oculta:true},
+  {campo:'ccTipo',        titulo:'Direto/Indireto',  largura:130, oculta:true},
+  {campo:'tipoKpi',       titulo:'Tipo de KPI',      largura:130, oculta:true},
+  {campo:'respCampo',     titulo:'Resp. de campo',   largura:160, oculta:true},
+  // Apelidos internos: existem no documento, mas são cópias de outro campo.
+  // Ficam listados aqui para não aparecerem como "coluna nova" duplicando o
+  // que já está na tela.
+  {campo:'cc',       titulo:'Contrato (alias)', largura:150, oculta:true, ro:true, nota:'cópia de Contrato, usada pela árvore'},
+  {campo:'funcao',   titulo:'Função (alias)',   largura:150, oculta:true, ro:true, nota:'cópia de Classificação'},
+  {campo:'situacao', titulo:'Situação (legado)',largura:110, oculta:true, ro:true},
+  {campo:'coordenador', titulo:'Coordenador (legado)', largura:150, oculta:true, ro:true}
+];
+
+// Campos que este módulo NUNCA escreve, mesmo que apareçam no documento.
+const PLN_PROIBIDOS = ['feriasInicio','feriasFim','atualizadoEm','criadoEm'];
+
+let plnColunas = [];        // [{campo,titulo,largura,fixa,ro,custom,visivel}]
+let plnOriginal = new Map();// matricula -> cópia congelada do documento
+let plnTrabalho = new Map();// matricula -> cópia editável
+let plnOrdem = [];          // ordem das matrículas na tela
+let plnNovas = new Set();
+let plnRemovidas = new Set();
+let plnHistorico = [];      // pilha de desfazer
+let plnSel = null;          // {mat, campo}
+let plnEditando = false;
+let plnColunasApagar = new Set();  // colunas custom cujo dado será apagado
+
+function plnEhAdmin(){ return !!(session && session.role === 'admin'); }
+
+// --------------------------------------------------------------------------
+// Abertura
+// --------------------------------------------------------------------------
+async function abrirPlanilhaEdicao(){
+  if(!plnEhAdmin()){
+    toast('A planilha de edição é exclusiva de administradores.', 'err');
+    goScreen('hub');
+    return;
+  }
+  await carregarColunasPlanilha();
+  carregarDadosPlanilha();
+  popularFiltrosPlanilha();
+  renderPlanilha();
+}
+window.abrirPlanilhaEdicao = abrirPlanilhaEdicao;
+
+function sairPlanilhaEdicao(){
+  if(contarAlteracoesPlanilha().total > 0){
+    if(!confirm('Há alterações não confirmadas. Sair descarta tudo. Continuar?')) return;
+  }
+  descartarPlanilha(true);
+  goScreen('hub');
+}
+window.sairPlanilhaEdicao = sairPlanilhaEdicao;
+
+function carregarDadosPlanilha(){
+  plnOriginal = new Map();
+  plnTrabalho = new Map();
+  plnOrdem = [];
+  plnNovas = new Set();
+  plnRemovidas = new Set();
+  plnHistorico = [];
+  plnColunasApagar = new Set();
+  const ordenados = (colaboradoresCache||[]).slice()
+    .sort((a,b)=>String(a.nome||'').localeCompare(String(b.nome||'')));
+  ordenados.forEach(c => {
+    const mat = String(c.matricula);
+    plnOriginal.set(mat, JSON.parse(JSON.stringify(c)));
+    plnTrabalho.set(mat, JSON.parse(JSON.stringify(c)));
+    plnOrdem.push(mat);
+  });
+}
+
+// --------------------------------------------------------------------------
+// Colunas
+// --------------------------------------------------------------------------
+// A definição das colunas fica salva para não se perder entre sessões. A
+// tentativa é gravar no Firebase (vale para todos os aparelhos); se a regra
+// da coleção não existir, o módulo cai para o armazenamento local sem
+// reclamar — coluna é preferência de tela, não pode travar o trabalho.
+const PLN_CHAVE_LOCAL = 'central_planilha_colunas';
+
+async function carregarColunasPlanilha(){
+  let salvo = null;
+  try{
+    const d = await getDoc(doc(db,'configuracoes','planilhaEdicao'));
+    if(d.exists()) salvo = d.data();
+  }catch(_){ /* sem regra para a coleção: segue no armazenamento local */ }
+  if(!salvo){
+    try{ salvo = JSON.parse(localStorage.getItem(PLN_CHAVE_LOCAL) || 'null'); }catch(_){ salvo = null; }
+  }
+
+  const extras = (salvo && Array.isArray(salvo.colunas)) ? salvo.colunas : [];
+  const ocultasSalvas = (salvo && Array.isArray(salvo.ocultas)) ? salvo.ocultas : null;
+
+  plnColunas = PLN_CAMPOS.map(c => Object.assign({}, c, {
+    visivel: ocultasSalvas ? !ocultasSalvas.includes(c.campo) : !c.oculta,
+    custom: false
+  }));
+
+  // Colunas criadas pelo usuário: as salvas e, como rede de segurança, as que
+  // aparecem nos próprios dados (alguém pode ter criado num outro aparelho).
+  const conhecidos = new Set(plnColunas.map(c=>c.campo).concat(PLN_PROIBIDOS));
+  extras.forEach(e => {
+    if(!e || !e.campo || conhecidos.has(e.campo)) return;
+    conhecidos.add(e.campo);
+    plnColunas.push({campo:e.campo, titulo:e.titulo || e.campo, largura:e.largura || 150,
+                     custom:true, criada:true, visivel:true});
+  });
+  // Rede de segurança: campos que existem nos dados e ninguém declarou. Entram
+  // ocultos e NÃO são salvos como coluna criada — senão um apelido interno
+  // viraria coluna fixa na tela de todo mundo.
+  (colaboradoresCache||[]).forEach(c => {
+    Object.keys(c||{}).forEach(k => {
+      if(conhecidos.has(k)) return;
+      conhecidos.add(k);
+      plnColunas.push({campo:k, titulo:k, largura:150, custom:true, criada:false, visivel:false});
+    });
+  });
+}
+
+async function salvarColunasPlanilha(){
+  const dados = {
+    colunas: plnColunas.filter(c=>c.criada).map(c=>({campo:c.campo, titulo:c.titulo, largura:c.largura})),
+    ocultas: plnColunas.filter(c=>!c.visivel).map(c=>c.campo)
+  };
+  try{ localStorage.setItem(PLN_CHAVE_LOCAL, JSON.stringify(dados)); }catch(_){}
+  try{ await setDoc(doc(db,'configuracoes','planilhaEdicao'), dados, {merge:true}); }catch(_){}
+}
+
+function colunasVisiveis(){ return plnColunas.filter(c=>c.visivel); }
+
+function togglePlnAjuda(){
+  const el = document.getElementById('plnAjuda');
+  if(!el) return;
+  el.style.display = (el.style.display === 'none') ? '' : 'none';
+  renderPlanilha();   // a grade recalcula a altura disponível
+}
+window.togglePlnAjuda = togglePlnAjuda;
+
+function togglePainelColunas(){
+  const box = document.getElementById('plnPainelColunas');
+  if(!box) return;
+  const abrindo = box.style.display === 'none';
+  box.style.display = abrindo ? '' : 'none';
+  if(abrindo) renderPainelColunas();
+}
+window.togglePainelColunas = togglePainelColunas;
+
+function renderPainelColunas(){
+  const box = document.getElementById('plnPainelColunas');
+  if(!box) return;
+  box.innerHTML = `
+    <div style="font-size:12px; color:var(--text-2); margin-bottom:8px;">
+      Marque o que aparece na grade. Colunas criadas por você podem ser renomeadas e removidas.
+    </div>
+    <div class="grid">
+      ${plnColunas.map((c,i)=>`
+        <label title="${escHtml(c.nota||c.campo)}">
+          <input type="checkbox" ${c.visivel?'checked':''} onchange="alternarColunaPlanilha(${i}, this.checked)">
+          <span style="flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis;">${escHtml(c.titulo)}</span>
+          ${c.custom?'<span style="color:var(--cyan); font-size:9.5px;">NOVA</span>':''}
+        </label>`).join('')}
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="btn btn-ghost btn-sm" style="flex:1 1 160px;" onclick="criarColunaPlanilha()">＋ Criar coluna</button>
+      <button class="btn btn-ghost btn-sm" style="flex:1 1 120px;" onclick="togglePainelColunas()">Fechar</button>
+    </div>`;
+}
+
+function alternarColunaPlanilha(i, visivel){
+  if(!plnColunas[i]) return;
+  if(plnColunas[i].fixa && !visivel){ toast('Matrícula e nome não podem ser escondidos.', 'err'); renderPainelColunas(); return; }
+  plnColunas[i].visivel = visivel;
+  salvarColunasPlanilha();
+  renderPlanilha();
+}
+window.alternarColunaPlanilha = alternarColunaPlanilha;
+
+function criarColunaPlanilha(){
+  const titulo = prompt('Nome da nova coluna (ex.: TURNO, CRACHÁ, OBSERVAÇÃO):');
+  if(titulo === null) return;
+  const t = String(titulo).trim();
+  if(!t){ toast('Dê um nome à coluna.', 'err'); return; }
+  // O nome do campo no banco sai do título, sem acento e sem espaço, para não
+  // criar chaves impossíveis de consultar depois.
+  const campo = t.normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/[^a-zA-Z0-9]+/g,'_').replace(/^_+|_+$/g,'').toLowerCase();
+  if(!campo){ toast('Nome inválido para uma coluna.', 'err'); return; }
+  if(plnColunas.some(c=>c.campo===campo)){ toast('Já existe uma coluna com esse nome.', 'err'); return; }
+  if(PLN_PROIBIDOS.includes(campo)){ toast('Esse nome é reservado pelo sistema.', 'err'); return; }
+  plnColunas.push({campo, titulo:t.toUpperCase(), largura:150, custom:true, criada:true, visivel:true});
+  plnColunasApagar.delete(campo);
+  salvarColunasPlanilha();
+  renderPainelColunas();
+  renderPlanilha();
+  toast(`Coluna "${t}" criada. Preencha e confirme para gravar.`, 'ok');
+}
+window.criarColunaPlanilha = criarColunaPlanilha;
+
+function renomearColunaPlanilha(campo){
+  const c = plnColunas.find(x=>x.campo===campo);
+  if(!c || !c.custom){ toast('Só as colunas criadas por você podem ser renomeadas.', 'err'); return; }
+  const novo = prompt('Novo nome da coluna:', c.titulo);
+  if(novo === null) return;
+  const t = String(novo).trim();
+  if(!t) return;
+  c.titulo = t.toUpperCase();
+  salvarColunasPlanilha();
+  renderPlanilha();
+}
+window.renomearColunaPlanilha = renomearColunaPlanilha;
+
+function removerColunaPlanilha(campo){
+  const c = plnColunas.find(x=>x.campo===campo);
+  if(!c) return;
+  if(c.fixa){ toast('Matrícula e nome não podem ser removidos.', 'err'); return; }
+  if(c.custom){
+    const temDado = [...plnTrabalho.values()].some(d => String(d[campo]||'').trim() !== '');
+    if(temDado){
+      const apagar = confirm(
+        `Remover a coluna "${c.titulo}" da tela.\n\n` +
+        `OK  = apagar TAMBÉM os dados dessa coluna nos cadastros (ao confirmar).\n` +
+        `Cancelar = só esconder a coluna; os dados ficam guardados.`);
+      if(apagar) plnColunasApagar.add(campo);
+    }
+  }
+  c.visivel = false;
+  salvarColunasPlanilha();
+  renderPlanilha();
+}
+window.removerColunaPlanilha = removerColunaPlanilha;
+
+// --------------------------------------------------------------------------
+// Filtros
+// --------------------------------------------------------------------------
+function popularFiltrosPlanilha(){
+  const selC = document.getElementById('plnFiltroContrato');
+  const selE = document.getElementById('plnFiltroEquipe');
+  if(selC){
+    const contratos = [...new Set([...plnTrabalho.values()].map(c=>String(c.contrato||c.cc||'').trim()).filter(Boolean))].sort();
+    selC.innerHTML = '<option value="">Todos os contratos</option>' + contratos.map(c=>`<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('');
+  }
+  if(selE){
+    const equipes = [...new Set([...plnTrabalho.values()].map(c=>String(c.equipe||'').trim()).filter(Boolean))].sort();
+    selE.innerHTML = '<option value="">Todas as equipes</option>'
+      + '<option value="__SEM__">(sem equipe)</option>'
+      + equipes.map(c=>`<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('');
+  }
+}
+
+function linhasFiltradas(){
+  const busca = String((document.getElementById('plnBusca')||{}).value || '').trim().toLowerCase();
+  const fc = String((document.getElementById('plnFiltroContrato')||{}).value || '');
+  const fe = String((document.getElementById('plnFiltroEquipe')||{}).value || '');
+  return plnOrdem.filter(mat => {
+    const d = plnTrabalho.get(mat);
+    if(!d) return false;
+    if(fc && String(d.contrato||d.cc||'') !== fc) return false;
+    if(fe === '__SEM__'){ if(String(d.equipe||'').trim()) return false; }
+    else if(fe && String(d.equipe||'') !== fe) return false;
+    if(busca){
+      const alvo = `${d.matricula||''} ${d.nome||''} ${d.equipe||''} ${d.contrato||''} ${d.grupo||''}`.toLowerCase();
+      if(!alvo.includes(busca)) return false;
+    }
+    return true;
+  });
+}
+
+// --------------------------------------------------------------------------
+// Alterações
+// --------------------------------------------------------------------------
+function valorOriginal(mat, campo){
+  const o = plnOriginal.get(mat);
+  return o ? (o[campo] == null ? '' : String(o[campo])) : '';
+}
+function valorAtual(mat, campo){
+  const d = plnTrabalho.get(mat);
+  return d ? (d[campo] == null ? '' : String(d[campo])) : '';
+}
+function celulaAlterada(mat, campo){
+  if(plnNovas.has(mat)) return false;   // linha nova inteira já é destacada
+  return valorAtual(mat, campo) !== valorOriginal(mat, campo);
+}
+
+function contarAlteracoesPlanilha(){
+  let celulas = 0;
+  const pessoas = new Set();
+  plnTrabalho.forEach((d, mat) => {
+    if(plnNovas.has(mat) || plnRemovidas.has(mat)) return;
+    plnColunas.forEach(c => {
+      if(c.ro) return;
+      if(valorAtual(mat,c.campo) !== valorOriginal(mat,c.campo)){ celulas++; pessoas.add(mat); }
+    });
+  });
+  return {
+    celulas, pessoas: pessoas.size,
+    novas: plnNovas.size, removidas: plnRemovidas.size,
+    colunasApagadas: plnColunasApagar.size,
+    total: celulas + plnNovas.size + plnRemovidas.size + plnColunasApagar.size
+  };
+}
+
+function definirValorPlanilha(mat, campo, valor, semHistorico){
+  const d = plnTrabalho.get(mat);
+  if(!d) return;
+  const antes = d[campo] == null ? '' : String(d[campo]);
+  const depois = valor == null ? '' : String(valor);
+  if(antes === depois) return;
+  if(!semHistorico) plnHistorico.push({mat, campo, antes});
+  d[campo] = depois;
+  // Atuação e rastreabilidade espelham a equipe — a árvore depende disso.
+  if(campo === 'equipe'){
+    d.atuacao = depois;
+    d.rastreabilidade = depois;
+  }
+}
+
+function desfazerPlanilha(){
+  const ult = plnHistorico.pop();
+  if(!ult){ toast('Nada para desfazer.', 'ok'); return; }
+  const d = plnTrabalho.get(ult.mat);
+  if(d){
+    d[ult.campo] = ult.antes;
+    if(ult.campo === 'equipe'){ d.atuacao = ult.antes; d.rastreabilidade = ult.antes; }
+  }
+  renderPlanilha();
+}
+window.desfazerPlanilha = desfazerPlanilha;
+
+// --------------------------------------------------------------------------
+// Linhas
+// --------------------------------------------------------------------------
+function adicionarLinhaPlanilha(){
+  const mat = prompt('Matrícula do novo colaborador:');
+  if(mat === null) return;
+  const m = String(mat).trim();
+  if(!m){ toast('A matrícula é obrigatória.', 'err'); return; }
+  if(plnTrabalho.has(m)){ toast('Já existe alguém com essa matrícula na planilha.', 'err'); return; }
+  const novo = {matricula:m, nome:'', status:'ATIVO'};
+  plnTrabalho.set(m, novo);
+  plnOriginal.set(m, {matricula:m});
+  plnOrdem.unshift(m);
+  plnNovas.add(m);
+  renderPlanilha();
+  plnSel = {mat:m, campo:'nome'};
+  setTimeout(()=>iniciarEdicaoCelula(m,'nome'), 60);
+}
+window.adicionarLinhaPlanilha = adicionarLinhaPlanilha;
+
+function alternarRemocaoLinha(mat){
+  if(plnNovas.has(mat)){
+    // Linha que nem existe no banco: some na hora, sem cerimônia.
+    plnNovas.delete(mat);
+    plnTrabalho.delete(mat);
+    plnOriginal.delete(mat);
+    plnOrdem = plnOrdem.filter(x=>x!==mat);
+  } else if(plnRemovidas.has(mat)){
+    plnRemovidas.delete(mat);
+  } else {
+    plnRemovidas.add(mat);
+  }
+  renderPlanilha();
+}
+window.alternarRemocaoLinha = alternarRemocaoLinha;
+
+// --------------------------------------------------------------------------
+// Grade
+// --------------------------------------------------------------------------
+function renderPlanilha(){
+  const wrap = document.getElementById('plnWrap');
+  if(!wrap) return;
+  const cols = colunasVisiveis();
+  const linhas = linhasFiltradas();
+
+  atualizarStatusPlanilha(linhas.length);
+
+  if(!linhas.length){
+    wrap.innerHTML = `<div class="pln-vazio">Nenhum colaborador com esses filtros.</div>`;
+    return;
+  }
+
+  // LARGURA
+  // Sobrando espaço, as colunas crescem juntas e a planilha ocupa a tela toda.
+  // Faltando espaço com "Caber na tela" ligado, elas encolhem juntas até um
+  // piso legível (66px); abaixo disso a grade rola por dentro em vez de virar
+  // uma fileira de colunas ilegíveis.
+  const caber = !!(document.getElementById('plnCaber') || {}).checked;
+  const disponivel = Math.max(wrap.clientWidth - 44, 320);   // 44 = coluna da lixeira
+  const PISO = 66;                                           // menor largura legível
+  // A largura de partida vem do CONTEÚDO, não de um palpite fixo: colunas de
+  // nome e de função ganham espaço, "centro de custo" e "posição" ocupam pouco.
+  // É o que faz a tela mostrar o texto inteiro em vez de reticências.
+  const larguras = calcularLarguras(medirColunas(cols, linhas), disponivel, caber, PISO);
+  const larg = c => larguras[c.campo] || 150;
+
+  let esquerda = 0;
+  const th = cols.map((c,i) => {
+    const fixa = i < 2 ? (i===0?'fixa':'fixa2') : '';
+    const estilo = i===1 ? `left:${larg(cols[0])}px;` : '';
+    return `<th class="${fixa}" style="width:${larg(c)}px; ${estilo} position:${i<2?'sticky':'static'};">
+      <div class="pln-th-in">
+        <span class="tt" title="${escHtml(c.nota||c.campo)}"
+              onclick="${c.custom?`renomearColunaPlanilha('${c.campo}')`:''}">${escHtml(c.titulo)}</span>
+        ${c.ro?'<span class="lock" title="somente leitura">🔒</span>':''}
+        ${c.fixa?'':`<span class="x" title="Remover coluna" onclick="removerColunaPlanilha('${c.campo}')">×</span>`}
+      </div>
+    </th>`;
+  }).join('');
+
+  const corpo = linhas.map(mat => {
+    const d = plnTrabalho.get(mat);
+    const cls = plnNovas.has(mat) ? 'nova' : (plnRemovidas.has(mat) ? 'removida' : '');
+    const tds = cols.map((c,i) => {
+      const v = d[c.campo] == null ? '' : String(d[c.campo]);
+      const alt = celulaAlterada(mat, c.campo) ? 'alterada' : '';
+      const fixa = i===0 ? 'fixa' : (i===1 ? 'fixa2' : '');
+      const estilo = i===1 ? `left:${larg(cols[0])}px;` : '';
+      const sel = (plnSel && plnSel.mat===mat && plnSel.campo===c.campo) ? 'sel' : '';
+      return `<td class="${alt} ${fixa} ${sel}" style="${estilo}" data-mat="${escHtml(mat)}" data-campo="${escHtml(c.campo)}">
+        <div class="pln-cel ${c.ro?'ro':''}" title="${escHtml(v)}">${escHtml(v)}</div>
+      </td>`;
+    }).join('');
+    return `<tr class="${cls}" data-mat="${escHtml(mat)}">${tds}
+      <td style="width:44px; text-align:center;">
+        <div class="pln-lixo" title="${plnRemovidas.has(mat)?'Desfazer remoção':'Remover esta pessoa'}"
+             onclick="alternarRemocaoLinha('${escHtml(mat)}')">${plnRemovidas.has(mat)?'↩':'🗑'}</div>
+      </td></tr>`;
+  }).join('');
+
+  wrap.innerHTML = `<table class="pln-tab" style="width:${Math.max(cols.reduce((t,c)=>t+larg(c),0)+44, disponivel+44)}px;">
+    <thead><tr>${th}<th style="width:44px;"></th></tr></thead>
+    <tbody>${corpo}</tbody>
+  </table>`;
+
+  ligarEventosPlanilha();
+}
+window.renderPlanilha = renderPlanilha;
+
+// Mede o conteúdo de cada coluna e devolve uma largura de partida. Usa o
+// percentil 90 do tamanho dos valores em vez do máximo: um único nome enorme
+// não deve fazer a coluna inteira dobrar de largura.
+function medirColunas(cols, linhas){
+  const amostra = linhas.slice(0, 400);
+  return cols.map(c => {
+    const tam = amostra.map(mat => {
+      const d = plnTrabalho.get(mat);
+      return d && d[c.campo] != null ? String(d[c.campo]).length : 0;
+    }).sort((a,b)=>a-b);
+    const p90 = tam.length ? tam[Math.min(tam.length-1, Math.floor(tam.length * 0.9))] : 0;
+    const chars = Math.max(String(c.titulo||'').length + (c.fixa?0:2), p90);
+    const px = Math.round(chars * 7.1) + 24;
+    return Object.assign({}, c, {largura: Math.max(72, Math.min(300, px))});
+  });
+}
+
+// Distribui a largura disponível entre as colunas.
+//   • sobrando espaço: todas crescem na mesma proporção e a grade preenche a tela;
+//   • faltando espaço com "Caber na tela": todas encolhem, mas nenhuma passa do
+//     piso — as que bateriam no piso ficam nele e o resto do espaço é
+//     redistribuído entre as demais, então o encaixe é exato sempre que
+//     (nº de colunas × piso) couber na tela;
+//   • se nem no piso couber (celular com muitas colunas), a grade rola por
+//     dentro da caixa, sem nunca empurrar a página.
+function calcularLarguras(cols, disponivel, caber, PISO){
+  const base = {};
+  cols.forEach(c => base[c.campo] = c.largura || 150);
+  const soma = cols.reduce((t,c)=>t+base[c.campo], 0);
+
+  if(soma <= disponivel){
+    const f = disponivel / soma;
+    const out = {};
+    cols.forEach(c => out[c.campo] = Math.floor(base[c.campo] * f));
+    return ajustarSobra(cols, out, disponivel);
+  }
+  if(!caber){
+    return base;                                   // rola por dentro, sem encolher
+  }
+  if(cols.length * PISO >= disponivel){
+    const out = {};
+    cols.forEach(c => out[c.campo] = PISO);        // não cabe nem no piso
+    return out;
+  }
+  // Encolhe proporcionalmente, trava no piso quem ficaria pequeno demais e
+  // redistribui o que sobrou entre as colunas ainda livres.
+  const travadas = new Set();
+  let out = {};
+  for(let volta = 0; volta < 6; volta++){
+    const livres = cols.filter(c => !travadas.has(c.campo));
+    const usadoTravado = cols.length - livres.length ? (cols.length - livres.length) * PISO : 0;
+    const restante = disponivel - usadoTravado;
+    const somaLivres = livres.reduce((t,c)=>t+base[c.campo], 0) || 1;
+    const f = restante / somaLivres;
+    out = {};
+    let novasTravas = 0;
+    cols.forEach(c => {
+      if(travadas.has(c.campo)){ out[c.campo] = PISO; return; }
+      const v = Math.floor(base[c.campo] * f);
+      if(v < PISO){ travadas.add(c.campo); out[c.campo] = PISO; novasTravas++; }
+      else out[c.campo] = v;
+    });
+    if(!novasTravas) break;
+  }
+  return ajustarSobra(cols, out, disponivel);
+}
+
+// Arredondamento deixa alguns pixels sobrando; vão para a coluna mais larga,
+// para a soma bater exatamente com a caixa e não aparecer uma faixa vazia.
+function ajustarSobra(cols, out, disponivel){
+  const soma = cols.reduce((t,c)=>t+out[c.campo], 0);
+  const sobra = disponivel - soma;
+  if(sobra !== 0 && cols.length){
+    let alvo = cols[0];
+    cols.forEach(c => { if(out[c.campo] > out[alvo.campo]) alvo = c; });
+    out[alvo.campo] += sobra;
+  }
+  return out;
+}
+
+function atualizarStatusPlanilha(nLinhas){
+  const box = document.getElementById('plnStatus');
+  if(!box) return;
+  const a = contarAlteracoesPlanilha();
+  const partes = [`<span><b>${nLinhas}</b> linha(s) na tela · <b>${plnTrabalho.size}</b> no total</span>`];
+  if(a.celulas) partes.push(`<span class="pill edit">${a.celulas} célula(s) em ${a.pessoas} pessoa(s)</span>`);
+  if(a.novas) partes.push(`<span class="pill nova">${a.novas} nova(s)</span>`);
+  if(a.removidas) partes.push(`<span class="pill rem">${a.removidas} para remover</span>`);
+  if(a.colunasApagadas) partes.push(`<span class="pill rem">${a.colunasApagadas} coluna(s) a apagar</span>`);
+  if(!a.total) partes.push(`<span class="pill limpo">sem alterações pendentes</span>`);
+  box.innerHTML = partes.join('');
+  const btn = document.getElementById('plnBtnCommit');
+  if(btn){
+    btn.textContent = a.total ? `✔ Confirmar e gravar (${a.total})` : '✔ Confirmar e gravar';
+    btn.style.opacity = a.total ? '1' : '.5';
+  }
+}
+
+function ligarEventosPlanilha(){
+  const wrap = document.getElementById('plnWrap');
+  if(!wrap) return;
+  wrap.querySelectorAll('td[data-campo]').forEach(td => {
+    td.addEventListener('click', () => {
+      plnSel = {mat: td.dataset.mat, campo: td.dataset.campo};
+      wrap.querySelectorAll('td.sel').forEach(x=>x.classList.remove('sel'));
+      td.classList.add('sel');
+    });
+    td.addEventListener('dblclick', () => iniciarEdicaoCelula(td.dataset.mat, td.dataset.campo));
+  });
+}
+
+function celulaDom(mat, campo){
+  const wrap = document.getElementById('plnWrap');
+  if(!wrap) return null;
+  return wrap.querySelector(`td[data-mat="${CSS.escape(mat)}"][data-campo="${CSS.escape(campo)}"]`);
+}
+
+function iniciarEdicaoCelula(mat, campo){
+  const col = plnColunas.find(c=>c.campo===campo);
+  if(!col || col.ro){ toast('Esta coluna é somente leitura.', 'err'); return; }
+  if(plnRemovidas.has(mat)){ toast('Esta linha está marcada para remoção.', 'err'); return; }
+  const td = celulaDom(mat, campo);
+  if(!td) return;
+  plnSel = {mat, campo};
+  plnEditando = true;
+  const atual = valorAtual(mat, campo);
+  td.innerHTML = `<input class="pln-editor" value="${escHtml(atual)}">`;
+  const inp = td.querySelector('input');
+  inp.focus(); inp.select();
+
+  const fechar = (gravar, mover) => {
+    if(!plnEditando) return;
+    plnEditando = false;
+    if(gravar) definirValorPlanilha(mat, campo, inp.value);
+    renderPlanilha();
+    if(mover) moverSelecao(mover.dl, mover.dc, true);
+  };
+  inp.addEventListener('blur', ()=>fechar(true, null));
+  inp.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter'){ e.preventDefault(); fechar(true, {dl:1, dc:0}); }
+    else if(e.key === 'Escape'){ e.preventDefault(); plnEditando=false; renderPlanilha(); }
+    else if(e.key === 'Tab'){ e.preventDefault(); fechar(true, {dl:0, dc: e.shiftKey?-1:1}); }
+  });
+}
+window.iniciarEdicaoCelula = iniciarEdicaoCelula;
+
+function moverSelecao(dl, dc, semEditar){
+  if(!plnSel) return;
+  const cols = colunasVisiveis();
+  const linhas = linhasFiltradas();
+  let li = linhas.indexOf(plnSel.mat);
+  let ci = cols.findIndex(c=>c.campo===plnSel.campo);
+  if(li < 0 || ci < 0) return;
+  li = Math.max(0, Math.min(linhas.length-1, li+dl));
+  ci = Math.max(0, Math.min(cols.length-1, ci+dc));
+  plnSel = {mat: linhas[li], campo: cols[ci].campo};
+  const td = celulaDom(plnSel.mat, plnSel.campo);
+  if(td){
+    document.querySelectorAll('#plnWrap td.sel').forEach(x=>x.classList.remove('sel'));
+    td.classList.add('sel');
+    td.scrollIntoView({block:'nearest', inline:'nearest'});
+  }
+  if(!semEditar) return;
+}
+
+// Teclado da grade (fora da edição) e colagem de bloco.
+document.addEventListener('keydown', (e)=>{
+  const tela = document.getElementById('screen-planilha');
+  if(!tela || !tela.classList.contains('active') || plnEditando || !plnSel) return;
+  const alvo = e.target;
+  if(alvo && (alvo.tagName === 'INPUT' || alvo.tagName === 'SELECT' || alvo.tagName === 'TEXTAREA')) return;
+  if(e.key === 'ArrowDown'){ e.preventDefault(); moverSelecao(1,0,true); }
+  else if(e.key === 'ArrowUp'){ e.preventDefault(); moverSelecao(-1,0,true); }
+  else if(e.key === 'ArrowRight'){ e.preventDefault(); moverSelecao(0,1,true); }
+  else if(e.key === 'ArrowLeft'){ e.preventDefault(); moverSelecao(0,-1,true); }
+  else if(e.key === 'Enter' || e.key === 'F2'){ e.preventDefault(); iniciarEdicaoCelula(plnSel.mat, plnSel.campo); }
+  else if(e.key === 'Delete' || e.key === 'Backspace'){
+    e.preventDefault();
+    const col = plnColunas.find(c=>c.campo===plnSel.campo);
+    if(col && !col.ro){ definirValorPlanilha(plnSel.mat, plnSel.campo, ''); renderPlanilha(); }
+  }
+  else if(e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey){
+    // Digitar direto sobre a célula começa a edição, como no Excel.
+    iniciarEdicaoCelula(plnSel.mat, plnSel.campo);
+    const inp = document.querySelector('#plnWrap .pln-editor');
+    if(inp){ inp.value = e.key; }
+    e.preventDefault();
+  }
+});
+
+// Colar um bloco copiado do Excel: preenche a partir da célula marcada.
+document.addEventListener('paste', (e)=>{
+  const tela = document.getElementById('screen-planilha');
+  if(!tela || !tela.classList.contains('active') || plnEditando || !plnSel) return;
+  const txt = (e.clipboardData || window.clipboardData).getData('text');
+  if(!txt) return;
+  e.preventDefault();
+  const matriz = txt.replace(/\r/g,'').split('\n').filter((l,i,a)=>!(i===a.length-1 && l===''))
+    .map(l => l.split('\t'));
+  const cols = colunasVisiveis();
+  const linhas = linhasFiltradas();
+  const li0 = linhas.indexOf(plnSel.mat);
+  const ci0 = cols.findIndex(c=>c.campo===plnSel.campo);
+  if(li0 < 0 || ci0 < 0) return;
+  let n = 0, ignoradas = 0;
+  matriz.forEach((linha, dl) => {
+    const mat = linhas[li0+dl];
+    if(!mat || plnRemovidas.has(mat)) return;
+    linha.forEach((valor, dc) => {
+      const col = cols[ci0+dc];
+      if(!col) return;
+      if(col.ro){ ignoradas++; return; }
+      definirValorPlanilha(mat, col.campo, valor.trim());
+      n++;
+    });
+  });
+  renderPlanilha();
+  toast(`${n} célula(s) coladas${ignoradas?` · ${ignoradas} ignorada(s) por serem somente leitura`:''}.`, 'ok');
+});
+
+// --------------------------------------------------------------------------
+// Descartar e confirmar
+// --------------------------------------------------------------------------
+// Se houver uma célula aberta, o valor digitado é levado em conta antes de
+// qualquer operação global. Sem isto, clicar direto em "Confirmar" com a
+// célula aberta perderia a última digitação.
+function fecharEditorAberto(){
+  const inp = document.querySelector('#plnWrap .pln-editor');
+  if(inp && plnEditando){ inp.blur(); }
+  plnEditando = false;
+}
+
+function descartarPlanilha(silencioso){
+  fecharEditorAberto();
+  if(!silencioso){
+    const a = contarAlteracoesPlanilha();
+    if(!a.total){ toast('Não há nada para descartar.', 'ok'); return; }
+    if(!confirm(`Descartar ${a.total} alteração(ões) e voltar ao que está no banco?`)) return;
+  }
+  carregarDadosPlanilha();
+  plnSel = null;
+  if(!silencioso){ renderPlanilha(); toast('Alterações descartadas.', 'ok'); }
+}
+window.descartarPlanilha = descartarPlanilha;
+
+async function confirmarPlanilha(){
+  if(!plnEhAdmin()){ toast('Apenas administradores podem gravar.', 'err'); return; }
+  fecharEditorAberto();   // a célula em edição conta como alteração
+  const a = contarAlteracoesPlanilha();
+  if(!a.total){ toast('Não há alterações para gravar.', 'ok'); return; }
+
+  // Uma pessoa nova sem nome vira um registro fantasma na chamada.
+  const semNome = [...plnNovas].filter(m => !String(valorAtual(m,'nome')).trim());
+  if(semNome.length){ toast(`Preencha o nome de ${semNome.length} pessoa(s) nova(s) antes de gravar.`, 'err'); return; }
+
+  const resumo =
+    'Gravar as alterações no banco de dados?\n\n' +
+    (a.celulas ? `• ${a.celulas} célula(s) alteradas em ${a.pessoas} pessoa(s)\n` : '') +
+    (a.novas ? `• ${a.novas} pessoa(s) nova(s)\n` : '') +
+    (a.removidas ? `• ${a.removidas} pessoa(s) REMOVIDAS da base\n` : '') +
+    (a.colunasApagadas ? `• ${a.colunasApagadas} coluna(s) terão os dados apagados\n` : '') +
+    '\nIsto vale para todos os módulos: árvore, chamada, relatórios.\n' +
+    'Férias e chamadas já lançadas não são tocadas.';
+  if(!confirm(resumo)) return;
+
+  const btn = document.getElementById('plnBtnCommit');
+  if(btn){ btn.style.pointerEvents='none'; btn.textContent='Gravando…'; }
+
+  try{
+    const escritas = [];   // {mat, dados}
+    plnTrabalho.forEach((d, mat) => {
+      if(plnRemovidas.has(mat)) return;
+      const dados = {};
+      let mudou = false;
+      plnColunas.forEach(c => {
+        if(PLN_PROIBIDOS.includes(c.campo)) return;
+        // Campos somente leitura só entram quando são derivados (atuação segue
+        // a equipe) e apenas em linha nova ou quando a equipe mudou.
+        const novoV = d[c.campo] == null ? '' : String(d[c.campo]);
+        const velhoV = valorOriginal(mat, c.campo);
+        if(novoV === velhoV && !plnNovas.has(mat)) return;
+        if(c.ro && c.campo !== 'atuacao' && c.campo !== 'rastreabilidade' && c.campo !== 'matricula') return;
+        dados[c.campo] = novoV;
+        mudou = true;
+      });
+      // Colunas marcadas para apagar: vão como string vazia.
+      plnColunasApagar.forEach(campo => {
+        if(valorOriginal(mat, campo) !== ''){ dados[campo] = ''; mudou = true; }
+      });
+      if(!mudou) return;
+      dados.matricula = mat;
+      if(plnNovas.has(mat)){
+        if(!dados.status) dados.status = 'ATIVO';
+        if(!dados.dataStatus) dados.dataStatus = (typeof hojeISOLocal==='function'?hojeISOLocal():new Date().toISOString().slice(0,10));
+      }
+      dados.atualizadoEm = serverTimestamp();
+      escritas.push({mat, dados});
+    });
+
+    for(let i=0; i<escritas.length; i+=400){
+      const lote = writeBatch(db);
+      escritas.slice(i, i+400).forEach(x => lote.set(doc(db,'colaboradores', x.mat), x.dados, {merge:true}));
+      await lote.commit();
+    }
+
+    // Remoções: log primeiro (fora do lote), depois a exclusão.
+    const remover = [...plnRemovidas];
+    for(const mat of remover){
+      try{ await logExclusao('colaborador', mat, plnOriginal.get(mat)); }catch(_){}
+    }
+    for(let i=0; i<remover.length; i+=400){
+      const lote = writeBatch(db);
+      remover.slice(i, i+400).forEach(mat => lote.delete(doc(db,'colaboradores', mat)));
+      await lote.commit();
+    }
+
+    // Registro do que foi feito, para auditoria.
+    try{
+      await addDoc(collection(db,'movimentacoes_log'), {
+        tipo:'planilha_edicao',
+        detalhe: `alteradas:${a.celulas} pessoas:${a.pessoas} novas:${a.novas} removidas:${a.removidas}`,
+        porMatricula: String(session.matricula||''), porNome: session.nome||'',
+        data: (typeof hojeISOLocal==='function'?hojeISOLocal():new Date().toISOString().slice(0,10)),
+        timestamp: serverTimestamp()
+      });
+    }catch(_){}
+
+    await salvarColunasPlanilha();
+    toast(`Gravado: ${escritas.length} registro(s)${remover.length?` · ${remover.length} removido(s)`:''}.`, 'ok');
+
+    if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
+    carregarDadosPlanilha();
+    popularFiltrosPlanilha();
+    renderPlanilha();
+  }catch(e){
+    console.error(e);
+    toast('Erro ao gravar: ' + mensagemErroFirestore(e, 'colaboradores'), 'err');
+  }finally{
+    const b = document.getElementById('plnBtnCommit');
+    if(b){ b.style.pointerEvents='auto'; }
+    atualizarStatusPlanilha(linhasFiltradas().length);
+  }
+}
+window.confirmarPlanilha = confirmarPlanilha;
+
+// A grade se reajusta quando a janela muda de tamanho.
+window.addEventListener('resize', ()=>{
+  const tela = document.getElementById('screen-planilha');
+  if(tela && tela.classList.contains('active') && !plnEditando) renderPlanilha();
+});
+
+// ===========================================================================
+// REVISÃO DE EQUIPES
+// ---------------------------------------------------------------------------
+// Subir a planilha de efetivo reorganiza gente e equipes de uma vez só. Depois
+// disso sobra sujeira previsível: equipe que ficou sem ninguém, líder designado
+// que foi para outra equipe, equipe sem contrato. Esta tela junta tudo num
+// lugar só e permite a faxina em lote.
+//
+// A regra de exclusão é conservadora de propósito: só some o que NÃO é
+// referenciado por ninguém. Apagar uma equipe que ainda aparece no cadastro de
+// alguém deixaria esse alguém apontando para o vazio — e o problema só
+// apareceria semanas depois, numa chamada que não fecha.
+// ===========================================================================
+let revisaoSelecionadas = new Set();   // nomes normalizados marcados para exclusão
+
+// Todos os cadastros que apontam para a equipe, INCLUSIVE demitidos.
+// membrosDaEquipe() filtra demitidos — aqui isso seria perigoso: a equipe
+// pareceria vazia e a exclusão deixaria o ex-colaborador órfão.
+function cadastrosApontandoPara(nomeEquipe){
+  const alvo = normEquipe(nomeEquipe);
+  return colaboradoresCache.filter(c => normEquipe(c.equipe) === alvo);
+}
+
+// Turmas de escala que citam esta equipe.
+function escalasQueCitam(nomeEquipe){
+  const alvo = normEquipe(nomeEquipe);
+  const achados = [];
+  (escalasCache||[]).forEach(esc => {
+    (esc.letras||[]).forEach(l => {
+      if((l.equipes||[]).some(n => normEquipe(n) === alvo)){
+        achados.push(`${esc.nome} · turma ${l.tag||'?'}`);
+      }
+    });
+  });
+  return achados;
+}
+
+// Diagnóstico completo. Devolve, para cada equipe, por que ela pode ou não ser
+// apagada e o que há de estranho nela.
+function diagnosticoEquipes(){
+  const equipesOrd = (equipesCache||[]).slice().sort((a,b)=>String(a.nome||'').localeCompare(String(b.nome||'')));
+  const linhas = equipesOrd.map(e => {
+    const nome = e.nome || '';
+    const cadastros = cadastrosApontandoPara(nome);
+    const ativos = cadastros.filter(c => statusPermiteChamada(c));
+    const inativos = cadastros.length - ativos.length;
+    const filhas = filhasDaEquipe(nome);
+    const emEscala = escalasQueCitam(nome);
+
+    const impedimentos = [];
+    if(cadastros.length) impedimentos.push(`${cadastros.length} cadastro(s) ainda apontam para ela`);
+    if(filhas.length)    impedimentos.push(`${filhas.length} equipe(s) filha(s)`);
+    if(emEscala.length)  impedimentos.push(`está em escala (${emEscala.join(', ')})`);
+
+    // Achados que não impedem a exclusão, mas o gestor precisa saber.
+    const avisos = [];
+    const lider = liderDaEquipe(nome);
+    if(!lider && ativos.length) avisos.push('sem líder designado');
+    if(lider){
+      const cadLider = colaboradoresCache.find(c => String(c.matricula) === String(lider.matricula));
+      if(!cadLider) avisos.push('líder designado não está no efetivo');
+      else if(normEquipe(cadLider.equipe) !== normEquipe(nome)) avisos.push(`líder está na equipe "${cadLider.equipe||'—'}"`);
+      if(lider.tipo === 'temporario' && lider.fim && lider.fim < (typeof hojeISOLocal==='function'?hojeISOLocal():'')) {
+        avisos.push('liderança temporária vencida');
+      }
+    }
+    if(!e.contrato && !e.cc) avisos.push('sem contrato');
+    if(inativos && !ativos.length) avisos.push(`só ${inativos} ex-colaborador(es)`);
+
+    return {
+      nome, equipe: e,
+      total: cadastros.length, ativos: ativos.length, inativos,
+      filhas: filhas.length, emEscala,
+      vazia: cadastros.length === 0,
+      podeExcluir: impedimentos.length === 0,
+      impedimentos, avisos
+    };
+  });
+
+  const semEquipe = colaboradoresCache.filter(c => !String(c.equipe||'').trim());
+  return { linhas, semEquipe };
+}
+window.diagnosticoEquipes = diagnosticoEquipes;
+
+function alternarSelecaoRevisao(nomeNorm, marcado){
+  if(marcado) revisaoSelecionadas.add(nomeNorm);
+  else revisaoSelecionadas.delete(nomeNorm);
+  atualizarBarraRevisao();
+}
+window.alternarSelecaoRevisao = alternarSelecaoRevisao;
+
+function marcarVaziasRevisao(marcar){
+  const d = diagnosticoEquipes();
+  revisaoSelecionadas = new Set();
+  if(marcar){
+    d.linhas.filter(l => l.vazia && l.podeExcluir).forEach(l => revisaoSelecionadas.add(normEquipe(l.nome)));
+  }
+  renderRevisaoEquipes();
+}
+window.marcarVaziasRevisao = marcarVaziasRevisao;
+
+function atualizarBarraRevisao(){
+  const cont = document.getElementById('revContador');
+  const btn  = document.getElementById('btnExcluirRevisao');
+  const n = revisaoSelecionadas.size;
+  if(cont) cont.textContent = n ? `${n} equipe(s) marcada(s)` : 'Nenhuma equipe marcada';
+  if(btn){
+    btn.textContent = n ? `🗑️ Excluir ${n} equipe(s)` : '🗑️ Excluir selecionadas';
+    btn.style.opacity = n ? '1' : '.45';
+    btn.style.pointerEvents = n ? 'auto' : 'none';
+  }
+}
+
+async function excluirEquipesSelecionadas(){
+  const nomes = [...revisaoSelecionadas];
+  if(!nomes.length) return;
+
+  // Reconfere na hora: entre marcar e clicar, alguém pode ter movido gente.
+  const d = diagnosticoEquipes();
+  const porNorm = new Map(d.linhas.map(l => [normEquipe(l.nome), l]));
+  const aptas = [], recusadas = [];
+  nomes.forEach(n => {
+    const l = porNorm.get(n);
+    if(l && l.vazia && l.podeExcluir) aptas.push(l);
+    else recusadas.push(l ? l.nome : n);
+  });
+
+  if(!aptas.length){
+    toast('Nenhuma das equipes marcadas pode ser excluída agora.', 'err');
+    renderRevisaoEquipes();
+    return;
+  }
+  const listaTxt = aptas.map(l => '• ' + l.nome).join('\n');
+  const extra = recusadas.length ? `\n\n${recusadas.length} equipe(s) foram ignoradas porque deixaram de estar vazias.` : '';
+  if(!confirm(`Excluir ${aptas.length} equipe(s) vazia(s)?\n\n${listaTxt}${extra}\n\nO histórico de chamadas e o registro da exclusão são mantidos.`)) return;
+
+  try{
+    // O log fica FORA do lote: se a regra do Firestore recusar o log, a
+    // exclusão em si não pode falhar junto.
+    for(const l of aptas){
+      await logExclusao('equipe', l.nome, l.equipe);
+    }
+    for(let i=0; i<aptas.length; i+=400){
+      const lote = writeBatch(db);
+      aptas.slice(i, i+400).forEach(l => lote.delete(doc(db,'equipes', l.nome)));
+      await lote.commit();
+    }
+    revisaoSelecionadas = new Set();
+    toast(`${aptas.length} equipe(s) excluída(s).`, 'ok');
+    if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
+    renderRevisaoEquipes();
+    if(typeof renderCtrlEquipes==='function') renderCtrlEquipes();
+    atualizarDatalistsControle();
+  }catch(e){
+    console.error(e);
+    toast('Erro ao excluir: ' + mensagemErroFirestore(e, 'equipes'), 'err');
+  }
+}
+window.excluirEquipesSelecionadas = excluirEquipesSelecionadas;
+
+function renderRevisaoEquipes(recarregar){
+  const cards = document.getElementById('revCards');
+  const box = document.getElementById('revConteudo');
+  if(!box) return;
+
+  if(recarregar && typeof carregarBaseInicial==='function'){
+    carregarBaseInicial().then(()=>renderRevisaoEquipes()).catch(()=>renderRevisaoEquipes());
+    box.innerHTML = `<div class="loading-wrap"><div class="spinner"></div><div>Reconferindo…</div></div>`;
+    return;
+  }
+
+  const d = diagnosticoEquipes();
+  const vazias = d.linhas.filter(l => l.vazia);
+  const vaziasLivres = vazias.filter(l => l.podeExcluir);
+  const comAviso = d.linhas.filter(l => l.avisos.length && !l.vazia);
+  const esc1 = v => String(v||'').replace(/'/g,"\\'");
+
+  if(cards){
+    cards.innerHTML = `
+      <div class="rev-card"><div class="n" style="color:var(--cyan)">${d.linhas.length}</div><div class="l">Equipes</div></div>
+      <div class="rev-card ${vazias.length?'alerta':'ok'}"><div class="n">${vazias.length}</div><div class="l">Vazias</div></div>
+      <div class="rev-card ${comAviso.length?'alerta':'ok'}"><div class="n">${comAviso.length}</div><div class="l">Com aviso</div></div>
+      <div class="rev-card ${d.semEquipe.length?'alerta':'ok'}"><div class="n">${d.semEquipe.length}</div><div class="l">Sem equipe</div></div>`;
+  }
+
+  let html = '';
+
+  // ---------------- equipes vazias ----------------
+  html += `<div class="section-title">Equipes vazias (${vazias.length})</div>`;
+  if(!vazias.length){
+    html += `<div class="rank-empty">Nenhuma equipe vazia. Nada a limpar. ✓</div>`;
+  } else {
+    html += `<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+      <button class="btn btn-ghost btn-sm" style="flex:1 1 140px;" onclick="marcarVaziasRevisao(true)">Marcar as ${vaziasLivres.length} liberadas</button>
+      <button class="btn btn-ghost btn-sm" style="flex:1 1 120px;" onclick="marcarVaziasRevisao(false)">Desmarcar tudo</button>
+    </div>`;
+    html += vazias.map(l => {
+      const marcada = revisaoSelecionadas.has(normEquipe(l.nome));
+      const tags = l.podeExcluir
+        ? `<span class="rev-tag vazia">PODE APAGAR</span>`
+        : `<span class="rev-tag bloq">BLOQUEADA</span>`;
+      const motivo = l.podeExcluir
+        ? 'Nenhum cadastro aponta para esta equipe.'
+        : l.impedimentos.join(' · ');
+      const avisos = l.avisos.length ? `<br>${l.avisos.map(a=>`<span class="rev-tag aviso">${escHtml(a)}</span>`).join('')}` : '';
+      return `<label class="rev-linha ${l.podeExcluir?'':'bloqueada'}">
+        <input type="checkbox" ${marcada?'checked':''} ${l.podeExcluir?'':'disabled'}
+               onchange="alternarSelecaoRevisao('${esc1(normEquipe(l.nome))}', this.checked)">
+        <div class="rv-corpo">
+          <div class="rv-nome">${escHtml(l.nome)}</div>
+          <div class="rv-meta">${tags}${escHtml(motivo)}${avisos}</div>
+          <div class="rv-meta">${escHtml(l.equipe.contrato || l.equipe.cc || 'sem contrato')} · CC ${escHtml(l.equipe.codContrato || l.equipe.centroCusto || '—')}</div>
+        </div>
+      </label>`;
+    }).join('');
+    html += `<div class="rev-barra">
+      <div class="rv-cont" id="revContador">Nenhuma equipe marcada</div>
+      <button class="btn btn-sm" id="btnExcluirRevisao"
+              style="background:rgba(255,92,108,.18); color:var(--red); font-weight:700; opacity:.45; pointer-events:none;"
+              onclick="excluirEquipesSelecionadas()">🗑️ Excluir selecionadas</button>
+    </div>`;
+  }
+
+  // ---------------- equipes com aviso ----------------
+  html += `<div class="section-title rev-secao">Equipes que pedem atenção (${comAviso.length})</div>`;
+  if(!comAviso.length){
+    html += `<div class="rank-empty">Nenhum problema encontrado nas equipes com gente. ✓</div>`;
+  } else {
+    html += comAviso.map(l => `
+      <div class="rev-linha" style="cursor:pointer;" onclick="irParaEquipeNaRevisao('${esc1(l.nome)}')">
+        <div class="rv-corpo">
+          <div class="rv-nome">${escHtml(l.nome)}</div>
+          <div class="rv-meta">${l.avisos.map(a=>`<span class="rev-tag aviso">${escHtml(a)}</span>`).join('')}</div>
+          <div class="rv-meta">${l.ativos} ativo(s)${l.inativos?` · ${l.inativos} inativo(s)`:''} · líder: ${escHtml(rotuloLiderDaEquipe(l.nome))}</div>
+          <div class="rv-meta">supervisor: ${escHtml(l.equipe.responsavel||'—')} · gestor: ${escHtml(l.equipe.gestor||'—')}</div>
+        </div>
+      </div>`).join('');
+  }
+
+  // ---------------- pessoas sem equipe ----------------
+  html += `<div class="section-title rev-secao">Pessoas sem equipe (${d.semEquipe.length})</div>`;
+  if(!d.semEquipe.length){
+    html += `<div class="rank-empty">Todo mundo está alocado. ✓</div>`;
+  } else {
+    const porContrato = {};
+    d.semEquipe.forEach(c => {
+      const k = c.contrato || c.cc || '(sem contrato)';
+      (porContrato[k] = porContrato[k] || []).push(c);
+    });
+    html += `<div class="remanejar-hint" style="font-size:11.5px;">
+      Estas pessoas aparecem na árvore dentro do contrato delas, na caixa <b>(sem equipe)</b>.
+      Arraste-as para uma equipe na árvore genealógica, ou use a aba <b>Equipes</b> para incluí-las.
+    </div>`;
+    html += Object.keys(porContrato).sort().map(k => `
+      <div class="rev-linha">
+        <div class="rv-corpo">
+          <div class="rv-nome">${escHtml(k)} · ${porContrato[k].length} pessoa(s)</div>
+          <div class="rv-meta">${porContrato[k].slice(0,40).map(c=>escHtml(`${c.matricula} ${c.nome||''}`)).join(' · ')}${porContrato[k].length>40?' …':''}</div>
+        </div>
+      </div>`).join('');
+  }
+
+  box.innerHTML = html;
+  atualizarBarraRevisao();
+}
+window.renderRevisaoEquipes = renderRevisaoEquipes;
+
+// Abre a equipe na aba de Equipes, já com o painel de integrantes.
+function irParaEquipeNaRevisao(nome){
+  mudarAbaControle('equipes');
+  if(typeof editarEquipeControle==='function') editarEquipeControle(nome);
+}
+window.irParaEquipeNaRevisao = irParaEquipeNaRevisao;
+
 function renderCtrlEquipes(){
   const box = document.getElementById('ctrlEquipesLista');
   if(!box) return;
   const busca = (document.getElementById('ctrlEqSearch').value||'').toLowerCase().trim();
   let lista = equipesCache.slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
   if(busca) lista = lista.filter(e=>(e.nome||'').toLowerCase().includes(busca) || (e.contrato||'').toLowerCase().includes(busca));
-  if(!lista.length){ box.innerHTML = `<div class="rank-empty">Nenhuma equipe.</div>`; return; }
-  box.innerHTML = lista.map(e=>{
+  if(!lista.length){
+    box.innerHTML = `<div class="eq-vazio">${busca ? 'Nenhuma equipe com esse filtro.' : 'Nenhuma equipe cadastrada ainda. Use <b>＋ Nova equipe</b>.'}</div>`;
+    return;
+  }
+  const total = equipesCache.length;
+  const cab = `<div style="font-size:11px; color:var(--text-2); margin:2px 0 8px;">
+      ${lista.length} de ${total} equipe(s)${busca ? ' · filtro ativo' : ''} · toque numa equipe para ver líder e integrantes.
+    </div>`;
+  box.innerHTML = cab + lista.map((e, i)=>{
     const nomeEsc = (e.nome||'').replace(/'/g,"\\'");
-    return `<div class="rank-row" style="align-items:center;">
-      <div style="flex:1; cursor:pointer;" onclick="editarEquipeControle('${nomeEsc}')">
-        <div class="rank-name">${e.nome}</div>
-        <div style="font-size:10.5px; color:var(--text-2);">${membrosDaEquipe(e.nome).length} pessoa(s) · líder: ${rotuloLiderDaEquipe(e.nome)}</div>
-        <div style="font-size:10.5px; color:var(--text-2);">${e.contrato||'—'} · CC ${e.codContrato||e.centroCusto||'—'} · resp: ${e.responsavel||'—'} · gestor: ${e.gestor||'—'}</div>
-        <div style="font-size:10px; color:var(--text-2);">${e.posTernium?('Pos. '+e.posTernium):'Pos. —'}${e.equipePai?(' · dentro de '+e.equipePai):''}${filhasDaEquipe(e.nome).length?(' · '+filhasDaEquipe(e.nome).length+' equipe(s) filha(s)'):''}</div>
+    const ativa = equipePainelAtual && normEquipe(equipePainelAtual)===normEquipe(e.nome);
+    const nFilhas = filhasDaEquipe(e.nome).length;
+    const info = (typeof escalaDaEquipe==='function') ? escalaDaEquipe(e.nome) : null;
+    const selo = info
+      ? `<span class="alloc-chip" style="background:rgba(34,211,238,.15); color:var(--cyan);">${escHtml(info.escala.nome||'')} · ${escHtml(info.letra.tag||'?')}</span>`
+      : '';
+    return `<div class="eq-item ${ativa?'ativa':''}" onclick="alternarEquipeControle('${nomeEsc}')">
+      <div class="ei-corpo">
+        <div class="ei-nome">${escHtml(e.nome||'')} ${selo}</div>
+        <div class="ei-meta">${membrosDaEquipe(e.nome).length} pessoa(s) · líder: ${rotuloLiderDaEquipe(e.nome)}</div>
+        <div class="ei-meta">${escHtml(e.contrato||'—')} · CC ${escHtml(e.codContrato||e.centroCusto||'—')} · resp: ${escHtml(e.responsavel||'—')} · gestor: ${escHtml(e.gestor||'—')}</div>
+        <div class="ei-meta">${e.posTernium?('Pos. '+escHtml(e.posTernium)):'Pos. —'}${e.equipePai?(' · dentro de '+escHtml(e.equipePai)):''}${nFilhas?(' · '+nFilhas+' equipe(s) filha(s)'):''}</div>
       </div>
-      <button class="btn btn-sm" style="background:var(--bg-3); color:var(--cyan); margin-right:6px;" onclick="editarEquipeControle('${nomeEsc}')">integrantes</button>
-      <button class="btn btn-sm" style="background:rgba(255,92,108,.15); color:var(--red);" onclick="excluirEquipeControle('${nomeEsc}')">Excluir</button>
+      <div class="ei-acoes" onclick="event.stopPropagation();">
+        <button class="btn btn-sm" style="background:var(--bg-3); color:var(--cyan);" onclick="editarEquipeControle('${nomeEsc}')">Editar</button>
+        <button class="btn btn-sm" style="background:rgba(255,92,108,.15); color:var(--red);" onclick="excluirEquipeControle('${nomeEsc}')">Excluir</button>
+      </div>
     </div>`;
   }).join('');
 }
@@ -8488,8 +10452,28 @@ window.renderCtrlEquipes = renderCtrlEquipes;
 // ==================== ESCALAS (aba do Módulo de Controle) ====================
 let escalaEditando = null;      // nome da escala sendo editada (null = nova)
 let escalaLetrasTmp = [];       // rascunho das letras no formulário
+let escalaHorariosTmp = [];     // rascunho dos horários por DIA DO CICLO
+let escalaHorariosSemanaTmp = {}; // rascunho dos horários por DIA DA SEMANA
 
 const DIAS_SEMANA_LABEL = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+// ---------------------------------------------------------------------------
+// IDENTIFICAÇÃO DA TURMA DENTRO DA ESCALA
+// Era um campo de 4 caracteres, pensado só para A/B/C/D. Passa a aceitar um
+// NOME — AMARELA, VERDE, TURMA DA MANHÃ — porque nem toda empresa identifica
+// turno por letra. O valor continua sendo a chave que liga a turma às equipes,
+// então ele é gravado exatamente como aparece na tela.
+// ---------------------------------------------------------------------------
+const LETRA_MAX = 50;
+
+// Escape para HTML. O nome da turma agora é texto livre digitado pelo usuário e
+// vai parar em vários lugares da tela; sem escapar, um "<" quebraria o layout.
+function escHtml(v){
+  return String(v == null ? '' : v)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function escAttr(v){ return escHtml(v); }
 
 function onChangeTipoEscala(){
   const tipo = (document.getElementById('escTipo')||{}).value || 'ciclica';
@@ -8497,9 +10481,178 @@ function onChangeTipoEscala(){
   const bs = document.getElementById('escBlocoSemanal');
   if(bc) bc.style.display = tipo==='ciclica' ? '' : 'none';
   if(bs) bs.style.display = tipo==='semanal' ? '' : 'none';
+  renderHorariosEscala();
   atualizarPreviaEscala();
 }
 window.onChangeTipoEscala = onChangeTipoEscala;
+
+// ---------------------------------------------------------------------------
+// HORÁRIOS DO TURNO — bloco opcional do formulário
+// A quantidade de linhas acompanha a rotina: numa 4x4 são quatro linhas (dia 1
+// a dia 4); numa escala semanal, uma linha por dia da semana marcado. Mudar os
+// dias de trabalho reconstrói as linhas SEM perder o que já estava preenchido.
+// ---------------------------------------------------------------------------
+function modoHorarioAtual(){
+  return (document.getElementById('escHorarioModo')||{}).value || 'nenhum';
+}
+
+function onChangeModoHorario(){
+  const modo = modoHorarioAtual();
+  const bu = document.getElementById('escBlocoHorarioUnico');
+  const bd = document.getElementById('escBlocoHorarioDetalhado');
+  if(bu) bu.style.display = modo==='unico' ? '' : 'none';
+  if(bd) bd.style.display = modo==='detalhado' ? '' : 'none';
+  if(modo==='detalhado') renderHorariosEscala();
+  atualizarPreviaEscala();
+}
+window.onChangeModoHorario = onChangeModoHorario;
+
+// Chamado quando muda "dias de trabalho" ou os dias da semana marcados.
+function onMudarDiasEscala(){
+  renderHorariosEscala();
+  atualizarPreviaEscala();
+}
+window.onMudarDiasEscala = onMudarDiasEscala;
+
+function diasSemanaMarcados(){
+  return Array.from(document.querySelectorAll('#escDiasSemana input[type="checkbox"]'))
+    .filter(i=>i.checked).map(i=>parseInt(i.value,10));
+}
+
+// Rótulo sugerido: quem termina antes de começar está na noite.
+function rotuloSugerido(inicio, fim){
+  const a = minutosDaHora(inicio), b = minutosDaHora(fim);
+  if(a==null || b==null) return '';
+  return (b <= a) ? 'NOITE' : 'DIA';
+}
+
+function onEditarHorario(chave, campo, valor){
+  const tipo = (document.getElementById('escTipo')||{}).value || 'ciclica';
+  let alvo;
+  if(tipo==='semanal'){
+    escalaHorariosSemanaTmp[String(chave)] = escalaHorariosSemanaTmp[String(chave)] || {inicio:'',fim:'',rotulo:''};
+    alvo = escalaHorariosSemanaTmp[String(chave)];
+  } else {
+    alvo = escalaHorariosTmp.find(h => Number(h.dia) === Number(chave));
+    if(!alvo){ alvo = {dia:Number(chave), inicio:'', fim:'', rotulo:''}; escalaHorariosTmp.push(alvo); }
+  }
+  alvo[campo] = valor;
+  // O rótulo é só um apelido; se o usuário não escreveu nada, ele acompanha o horário.
+  if(campo!=='rotulo' && !String(alvo.rotuloManual||'').trim()){
+    alvo.rotulo = rotuloSugerido(alvo.inicio, alvo.fim);
+  }
+  if(campo==='rotulo') alvo.rotuloManual = valor ? '1' : '';
+  renderHorariosEscala();
+  atualizarPreviaEscala();
+}
+window.onEditarHorario = onEditarHorario;
+
+function renderHorariosEscala(){
+  const wrap = document.getElementById('escHorariosWrap');
+  const resumo = document.getElementById('escHorariosResumo');
+  if(!wrap) return;
+  if(modoHorarioAtual() !== 'detalhado'){ wrap.innerHTML=''; if(resumo) resumo.innerHTML=''; return; }
+
+  const tipo = (document.getElementById('escTipo')||{}).value || 'ciclica';
+  let linhas = [];
+
+  if(tipo==='semanal'){
+    const dias = diasSemanaMarcados();
+    if(!dias.length){
+      wrap.innerHTML = `<div class="rank-empty">Marque os dias da semana primeiro.</div>`;
+      if(resumo) resumo.innerHTML=''; return;
+    }
+    linhas = dias.map(d => ({
+      chave: d,
+      rotuloLinha: DIAS_SEMANA_LABEL[d],
+      valor: escalaHorariosSemanaTmp[String(d)] || {inicio:'',fim:'',rotulo:''}
+    }));
+  } else {
+    const trab = Math.max(parseInt((document.getElementById('escDiasTrab')||{}).value,10) || 1, 1);
+    // Reconstrói mantendo o que já existe para cada dia do ciclo.
+    const antigos = escalaHorariosTmp.slice();
+    escalaHorariosTmp = [];
+    for(let d=1; d<=trab; d++){
+      const ant = antigos.find(h => Number(h.dia) === d) || {inicio:'', fim:'', rotulo:''};
+      escalaHorariosTmp.push({dia:d, inicio:ant.inicio||'', fim:ant.fim||'', rotulo:ant.rotulo||'', rotuloManual:ant.rotuloManual||''});
+    }
+    linhas = escalaHorariosTmp.map(h => ({ chave:h.dia, rotuloLinha:'Dia '+h.dia, valor:h }));
+  }
+
+  wrap.innerHTML = linhas.map(l => `
+    <div class="hora-linha">
+      <div class="hl-dia">${l.rotuloLinha}</div>
+      <div class="field"><label>Entrada</label>
+        <input type="time" value="${l.valor.inicio||''}" onchange="onEditarHorario('${l.chave}','inicio',this.value)"></div>
+      <div class="field"><label>Saída</label>
+        <input type="time" value="${l.valor.fim||''}" onchange="onEditarHorario('${l.chave}','fim',this.value)"></div>
+      <div class="field hl-rot"><label>Rótulo</label>
+        <input type="text" maxlength="14" value="${String(l.valor.rotulo||'').replace(/"/g,'&quot;')}"
+               placeholder="${rotuloSugerido(l.valor.inicio,l.valor.fim)||'DIA / NOITE'}"
+               onchange="onEditarHorario('${l.chave}','rotulo',this.value.toUpperCase())"></div>
+    </div>`).join('');
+
+  if(resumo){
+    const partes = linhas.map(l => {
+      const a = minutosDaHora(l.valor.inicio), b = minutosDaHora(l.valor.fim);
+      if(a==null || b==null) return `<b>${l.rotuloLinha}</b>: —`;
+      const vira = b <= a;
+      const horas = Math.round((((b-a)+(vira?1440:0))/60)*100)/100;
+      const rot = String(l.valor.rotulo||'').trim() || rotuloSugerido(l.valor.inicio,l.valor.fim);
+      return `<b>${l.rotuloLinha}</b>: ${l.valor.inicio}–${l.valor.fim}`
+           + (vira ? ' <span style="color:var(--gold);">(termina no dia seguinte)</span>' : '')
+           + ` · ${horas}h · <span class="turno-selo ${vira?'noite':'dia'}">${rot}</span>`;
+    });
+    const totalH = linhas.reduce((soma,l)=>{
+      const a = minutosDaHora(l.valor.inicio), b = minutosDaHora(l.valor.fim);
+      if(a==null||b==null) return soma;
+      return soma + ((b-a) + (b<=a?1440:0));
+    },0)/60;
+    resumo.innerHTML = partes.join('<br>')
+      + (totalH ? `<br><span style="color:var(--text-3);">Total do ciclo: <b>${Math.round(totalH*100)/100}h</b> de trabalho.</span>` : '');
+  }
+}
+window.renderHorariosEscala = renderHorariosEscala;
+
+// Atalho para o caso mais comum da Coqueria: a primeira metade do ciclo de dia
+// e a segunda metade de noite. Numa 4x4 dá dia, dia, noite, noite.
+function preencherHorarioDiaNoite(){
+  const tipo = (document.getElementById('escTipo')||{}).value || 'ciclica';
+  if(tipo==='semanal'){
+    diasSemanaMarcados().forEach(d=>{ escalaHorariosSemanaTmp[String(d)] = {inicio:'08:00', fim:'20:00', rotulo:'DIA'}; });
+    renderHorariosEscala(); atualizarPreviaEscala(); return;
+  }
+  const trab = Math.max(parseInt((document.getElementById('escDiasTrab')||{}).value,10) || 1, 1);
+  const metade = Math.ceil(trab/2);
+  escalaHorariosTmp = [];
+  for(let d=1; d<=trab; d++){
+    escalaHorariosTmp.push(d <= metade
+      ? {dia:d, inicio:'08:00', fim:'20:00', rotulo:'DIA'}
+      : {dia:d, inicio:'20:00', fim:'08:00', rotulo:'NOITE'});
+  }
+  renderHorariosEscala();
+  atualizarPreviaEscala();
+  toast(`Preenchido: ${metade} dia(s) de dia e ${trab-metade} de noite.`, 'ok');
+}
+window.preencherHorarioDiaNoite = preencherHorarioDiaNoite;
+
+function preencherHorarioIgual(){
+  const ini = prompt('Entrada (HH:MM):', '07:00'); if(ini===null) return;
+  const fim = prompt('Saída (HH:MM):', '17:00');   if(fim===null) return;
+  if(minutosDaHora(ini)==null || minutosDaHora(fim)==null){ toast('Horário inválido. Use HH:MM.', 'err'); return; }
+  const rot = rotuloSugerido(ini, fim);
+  const tipo = (document.getElementById('escTipo')||{}).value || 'ciclica';
+  if(tipo==='semanal'){
+    diasSemanaMarcados().forEach(d=>{ escalaHorariosSemanaTmp[String(d)] = {inicio:ini, fim:fim, rotulo:rot}; });
+  } else {
+    const trab = Math.max(parseInt((document.getElementById('escDiasTrab')||{}).value,10) || 1, 1);
+    escalaHorariosTmp = [];
+    for(let d=1; d<=trab; d++) escalaHorariosTmp.push({dia:d, inicio:ini, fim:fim, rotulo:rot});
+  }
+  renderHorariosEscala();
+  atualizarPreviaEscala();
+}
+window.preencherHorarioIgual = preencherHorarioIgual;
 
 function proximaTagLetra(){
   const usadas = new Set(escalaLetrasTmp.map(l=>String(l.tag||'').toUpperCase()));
@@ -8551,7 +10704,7 @@ function renderLetrasEscala(){
   const wrap = document.getElementById('escLetrasWrap');
   if(!wrap) return;
   if(!escalaLetrasTmp.length){
-    wrap.innerHTML = `<div class="rank-empty">Nenhuma letra ainda. Adicione ao menos uma.</div>`;
+    wrap.innerHTML = `<div class="rank-empty">Nenhuma turma ainda. Adicione ao menos uma.</div>`;
     atualizarPreviaEscala();
     return;
   }
@@ -8565,18 +10718,21 @@ function renderLetrasEscala(){
         <span>${n}</span>
       </label>`).join('');
     return `<div class="escala-card">
-      <div style="display:flex; gap:8px; align-items:flex-end;">
-        <div class="field" style="width:86px; margin-bottom:0;">
-          <label>Letra</label>
-          <input type="text" maxlength="4" value="${(l.tag||'').replace(/"/g,'&quot;')}" oninput="onEditarLetra(${idx},'tag',this.value.toUpperCase())">
+      <div style="display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap;">
+        <div class="field" style="flex:2 1 190px; min-width:150px; margin-bottom:0;">
+          <label>Letra ou nome da turma</label>
+          <input type="text" maxlength="${LETRA_MAX}" placeholder="Ex.: A, AMARELA, TURMA DA MANHÃ"
+                 style="text-transform:uppercase;"
+                 value="${escAttr(l.tag||'')}"
+                 oninput="onEditarLetra(${idx},'tag',this.value.toUpperCase())">
         </div>
-        <div class="field" style="flex:1; margin-bottom:0;">
+        <div class="field" style="flex:1 1 150px; min-width:140px; margin-bottom:0;">
           <label>Começa o ciclo em</label>
           <input type="date" value="${l.dataInicio||''}" onchange="onEditarLetra(${idx},'dataInicio',this.value)">
         </div>
         <button class="btn btn-sm" style="background:rgba(255,92,108,.15); color:var(--red);" onclick="removerLetraEscala(${idx})">remover</button>
       </div>
-      <div style="font-size:11px; color:var(--text-2); margin:10px 0 6px;">Equipes desta letra (${(l.equipes||[]).length})</div>
+      <div style="font-size:11px; color:var(--text-2); margin:10px 0 6px;">Equipes desta turma (${(l.equipes||[]).length})</div>
       <div class="rh-check-grid" style="margin-bottom:0;">${chips || '<div class="rank-empty">Cadastre equipes primeiro.</div>'}</div>
     </div>`;
   }).join('');
@@ -8587,6 +10743,18 @@ function lerFormEscala(){
   const tipo = (document.getElementById('escTipo')||{}).value || 'ciclica';
   const diasSemana = Array.from(document.querySelectorAll('#escDiasSemana input[type="checkbox"]'))
     .filter(i=>i.checked).map(i=>parseInt(i.value,10));
+  const horarioModo = (document.getElementById('escHorarioModo')||{}).value || 'nenhum';
+  const limpo = h => ({
+    dia: Number(h.dia)||0,
+    inicio: String(h.inicio||'').trim(),
+    fim: String(h.fim||'').trim(),
+    rotulo: String(h.rotulo||'').trim().toUpperCase()
+  });
+  const horariosSemana = {};
+  Object.keys(escalaHorariosSemanaTmp).forEach(k=>{
+    const h = escalaHorariosSemanaTmp[k] || {};
+    if(h.inicio && h.fim) horariosSemana[k] = { inicio:String(h.inicio).trim(), fim:String(h.fim).trim(), rotulo:String(h.rotulo||'').trim().toUpperCase() };
+  });
   return {
     nome: ((document.getElementById('escNome')||{}).value || '').trim(),
     tipo,
@@ -8594,8 +10762,16 @@ function lerFormEscala(){
     diasTrabalho: parseInt((document.getElementById('escDiasTrab')||{}).value,10) || 4,
     diasFolga: parseInt((document.getElementById('escDiasFolga')||{}).value,10) || 4,
     diasSemana,
+    horarioModo,
+    horarioUnico: {
+      inicio: ((document.getElementById('escHoraIni')||{}).value || '').trim(),
+      fim:    ((document.getElementById('escHoraFim')||{}).value || '').trim(),
+      rotulo: ((document.getElementById('escHoraRot')||{}).value || '').trim().toUpperCase()
+    },
+    horarios: escalaHorariosTmp.map(limpo).filter(h=>h.inicio && h.fim),
+    horariosSemana,
     letras: escalaLetrasTmp.map(l=>({
-      tag: String(l.tag||'').trim().toUpperCase(),
+      tag: String(l.tag||'').trim().toUpperCase().slice(0, LETRA_MAX),
       dataInicio: l.dataInicio || null,
       equipes: (l.equipes||[]).slice()
     }))
@@ -8616,17 +10792,23 @@ function atualizarPreviaEscala(){
       const d = _somaDias(hoje, i);
       const on = letraTrabalhaNaData(esc, l, d);
       const dt = _dataDeISO(d);
-      dias += `<div class="escala-dia ${on?'on':'off'}" title="${fmtDataPtBr(d)}">
-        <span class="ed-n">${dt.getDate()}</span>${DIAS_SEMANA_LABEL[dt.getDay()]}</div>`;
+      // Horário do dia: é aqui que dá para conferir de olho o rodízio
+      // dia/dia/noite/noite antes de salvar.
+      const h = on ? horarioDaEscalaNaData(esc, l, d) : null;
+      const classe = on ? (h && h.viraDia ? 'on noite' : 'on') : 'off';
+      const tit = fmtDataPtBr(d) + (h ? ` · ${h.completo}` : '');
+      const linhaH = h ? `<span class="ed-h">${h.inicio}<br>${h.fim}${h.viraDia?'⁺':''}</span>` : '';
+      dias += `<div class="escala-dia ${classe}" title="${tit}">
+        <span class="ed-n">${dt.getDate()}</span>${DIAS_SEMANA_LABEL[dt.getDay()]}${linhaH}</div>`;
     }
     html += `<div style="margin-bottom:10px;">
       <div style="font-size:12px; color:var(--text-1); margin-bottom:4px;">
-        <b style="color:var(--cyan);">Letra ${l.tag||'?'}</b> · início ${l.dataInicio? fmtDataPtBr(l.dataInicio):'—'} · ${(l.equipes||[]).length} equipe(s)
+        <b style="color:var(--cyan);">${escHtml(l.tag||'?')}</b> · início ${l.dataInicio? fmtDataPtBr(l.dataInicio):'—'} · ${(l.equipes||[]).length} equipe(s)
       </div>
       <div class="escala-calendario">${dias}</div>
     </div>`;
   });
-  html += `<div class="escala-legenda">Verde = dia de trabalho · Amarelo = folga.</div></div>`;
+  html += `<div class="escala-legenda">Verde = dia de trabalho · Azul = trabalho que atravessa a meia-noite · Amarelo = folga.</div></div>`;
   box.innerHTML = html;
 }
 window.atualizarPreviaEscala = atualizarPreviaEscala;
@@ -8634,17 +10816,51 @@ window.atualizarPreviaEscala = atualizarPreviaEscala;
 async function salvarEscala(){
   const esc = lerFormEscala();
   if(!esc.nome){ toast('Informe o nome da escala.', 'err'); return; }
-  if(!esc.letras.length){ toast('Adicione ao menos uma letra.', 'err'); return; }
+  if(!esc.letras.length){ toast('Adicione ao menos uma turma.', 'err'); return; }
   if(esc.tipo==='ciclica'){
     if(esc.diasTrabalho < 1){ toast('Dias de trabalho deve ser ao menos 1.', 'err'); return; }
     const semData = esc.letras.filter(l=>!l.dataInicio);
-    if(semData.length){ toast('Toda letra precisa da data em que começa o ciclo.', 'err'); return; }
+    if(semData.length){ toast('Toda turma precisa da data em que começa o ciclo.', 'err'); return; }
   }
   if(esc.tipo==='semanal' && !esc.diasSemana.length){
     toast('Marque ao menos um dia da semana.', 'err'); return;
   }
   const tagsVazias = esc.letras.filter(l=>!l.tag);
-  if(tagsVazias.length){ toast('Toda letra precisa de uma identificação (A, B, C…).', 'err'); return; }
+  if(tagsVazias.length){ toast('Toda turma precisa de uma identificação (A, B, AMARELA, VERDE…).', 'err'); return; }
+  // Duas turmas com o mesmo nome tornariam impossível saber a qual equipe
+  // pertence cada uma — e a escala passaria a apontar sempre para a primeira.
+  const vistos = new Set();
+  const repetido = esc.letras.find(l=>{
+    const k = l.tag.trim().toUpperCase();
+    if(vistos.has(k)) return true;
+    vistos.add(k); return false;
+  });
+  if(repetido){ toast(`Há duas turmas com a identificação "${repetido.tag}". Use nomes diferentes.`, 'err'); return; }
+
+  // Horários: só cobra coerência de quem escolheu detalhar.
+  if(esc.horarioModo === 'unico'){
+    if(minutosDaHora(esc.horarioUnico.inicio)==null || minutosDaHora(esc.horarioUnico.fim)==null){
+      toast('Informe entrada e saída do turno (HH:MM).', 'err'); return;
+    }
+    if(esc.horarioUnico.inicio === esc.horarioUnico.fim){
+      toast('Entrada e saída não podem ser iguais.', 'err'); return;
+    }
+  }
+  if(esc.horarioModo === 'detalhado'){
+    if(esc.tipo === 'semanal'){
+      const faltando = (esc.diasSemana||[]).filter(d => !esc.horariosSemana[String(d)]);
+      if(faltando.length){
+        toast('Falta o horário de: ' + faltando.map(d=>DIAS_SEMANA_LABEL[d]).join(', ') + '.', 'err'); return;
+      }
+    } else {
+      const esperados = Math.max(parseInt(esc.diasTrabalho,10)||1, 1);
+      if(esc.horarios.length !== esperados){
+        toast(`Preencha o horário dos ${esperados} dias de trabalho do ciclo.`, 'err'); return;
+      }
+      const iguais = esc.horarios.find(h => h.inicio === h.fim);
+      if(iguais){ toast(`Dia ${iguais.dia}: entrada e saída não podem ser iguais.`, 'err'); return; }
+    }
+  }
 
   try{
     // Se o nome mudou durante a edição, o documento antigo é removido.
@@ -8658,6 +10874,7 @@ async function salvarEscala(){
     }, {merge:true});
     toast('Escala salva.', 'ok');
     limparFormEscala();
+    escFormAberto = false; _escAplicarForm();
     await recarregarEscalas();
     renderCtrlEscalas();
     rerenderScreenAtiva();
@@ -8668,14 +10885,57 @@ async function salvarEscala(){
 }
 window.salvarEscala = salvarEscala;
 
+// -------------------------------------------------------------------
+// FORMULÁRIO DE ESCALA SOB DEMANDA
+// Ficava sempre aberto no meio da tela, empurrando o calendário e a lista
+// para baixo. Agora só aparece quando você clica em "Nova escala" ou em
+// "editar" no cartão de uma escala existente.
+// -------------------------------------------------------------------
+let escFormAberto = false;
+
+function _escAplicarForm(){
+  const w = document.getElementById('escFormWrap');
+  const t = document.getElementById('escFormTitulo');
+  if(!w) return;
+  w.style.display = escFormAberto ? '' : 'none';
+  if(t) t.textContent = escalaEditando ? ('Editar · ' + escalaEditando) : 'Nova escala';
+}
+window._escAplicarForm = _escAplicarForm;
+
+// Abre ou retrai o formulário sem mexer no que está preenchido.
+function mostrarFormEscala(abrir){ escFormAberto = !!abrir; _escAplicarForm(); }
+window.mostrarFormEscala = mostrarFormEscala;
+
+function novaEscalaControle(){
+  limparFormEscala();
+  if(!escalaLetrasTmp.length) adicionarLetraEscala();
+  mostrarFormEscala(true);
+  const el = document.getElementById('escNome');
+  if(el){ try{ el.scrollIntoView({behavior:'smooth', block:'center'}); }catch(_){ } try{ el.focus(); }catch(_){ } }
+}
+window.novaEscalaControle = novaEscalaControle;
+
+function cancelarFormEscala(){
+  limparFormEscala();
+  mostrarFormEscala(false);
+}
+window.cancelarFormEscala = cancelarFormEscala;
+
 function limparFormEscala(){
   escalaEditando = null;
   escalaLetrasTmp = [];
+  escalaHorariosTmp = [];
+  escalaHorariosSemanaTmp = {};
   ['escNome','escTurno'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   const dt=document.getElementById('escDiasTrab'); if(dt) dt.value=4;
   const df=document.getElementById('escDiasFolga'); if(df) df.value=4;
   const tp=document.getElementById('escTipo'); if(tp) tp.value='ciclica';
+  const hm=document.getElementById('escHorarioModo'); if(hm) hm.value='nenhum';
+  const hi=document.getElementById('escHoraIni'); if(hi) hi.value='07:00';
+  const hf=document.getElementById('escHoraFim'); if(hf) hf.value='17:00';
+  const hr=document.getElementById('escHoraRot'); if(hr) hr.value='';
   onChangeTipoEscala();
+  onChangeModoHorario();
   renderLetrasEscala();
 }
 window.limparFormEscala = limparFormEscala;
@@ -8703,9 +10963,27 @@ function editarEscala(nome){
     i.checked = marcados.has(parseInt(i.value,10));
   });
   escalaLetrasTmp = (esc.letras||[]).map(l=>({ tag:l.tag||'', dataInicio:l.dataInicio||'', equipes:(l.equipes||[]).slice() }));
+
+  // Horários gravados voltam para o rascunho do formulário.
+  set('escHorarioModo', esc.horarioModo || 'nenhum');
+  const hu = esc.horarioUnico || {};
+  set('escHoraIni', hu.inicio || '07:00');
+  set('escHoraFim', hu.fim || '17:00');
+  set('escHoraRot', hu.rotulo || '');
+  escalaHorariosTmp = (esc.horarios||[]).map(h=>({
+    dia:Number(h.dia)||0, inicio:h.inicio||'', fim:h.fim||'', rotulo:h.rotulo||'', rotuloManual: h.rotulo ? '1' : ''
+  }));
+  escalaHorariosSemanaTmp = {};
+  Object.keys(esc.horariosSemana||{}).forEach(k=>{
+    const h = esc.horariosSemana[k] || {};
+    escalaHorariosSemanaTmp[k] = { inicio:h.inicio||'', fim:h.fim||'', rotulo:h.rotulo||'' };
+  });
+
   onChangeTipoEscala();
+  onChangeModoHorario();
   renderLetrasEscala();
-  try{ document.getElementById('escNome').scrollIntoView({behavior:'smooth', block:'center'}); }catch(_){}
+  escFormAberto = true; _escAplicarForm();
+  try{ document.getElementById('escFormWrap').scrollIntoView({behavior:'smooth', block:'center'}); }catch(_){}
   toast('Escala carregada para edição.', 'ok');
 }
 window.editarEscala = editarEscala;
@@ -8727,6 +11005,48 @@ async function excluirEscala(nome){
 }
 window.excluirEscala = excluirEscala;
 
+// Uma linha resumindo o modus operandi: "Dia 1–2 08:00–20:00 (DIA) · Dia 3–4
+// 20:00–08:00 (NOITE)". Dias seguidos com o mesmo horário são agrupados.
+function descreverHorariosDaEscala(esc){
+  if(!esc) return '';
+  const modo = String(esc.horarioModo||'nenhum');
+  if(modo === 'nenhum') return '';
+  const selo = (rot, vira) => `<span class="turno-selo ${vira?'noite':'dia'}">${rot}</span>`;
+
+  if(modo === 'unico'){
+    const h = esc.horarioUnico || {};
+    if(!h.inicio || !h.fim) return '';
+    const vira = minutosDaHora(h.fim) <= minutosDaHora(h.inicio);
+    return `🕐 Todo dia de trabalho: <b>${h.inicio}–${h.fim}</b>${vira?' (termina no dia seguinte)':''} ${selo(h.rotulo||(vira?'NOITE':'DIA'), vira)}`;
+  }
+
+  if(String(esc.tipo||'ciclica') === 'semanal'){
+    const mapa = esc.horariosSemana || {};
+    const partes = (esc.diasSemana||[]).map(d=>{
+      const h = mapa[String(d)];
+      if(!h || !h.inicio || !h.fim) return '';
+      return `<b>${DIAS_SEMANA_LABEL[d]}</b> ${h.inicio}–${h.fim}`;
+    }).filter(Boolean);
+    return partes.length ? '🕐 ' + partes.join(' · ') : '';
+  }
+
+  const lista = (esc.horarios||[]).slice().sort((a,b)=>Number(a.dia)-Number(b.dia));
+  if(!lista.length) return '';
+  const blocos = [];
+  lista.forEach(h=>{
+    const ult = blocos[blocos.length-1];
+    if(ult && ult.inicio===h.inicio && ult.fim===h.fim){ ult.ate = h.dia; return; }
+    blocos.push({de:h.dia, ate:h.dia, inicio:h.inicio, fim:h.fim, rotulo:h.rotulo});
+  });
+  const txt = blocos.map(b=>{
+    const vira = minutosDaHora(b.fim) <= minutosDaHora(b.inicio);
+    const faixa = b.de === b.ate ? `Dia ${b.de}` : `Dias ${b.de}–${b.ate}`;
+    return `${faixa} <b>${b.inicio}–${b.fim}</b>${vira?'⁺¹':''} ${selo(b.rotulo||(vira?'NOITE':'DIA'), vira)}`;
+  }).join(' · ');
+  return '🕐 ' + txt;
+}
+window.descreverHorariosDaEscala = descreverHorariosDaEscala;
+
 function renderCtrlEscalas(){
   const box = document.getElementById('ctrlEscalasLista');
   if(!box) return;
@@ -8736,8 +11056,10 @@ function renderCtrlEscalas(){
 
   if(!escalasCache.length){
     box.innerHTML = `<div class="rank-empty">Nenhuma escala cadastrada. Equipes sem escala trabalham todos os dias.</div>`;
+    if(typeof renderCalendarioEscalas === 'function') renderCalendarioEscalas();
     return;
   }
+  if(typeof renderCalendarioEscalas === 'function') renderCalendarioEscalas();
   const esc1 = s => String(s||'').replace(/'/g,"\\'");
   box.innerHTML = escalasCache
     .slice().sort((a,b)=>String(a.nome||'').localeCompare(String(b.nome||'')))
@@ -8746,33 +11068,292 @@ function renderCtrlEscalas(){
         ? 'Semanal: ' + (esc.diasSemana||[]).map(d=>DIAS_SEMANA_LABEL[d]).join(', ')
         : `${esc.diasTrabalho||'?'} dia(s) trabalha × ${esc.diasFolga||'?'} dia(s) folga`;
       const letras = (esc.letras||[]).map(l=>{
+        // (a variável continua chamando "letra" por compatibilidade com os
+        //  documentos já gravados no Firebase — o campo no banco é `tag`)
         const on = letraTrabalhaNaData(esc, l, dataRef);
         const eqs = (l.equipes||[]);
+        // Com horário configurado, cada letra mostra o turno DAQUELE dia:
+        // é assim que se vê quem está de dia e quem está de noite.
+        const h = on ? horarioDaEscalaNaData(esc, l, dataRef) : null;
+        const linhaH = h
+          ? `<span class="turno-selo ${h.viraDia?'noite':'dia'}">${h.rotulo}</span>
+             <span style="color:var(--text-2); font-size:10px;">${h.inicio}–${h.fim}${h.viraDia?' (+1)':''}${h.diaCiclo?' · dia '+h.diaCiclo+' do ciclo':''}</span>`
+          : '';
         return `<div class="escala-letra ${on?'trab':'folga'}">
-          <span class="el-tag">${l.tag||'?'}</span>
+          <span class="el-tag" title="${escAttr(l.tag||'')}">${escHtml(l.tag||'?')}</span>
           <span style="color:${on?'var(--green)':'var(--gold)'}; font-weight:600;">${on?'TRABALHA':'FOLGA'}</span>
+          ${linhaH}
           <span style="color:var(--text-2);">${eqs.length} equipe(s)</span>
           <span style="color:var(--text-2); font-size:10px;">início ${l.dataInicio? fmtDataPtBr(l.dataInicio):'—'}</span>
         </div>`;
       }).join('');
+      const rotinaHoraria = descreverHorariosDaEscala(esc);
       const listaEquipes = (esc.letras||[])
-        .map(l=>`<b style="color:var(--cyan);">${l.tag}:</b> ${(l.equipes||[]).join(', ')||'—'}`)
+        .map(l=>`<b style="color:var(--cyan);">${escHtml(l.tag)}:</b> ${escHtml((l.equipes||[]).join(', ')||'—')}`)
         .join('<br>');
       return `<div class="escala-card">
         <div style="display:flex; align-items:flex-start; gap:8px;">
           <div style="flex:1; min-width:0;">
             <div class="es-nome">${esc.nome}</div>
             <div class="es-meta">${rotina}${esc.turno?' · '+esc.turno:''}</div>
+            ${rotinaHoraria ? `<div class="es-meta" style="margin-top:4px;">${rotinaHoraria}</div>` : ''}
           </div>
           <button class="btn btn-sm" style="background:var(--bg-3); color:var(--cyan);" onclick="editarEscala('${esc1(esc.nome)}')">editar</button>
           <button class="btn btn-sm" style="background:rgba(255,92,108,.15); color:var(--red);" onclick="excluirEscala('${esc1(esc.nome)}')">excluir</button>
         </div>
-        <div class="escala-letras">${letras || '<div class="rank-empty">Sem letras.</div>'}</div>
-        <div class="escala-legenda" style="margin-top:8px;">Situação em <b>${fmtDataPtBr(dataRef)}</b>.<br>${listaEquipes}</div>
+        <details class="ajuda" style="margin:8px 0 0;">
+          <summary>Turmas e situação em ${fmtDataPtBr(dataRef)}</summary>
+          <div class="aj-corpo">
+            <div class="escala-letras">${letras || '<div class="rank-empty">Sem turmas.</div>'}</div>
+            <div class="escala-legenda" style="margin-top:8px;">${listaEquipes}</div>
+          </div>
+        </details>
       </div>`;
     }).join('');
 }
 window.renderCtrlEscalas = renderCtrlEscalas;
+
+// ===================================================================
+// CALENDÁRIO VISUAL DA ESCALA
+// -------------------------------------------------------------------
+// A operação já lê a escala numa folha pregada na parede: uma linha por
+// turma, uma coluna por dia do mês, e na célula o turno daquele dia. Esta
+// função desenha exatamente essa leitura — só que calculada na hora pelo
+// mesmo motor da chamada (letraTrabalhaNaData / horarioDaEscalaNaData),
+// então nunca fica desatualizada e nunca discorda do resto do sistema.
+//
+// Nada aqui grava nada. É só leitura.
+// ===================================================================
+const CAL_MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                   'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const CAL_DOW = ['D','S','T','Q','Q','S','S'];
+
+// Quando a turma se chama por cor (AMARELA, VERDE...), a faixa lateral usa
+// aquela cor — é o que a operação já reconhece de olho.
+const CAL_CORES_NOME = [
+  [/AMAREL/i,  '#f0c040'], [/AZUL|BLUE/i,      '#4a7dff'],
+  [/VERDE/i,   '#3de8a0'], [/VERMELH|RUBRA/i,  '#ff5c6c'],
+  [/BRANC/i,   '#e8ecf4'], [/PRET|NEGR/i,      '#5a6275'],
+  [/LARANJ/i,  '#ff9040'], [/ROX|VIOLET|LILAS|LILÁS/i, '#a06cff'],
+  [/ROSA|PINK/i,'#ff6cb0'], [/CINZ|PRATA/i,    '#a8b0c2'],
+  [/MARROM|CAFE|CAFÉ/i, '#a3714a'], [/DOURAD|OURO/i, '#d4af37'],
+  [/CIANO|TURQUES/i, '#22d3ee']
+];
+const CAL_PALETA = ['#22d3ee','#f0c040','#3de8a0','#a06cff','#ff9040','#ff6cb0','#4a7dff','#ff5c6c'];
+
+function corDaTurma(tag, idx){
+  const t = String(tag||'');
+  for(const [re, cor] of CAL_CORES_NOME){ if(re.test(t)) return cor; }
+  return CAL_PALETA[(idx||0) % CAL_PALETA.length];
+}
+window.corDaTurma = corDaTurma;
+
+// Dois calendários na tela ao mesmo tempo (o da aba Escala e o do painel da
+// equipe) navegam mês a mês de forma independente.
+const calEstado = { esc:{ano:null, mes:null}, eq:{ano:null, mes:null} };
+function calInit(k){
+  const st = calEstado[k] || (calEstado[k] = {ano:null, mes:null});
+  if(st.ano == null){ const d = new Date(); st.ano = d.getFullYear(); st.mes = d.getMonth(); }
+  return st;
+}
+function calRedesenhar(k){
+  if(k === 'eq'){ if(typeof renderCalendarioEquipe === 'function') renderCalendarioEquipe(); }
+  else { renderCalendarioEscalas(); }
+}
+function calNavegar(k, delta){
+  const st = calInit(k);
+  let m = st.mes + Number(delta||0), a = st.ano;
+  while(m < 0){ m += 12; a--; }
+  while(m > 11){ m -= 12; a++; }
+  st.mes = m; st.ano = a;
+  calRedesenhar(k);
+}
+window.calNavegar = calNavegar;
+function calHoje(k){
+  const st = calInit(k), d = new Date();
+  st.ano = d.getFullYear(); st.mes = d.getMonth();
+  calRedesenhar(k);
+}
+window.calHoje = calHoje;
+
+// Monta a grade de um mês inteiro para uma escala. `destaque` (opcional) é a
+// tag da turma que deve ganhar o contorno — usada no painel da equipe.
+function montarCalendarioEscala(esc, ano, mes, opcoes){
+  const op = opcoes || {};
+  const chave = op.chave || 'esc';
+  const destaque = op.destaque ? normEquipe(op.destaque) : null;
+  const letras = (esc && Array.isArray(esc.letras)) ? esc.letras : [];
+
+  // Com várias escalas empilhadas, a navegação de mês fica UMA vez no topo da
+  // lista (semNav) e cada quadro só se identifica pelo nome da escala. Sozinho
+  // — no painel da equipe — o quadro traz a própria navegação.
+  const nav = op.semNav
+    ? `<div class="cal-topo">
+        <div class="cal-titulo">${escHtml(op.titulo || (esc && esc.nome) || '')}</div>
+        <div class="cal-mes" style="flex:0 0 auto; font-size:12.5px; color:var(--text-2);">${CAL_MESES[mes]} ${ano}</div>
+      </div>`
+    : `<div class="cal-topo">
+        <button class="cal-nav" onclick="calNavegar('${chave}',-1)" title="Mês anterior">‹</button>
+        <div class="cal-mes">${CAL_MESES[mes]} ${ano}</div>
+        <button class="btn btn-sm" style="background:var(--bg-2); color:var(--cyan); padding:5px 10px;"
+                onclick="calHoje('${chave}')">hoje</button>
+        <button class="cal-nav" onclick="calNavegar('${chave}',1)" title="Próximo mês">›</button>
+      </div>`;
+
+  if(!letras.length){
+    return `<div class="cal-wrap">${nav}<div class="cal-vazio">Esta escala ainda não tem turmas cadastradas.</div></div>`;
+  }
+
+  const nDias = new Date(ano, mes + 1, 0).getDate();
+  const hoje = hojeISOLocal();
+  const mm = String(mes + 1).padStart(2, '0');
+
+  // ---- cabeçalho: canto + um dia por coluna
+  let celulas = `<div class="cal-turma cal-canto" style="background:transparent;"><span class="cn" style="color:var(--text-2); font-size:10.5px; font-family:'Barlow Condensed',sans-serif; font-weight:700; letter-spacing:.06em;">TURMA</span></div>`;
+  for(let d = 1; d <= nDias; d++){
+    const iso = `${ano}-${mm}-${String(d).padStart(2,'0')}`;
+    const dow = new Date(ano, mes, d).getDay();
+    const cls = ['cal-cab', dow === 0 ? 'dom' : '', iso === hoje ? 'hoje' : ''].filter(Boolean).join(' ');
+    celulas += `<div class="${cls}"><span class="d">${CAL_DOW[dow]}</span><span class="n">${d}</span></div>`;
+  }
+
+  // ---- uma linha por turma
+  const resumo = [];
+  letras.forEach((l, i) => {
+    const cor = corDaTurma(l.tag, i);
+    const marcada = destaque && normEquipe(l.tag||'') === destaque;
+    celulas += `<div class="cal-turma"${marcada ? ' style="box-shadow:inset 0 0 0 1.5px var(--cyan);"' : ''}>
+      <i style="background:${cor};"></i>
+      <span class="tn" title="${escAttr(l.tag||'')}">${escHtml(l.tag||'?')}</span>
+    </div>`;
+
+    let nTrab = 0, nFolga = 0, horas = 0;
+    for(let d = 1; d <= nDias; d++){
+      const iso = `${ano}-${mm}-${String(d).padStart(2,'0')}`;
+      const trabalha = letraTrabalhaNaData(esc, l, iso);
+      const h = trabalha ? horarioDaEscalaNaData(esc, l, iso) : null;
+      let cls, txt, tip;
+      if(!trabalha){
+        cls = 'folga'; txt = '·'; tip = `${l.tag||'turma'} · ${fmtDataPtBr(iso)} · folga`;
+        nFolga++;
+      } else if(h){
+        cls = h.viraDia ? 'noite' : 'dia';
+        txt = String(h.rotulo||'').trim().charAt(0).toUpperCase() || 'T';
+        tip = `${l.tag||'turma'} · ${fmtDataPtBr(iso)} · ${h.rotulo} ${h.inicio}–${h.fim}${h.viraDia?' (+1)':''}`;
+        nTrab++; horas += Number(h.horas||0);
+      } else {
+        cls = 'trab'; txt = 'T'; tip = `${l.tag||'turma'} · ${fmtDataPtBr(iso)} · dia de trabalho`;
+        nTrab++;
+      }
+      if(iso === hoje) cls += ' hoje';
+      celulas += `<div class="cal-cel ${cls}" title="${escAttr(tip)}">${txt}</div>`;
+    }
+    resumo.push(`<span style="color:${cor};">■</span> <b>${escHtml(l.tag||'?')}</b> — ${nTrab} dia(s) de trabalho, ${nFolga} de folga${horas ? `, <b>${Math.round(horas*10)/10}h</b> no mês` : ''}${(l.equipes||[]).length ? ` · ${(l.equipes||[]).length} equipe(s)` : ' · sem equipe vinculada'}`);
+  });
+
+  const larguraMin = 110 + nDias * 22;
+  const legenda = `
+    <div class="cal-legenda">
+      <span><i style="background:rgba(240,192,64,.35); box-shadow:inset 0 0 0 1px rgba(240,192,64,.6);"></i> turno de dia</span>
+      <span><i style="background:rgba(120,140,255,.35); box-shadow:inset 0 0 0 1px rgba(120,140,255,.6);"></i> turno de noite (vira o dia)</span>
+      <span><i style="background:rgba(61,232,160,.3); box-shadow:inset 0 0 0 1px rgba(61,232,160,.5);"></i> trabalha (sem horário definido)</span>
+      <span><i style="background:var(--trilho);"></i> folga</span>
+    </div>`;
+
+  return `<div class="cal-wrap">
+    ${nav}
+    <div class="cal-rolagem">
+      <div class="cal-grade" style="grid-template-columns:minmax(104px,132px) repeat(${nDias}, minmax(20px,1fr)); min-width:${larguraMin}px;">${celulas}</div>
+    </div>
+    ${legenda}
+    <div class="cal-resumo">${resumo.join('<br>')}</div>
+  </div>`;
+}
+window.montarCalendarioEscala = montarCalendarioEscala;
+
+// ---- Aba Escala: caixas de seleção + calendários empilhados
+// Marcou a escala, o calendário dela aparece; desmarcou, some. Várias marcadas
+// ficam uma embaixo da outra, todas no mesmo mês — a navegação é uma só, no
+// topo, para não haver dois calendários mostrando meses diferentes.
+let calEscalasSel = null;   // Set de nomes; null = ainda não escolhido nada
+
+function toggleCalEscala(nome, ligado){
+  if(calEscalasSel === null) calEscalasSel = new Set();
+  if(ligado) calEscalasSel.add(String(nome)); else calEscalasSel.delete(String(nome));
+  renderCalendarioEscalas();
+}
+window.toggleCalEscala = toggleCalEscala;
+
+function renderCalendarioEscalas(){
+  const box    = document.getElementById('calEscalaBox');
+  const picker = document.getElementById('calEscalaPicker');
+  const barra  = document.getElementById('calEscalaBarra');
+  if(!box || !picker) return;
+
+  const lista = escalasCache.slice().sort((a,b)=>String(a.nome||'').localeCompare(String(b.nome||'')));
+  if(!lista.length){
+    picker.innerHTML = '';
+    if(barra) barra.innerHTML = '';
+    box.innerHTML = `<div class="cal-wrap"><div class="cal-vazio">Cadastre uma escala para ver o calendário do mês.</div></div>`;
+    return;
+  }
+
+  // Primeira vez na tela: já mostra a primeira escala, para não abrir vazio.
+  if(calEscalasSel === null) calEscalasSel = new Set([String(lista[0].nome||'')]);
+  // Escala apagada some da seleção sozinha.
+  [...calEscalasSel].forEach(n => { if(!lista.some(e=>String(e.nome||'')===n)) calEscalasSel.delete(n); });
+
+  const st = calInit('esc');
+  if(barra){
+    barra.innerHTML = `<div class="cal-barra">
+      <button class="cal-nav" onclick="calNavegar('esc',-1)" title="Mês anterior">‹</button>
+      <div class="cal-mes">${CAL_MESES[st.mes]} ${st.ano}</div>
+      <button class="btn btn-sm" style="background:var(--bg-2); color:var(--cyan); padding:5px 10px;"
+              onclick="calHoje('esc')">hoje</button>
+      <button class="cal-nav" onclick="calNavegar('esc',1)" title="Próximo mês">›</button>
+    </div>`;
+  }
+
+  picker.innerHTML = lista.map(e => {
+    const nome = String(e.nome||'');
+    const on = calEscalasSel.has(nome);
+    const nT = (e.letras||[]).length;
+    const nE = (e.letras||[]).reduce((a,l)=>a + ((l.equipes||[]).length), 0);
+    return `<label class="cal-pick ${on?'on':''}">
+      <input type="checkbox" value="${escAttr(nome)}" ${on?'checked':''}
+             onchange="toggleCalEscala(this.value, this.checked)">
+      <span class="cp-n">${escHtml(nome)}</span>
+      <span class="cp-m">${nT} turma(s) · ${nE} equipe(s)</span>
+    </label>`;
+  }).join('');
+
+  const escolhidas = lista.filter(e => calEscalasSel.has(String(e.nome||'')));
+  box.innerHTML = escolhidas.length
+    ? escolhidas.map(e => montarCalendarioEscala(e, st.ano, st.mes, {chave:'esc', semNav:true, titulo:e.nome})).join('')
+    : `<div class="cal-wrap"><div class="cal-vazio">Marque acima a escala que você quer ver.</div></div>`;
+}
+window.renderCalendarioEscalas = renderCalendarioEscalas;
+
+// ---- Painel da equipe: a mesma grade, com a turma da equipe em destaque
+function renderCalendarioEquipe(){
+  const box = document.getElementById('calEquipeBox');
+  if(!box) return;
+  const nome = equipePainelAtual;
+  const info = nome ? escalaDaEquipe(nome) : null;
+  if(!info){
+    box.innerHTML = `<div class="cal-wrap"><div class="cal-vazio">
+      Esta equipe não está vinculada a nenhuma turma de escala — ela é cobrada na chamada <b>todos os dias</b>.
+      <br>Para colocá-la numa escala, use a aba <b>Escala</b> e adicione a equipe a uma turma.
+    </div></div>`;
+    return;
+  }
+  const st = calInit('eq');
+  box.innerHTML = `<div class="remanejar-hint" style="font-size:11.5px; margin-bottom:8px;">
+      Escala <b>${escHtml(info.escala.nome||'')}</b> · esta equipe está na turma
+      <b style="color:var(--cyan);">${escHtml(info.letra.tag||'?')}</b> (linha destacada).
+    </div>` + montarCalendarioEscala(info.escala, st.ano, st.mes, {chave:'eq', destaque: info.letra.tag});
+}
+window.renderCalendarioEquipe = renderCalendarioEquipe;
 
 // ===================================================================
 // CONFERÊNCIA E REPARO DOS ATRIBUTOS DE EQUIPE
@@ -9248,6 +11829,30 @@ async function processarUploadEfetivo(file){
     toast('Apenas administradores ou RH podem atualizar a base.', 'err');
     return;
   }
+  // Isto reescreve a base inteira. Vale dizer, antes, exatamente o que muda e
+  // o que não muda — é a diferença entre uma atualização e um susto.
+  const aviso =
+    'Atualizar a base pela planilha.\n\n' +
+    'O QUE A PLANILHA ATUALIZA:\n' +
+    '• nome, grupo, classificação/função, equipe;\n' +
+    '• contrato, centro de custo, responsável, gestor, posição Ternium;\n' +
+    '• CPF, admissão, matrícula Ternium;\n' +
+    '• status, apenas se a coluna STATUS vier preenchida;\n' +
+    '• EQUIPE em branco (ou "SEM EQUIPE") deixa a pessoa sem equipe,\n' +
+    '  conforme a opção marcada nesta tela.\n\n' +
+    'O QUE NÃO É TOCADO:\n' +
+    '• chamadas já lançadas (presenças, faltas, atestados);\n' +
+    '• férias lançadas e o histórico de férias;\n' +
+    '• status do RH (demitido, afastado) quando a coluna vier vazia;\n' +
+    '• líder designado na Gestão de Equipes, se a planilha não trouxer LÍDER;\n' +
+    '• escalas, lanches, remanejamentos e configurações das equipes.\n\n' +
+    'Quem está no sistema e não está na planilha NÃO é apagado.\n\n' +
+    'Continuar?';
+  if(!confirm(aviso)) return;
+
+  // Só vale quando a coluna EQUIPE existe na planilha e vem vazia naquela linha.
+  const tirarDaEquipeQuandoVazio = !!(document.getElementById('uploadEquipeVaziaRemove') || {}).checked;
+
   const loading = document.getElementById('uploadLoading');
   const resumo = document.getElementById('uploadResumo');
   if(resumo) resumo.innerHTML = '';
@@ -9294,65 +11899,103 @@ async function processarUploadEfetivo(file){
       const n = {}; Object.keys(l).forEach(k => n[normKey(k)] = l[k]);
       const matricula = pick(n,'MATRICULA','RM');
       if(!matricula) continue;
-      const antigo = colaboradoresCache.find(x => String(x.matricula)===String(matricula)) || {};
-      const nome        = pick(n,'NOME') || antigo.nome || '';
-      const contrato    = pick(n,'CONTRATO') || antigo.contrato || '';       // topo da árvore
-      const grupo       = pick(n,'GRUPO') || antigo.grupo || '';
-      const classificacao = pick(n,'CLASSIFICACAO','CLASSIFICACAO ') || antigo.classificacao || '';
-      const equipe      = pick(n,'EQUIPE') || antigo.equipe || '';           // 2º nível / chave de equipe
-      const codContrato = pick(n,'CENTRO DE CUSTO','DENTRO DE CUSTO','COD. CONTRATO','COD CONTRATO') || antigo.codContrato || '';
-      const responsavel = pick(n,'RESPONSAVEL') || antigo.responsavel || '';
-      const gestor      = pick(n,'GESTOR','COORDENADOR') || antigo.gestor || '';
-      const posTernium  = pick(n,'POSICAO TERNIUM','POSICAO TERNIUM ') || antigo.posTernium || '';
-      const admissao    = excelDateToISO(n['ADMISSAO']!==undefined ? n['ADMISSAO'] : pick(n,'ADMISSAO')) || antigo.admissao || '';
-      const matTernium  = pick(n,'MAT. TERNIUM','MAT TERNIUM','MATRICULA TERNIUM') || antigo.matTernium || '';
-      const cpf         = pick(n,'CPF') || antigo.cpf || '';
-      // Campos REMOVIDOS da planilha (C.C, ATUAÇÃO, TIPO DE KPI, RESP. CAMPO): preserva o que já existe.
-      const ccTipo      = antigo.ccTipo || '';                               // DIRETOS/INDIRETOS (legado)
-      const atuacao     = equipe || '';                                      // atuação espelha a equipe
-      const tipoKpi     = antigo.tipoKpi || '';
-      const respCampo   = antigo.respCampo || '';
+
+      // ---------------------------------------------------------------
+      // REGRA: o documento só recebe o que a PLANILHA carrega.
+      //
+      // Antes cada campo caía num valor do cache em memória e era gravado
+      // assim mesmo. Com `merge:true`, gravar `feriasInicio: null` APAGA as
+      // férias — e o cache do administrador é uma foto do momento em que ele
+      // abriu a tela: férias lançadas por um líder depois disso não estavam
+      // lá, e sumiam no upload. O mesmo valia para status do RH e afins.
+      //
+      // Campo ausente da planilha agora é simplesmente OMITIDO. O merge do
+      // Firestore preserva o que já está gravado, sem depender de cache
+      // nenhum. É a diferença entre "atualizar" e "reescrever".
+      // ---------------------------------------------------------------
+      const nome        = pick(n,'NOME');
+      const contrato    = pick(n,'CONTRATO');                                // topo da árvore
+      const grupo       = pick(n,'GRUPO');
+      const classificacao = pick(n,'CLASSIFICACAO','CLASSIFICACAO ');
+      // "SEM EQUIPE", "(SEM EQUIPE)", "-" ou "—" na célula querem dizer a mesma
+      // coisa que a célula vazia: a pessoa não está em equipe nenhuma.
+      const equipeBruta = pick(n,'EQUIPE');                                  // 2º nível / chave de equipe
+      const equipe      = /^(SEM ?EQUIPE|\(SEM ?EQUIPE\)|-|—|N\/?A)$/i.test(String(equipeBruta).trim()) ? '' : equipeBruta;
+      const codContrato = pick(n,'CENTRO DE CUSTO','DENTRO DE CUSTO','COD. CONTRATO','COD CONTRATO');
+      const responsavel = pick(n,'RESPONSAVEL');
+      const gestor      = pick(n,'GESTOR','COORDENADOR');
+      const posTernium  = pick(n,'POSICAO TERNIUM','POSICAO TERNIUM ');
+      const admissao    = excelDateToISO(n['ADMISSAO']!==undefined ? n['ADMISSAO'] : pick(n,'ADMISSAO'));
+      const matTernium  = pick(n,'MAT. TERNIUM','MAT TERNIUM','MATRICULA TERNIUM');
+      const cpf         = pick(n,'CPF');
       // Colunas do RH: STATUS e DATA STATUS
       const statusPlan  = pick(n,'STATUS');
       const dataStatusP = excelDateToISO(n['DATA STATUS']!==undefined ? n['DATA STATUS'] : pick(n,'DATA STATUS'));
 
-      const liderMatricula = equipe ? (lideresPorEquipe[equipe.toUpperCase()] || null) : null;
-
-      // Status: usa o da planilha (normalizado) se informado; senão preserva o existente; senão ATIVO.
-      let statusFinal = statusPlan ? statusPlan.trim().toUpperCase() : (antigo.status || 'ATIVO');
-      statusFinal = statusFinal.trim();
-      const dataStatusFinal = dataStatusP || antigo.dataStatus || (typeof hojeISOLocal==='function' ? hojeISOLocal() : new Date().toISOString().slice(0,10));
-
-      const dados = {
-        matricula, nome,
-        contrato,                 // CONTRATO (topo da árvore)
-        cc: contrato,             // alias p/ compatibilidade com a árvore do efetivo
-        grupo, classificacao,
-        funcao: classificacao,    // telas de chamada exibem `funcao`
-        ccTipo,                   // legado (preservado)
-        equipe: equipe || null,   // chave de equipe p/ chamadas
-        rastreabilidade: equipe || '',
-        atuacao, tipoKpi,         // legado (preservados)
-        codContrato,              // CENTRO DE CUSTO
-        respCampo, responsavel, gestor,
-        posTernium, admissao, matTernium, cpf,
-        status: statusFinal,
-        dataStatus: dataStatusFinal,
-        liderMatricula,
-        situacao: antigo.situacao || 'A',
-        feriasInicio: antigo.feriasInicio || null,
-        feriasFim: antigo.feriasFim || null,
-        alocacaoTipo: (antigo.alocacaoTipo && antigo.alocacaoTipo!=='permanente') ? antigo.alocacaoTipo : (equipe ? 'permanente' : null),
-        atualizadoEm: serverTimestamp()
+      const dados = { matricula, atualizadoEm: serverTimestamp() };
+      const põe = (campo, valor) => {
+        if(valor !== undefined && valor !== null && String(valor).trim() !== '') dados[campo] = valor;
       };
-      registros.push(dados);
+      põe('nome', nome);
+      põe('grupo', grupo);
+      põe('classificacao', classificacao);
+      põe('funcao', classificacao);      // as telas de chamada exibem `funcao`
+      if(contrato){ dados.contrato = contrato; dados.cc = contrato; }   // `cc` é alias da árvore
       if(equipe){
+        dados.equipe = equipe;
+        dados.rastreabilidade = equipe;
+        dados.atuacao = equipe;          // atuação espelha a equipe, sempre
+      } else if(tirarDaEquipeQuandoVazio && (Object.prototype.hasOwnProperty.call(n,'EQUIPE') || equipeBruta !== '')){
+        // Escolha explícita de quem subiu a planilha: célula vazia = sem equipe.
+        // A pessoa não some — passa a aparecer na caixa (sem equipe) do contrato.
+        dados.equipe = null;
+        dados.rastreabilidade = '';
+        dados.atuacao = '';
+        dados.liderMatricula = null;
+      }
+      põe('codContrato', codContrato);   // CENTRO DE CUSTO
+      põe('responsavel', responsavel);
+      põe('gestor', gestor);
+      põe('posTernium', posTernium);
+      põe('admissao', admissao);
+      põe('matTernium', matTernium);
+      põe('cpf', cpf);
+
+      // Status só é tocado quando a planilha traz a coluna preenchida. Coluna
+      // vazia NÃO significa "ATIVO": significa "a planilha não fala disso", e
+      // quem foi demitido ou afastado pelo RH continua como está.
+      if(statusPlan){
+        dados.status = statusPlan.trim().toUpperCase();
+        dados.dataStatus = dataStatusP || (typeof hojeISOLocal==='function' ? hojeISOLocal() : new Date().toISOString().slice(0,10));
+      } else if(dataStatusP){
+        dados.dataStatus = dataStatusP;
+      }
+
+      // Líder: só quando a planilha aponta um LÍDER para a equipe. Sem isso, a
+      // designação feita na Gestão de Equipes (inclusive a temporária) fica.
+      const liderDaPlanilha = equipe ? (lideresPorEquipe[equipe.toUpperCase()] || null) : null;
+      if(liderDaPlanilha) dados.liderMatricula = liderDaPlanilha;
+
+      // NÃO entram aqui de propósito, para não apagarem o que já existe:
+      //   feriasInicio, feriasFim  -> lançadas pela liderança e pelo RH;
+      //   alocacaoTipo             -> remanejamento/hora extra em curso;
+      //   ccTipo, tipoKpi, respCampo, situacao -> campos legados fora da planilha.
+
+      registros.push(dados);
+
+      if(equipe){
+        // Atributos da EQUIPE: primeiro valor não vazio entre as linhas dela.
+        // Antes valia a última linha lida — bastava a última pessoa da equipe
+        // estar sem gestor na planilha para o gestor da equipe inteira sumir.
         const chaveEq = equipe.toUpperCase();
-        conjuntoEquipes.set(chaveEq, {
-          nome: equipe, contrato, cc: contrato,
-          codContrato, responsavel, gestor, posTernium,
-          liderMatricula: lideresPorEquipe[chaveEq] || null
-        });
+        const acc = conjuntoEquipes.get(chaveEq) || { nome: equipe };
+        const guarda = (k, v) => { if(v && !acc[k]) acc[k] = v; };
+        guarda('contrato', contrato);
+        guarda('codContrato', codContrato);
+        guarda('responsavel', responsavel);
+        guarda('gestor', gestor);
+        guarda('posTernium', posTernium);
+        conjuntoEquipes.set(chaveEq, acc);
       }
     }
 
@@ -9363,16 +12006,21 @@ async function processarUploadEfetivo(file){
       await batch.commit();
     }
     // grava/atualiza equipes COM a correlação (contrato, CC, responsável, gestor, posição).
-    // Preserva fazChamada/folga já configurados (merge não sobrescreve campos ausentes).
+    // Mesma regra dos colaboradores: campo que a planilha não traz é OMITIDO,
+    // e o merge preserva o que já está gravado — fazChamada, folga manual,
+    // equipe pai e a designação de líder feita dentro do aplicativo.
     const be = writeBatch(db);
+    let equipesComLiderDaPlanilha = 0;
     for(const [key,eq] of conjuntoEquipes){
-      be.set(doc(db,'equipes', eq.nome), {
-        nome: eq.nome, cc: eq.cc, contrato: eq.contrato,
-        codContrato: eq.codContrato || '', centroCusto: eq.codContrato || '',
-        responsavel: eq.responsavel || '', gestor: eq.gestor || '',
-        posTernium: eq.posTernium || '',
-        liderMatricula: eq.liderMatricula, atualizadoEm: serverTimestamp()
-      }, {merge:true});
+      const docEq = { nome: eq.nome, atualizadoEm: serverTimestamp() };
+      if(eq.contrato){ docEq.contrato = eq.contrato; docEq.cc = eq.contrato; }
+      if(eq.codContrato){ docEq.codContrato = eq.codContrato; docEq.centroCusto = eq.codContrato; }
+      if(eq.responsavel) docEq.responsavel = eq.responsavel;
+      if(eq.gestor)      docEq.gestor = eq.gestor;
+      if(eq.posTernium)  docEq.posTernium = eq.posTernium;
+      // Só sobrescreve a liderança se a planilha realmente apontar um LÍDER.
+      if(lideresPorEquipe[key]){ docEq.liderMatricula = lideresPorEquipe[key]; equipesComLiderDaPlanilha++; }
+      be.set(doc(db,'equipes', eq.nome), docEq, {merge:true});
     }
     await be.commit();
 
@@ -9380,6 +12028,20 @@ async function processarUploadEfetivo(file){
       <div class="upload-summary" style="grid-template-columns: 1fr 1fr;">
         <div><div class="num" style="color:var(--green)">${registros.length}</div><div class="lab">Colaboradores</div></div>
         <div><div class="num" style="color:var(--cyan)">${conjuntoEquipes.size}</div><div class="lab">Equipes</div></div>
+      </div>
+      <div class="remanejar-hint" style="margin-top:10px; font-size:11.5px;">
+        Líder atualizado pela planilha em <b>${equipesComLiderDaPlanilha}</b> de <b>${conjuntoEquipes.size}</b> equipe(s)
+        — as demais mantiveram o líder designado na Gestão de Equipes.<br>
+        <b>Não foram tocados:</b> chamadas já lançadas, férias e histórico de férias,
+        status do RH sem coluna preenchida, remanejamentos em curso, escalas e
+        configurações das equipes.
+      </div>
+      <button class="btn btn-primary btn-sm" style="width:100%; margin-top:10px;"
+              onclick="goScreen('controle'); mudarAbaControle('revisao');">
+        🧹 Revisar equipes agora
+      </button>
+      <div style="font-size:11px; color:var(--text-2); margin-top:6px; text-align:center;">
+        Mostra equipes que ficaram vazias, líderes que mudaram de equipe e quem ficou sem equipe.
       </div>`;
     toast('Base mestre processada com sucesso!', 'ok');
     if(typeof carregarBaseInicial==='function') await carregarBaseInicial();
@@ -9699,9 +12361,29 @@ function renderTeamBlock(cc, eq, members) {
         <span class="node-count"><b>${members.length}</b> colab.</span>
       </div>
       <div class="node-children">
+        ${cabecalhoHierarquia(eq)}
         <div class="team-members">${membersHtml}</div>
       </div>
     </div>`;
+}
+
+/* A cadeia de responsabilidade da equipe, em uma linha:
+     LÍDER      -> quem faz a chamada daquela equipe;
+     SUPERVISOR -> o "responsável" do cadastro (supervisor de campo);
+     GESTOR     -> coordenador / gerente.
+   Fica dentro do nó expandido para não pesar a árvore fechada. */
+function cabecalhoHierarquia(nomeEquipe) {
+  const dados = (typeof window.dadosDaEquipe === 'function') ? window.dadosDaEquipe(nomeEquipe) : null;
+  if (!dados) return '';
+  const sup = dados.responsavel || '—';
+  const ges = dados.gestor || '—';
+  const con = dados.contrato || dados.cc || '—';
+  if (sup === '—' && ges === '—' && con === '—') return '';
+  return `<div class="team-hierarquia">
+    <span><b>Supervisor:</b> ${esc(sup)}</span>
+    <span><b>Gestor:</b> ${esc(ges)}</span>
+    <span><b>Contrato:</b> ${esc(con)}</span>
+  </div>`;
 }
 
 function renderPersonChip(p, leaderMat, desig) {

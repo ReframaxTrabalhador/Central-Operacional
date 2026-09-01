@@ -1,6 +1,6 @@
 /* ============================================================================
    Service Worker — REFRAMAX Central Operacional (PWA)
-   Versão do app: central_39 (RH/Férias · Escalas · Hierarquia de equipes ·
+   Versão do app: central_50 (RH/Férias · Escalas + calendário visual ·
    Reset de senha aprovado · Falta justificada · Escopo de liderança)
 
    ONDE PUBLICAR
@@ -23,7 +23,7 @@
      então guardar é seguro e o app abre rápido (e funciona offline).
    ========================================================================== */
 
-const CACHE = 'central-v6';
+const CACHE = 'central-v17';
 
 /* Casca mínima pré-carregada na instalação: garante que o app abra offline
    já no primeiro uso. Falha aqui não pode impedir a instalação do SW. */

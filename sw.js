@@ -23,7 +23,7 @@
      então guardar é seguro e o app abre rápido (e funciona offline).
    ========================================================================== */
 
-const CACHE = 'central-v17';
+const CACHE = 'central-v21';
 
 /* Casca mínima pré-carregada na instalação: garante que o app abra offline
    já no primeiro uso. Falha aqui não pode impedir a instalação do SW. */

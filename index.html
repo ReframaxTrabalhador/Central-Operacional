@@ -52,7 +52,7 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
 /* ---------- RESPONSIVIDADE DESKTOP ---------- */
 @media (min-width: 768px) {
   #app {
-    max-width: 1000px;
+    max-width: 1400px;
     border-left: 1px solid var(--line);
     border-right: 1px solid var(--line);
     background: var(--bg-0);
@@ -67,7 +67,7 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
     grid-template-columns: repeat(3, 1fr);
   }
   .bottomnav {
-    max-width: 1000px;
+    max-width: 1400px;
   }
   .modal-overlay {
     align-items: center !important;
@@ -81,10 +81,15 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
 }
 
 /* ---------- TOPBAR ---------- */
+/* O cabeçalho fica preso no topo ao rolar. Antes ele subia junto com a
+   página e, no meio da rolagem, aparecia pela metade — era o "menu vazando".
+   O fundo tem de ser opaco: sendo translúcido, o conteúdo passava por baixo
+   e se via o texto atravessando o cabeçalho. */
 .topbar{
   display:flex; align-items:center; justify-content:space-between;
   padding:16px 18px 14px; border-bottom:1px solid var(--line);
-  background:linear-gradient(180deg, rgba(19,42,71,.6), transparent);
+  background:linear-gradient(180deg, rgba(19,42,71,.92), rgba(10,22,40,.98)), var(--bg-0);
+  position:sticky; top:0; z-index:40;
 }
 .brand{display:flex; align-items:center; gap:10px;}
 .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--cyan); box-shadow:0 0 12px var(--cyan);}
@@ -277,6 +282,8 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
 /* ---------- BOTTOM NAV ---------- */
 .bottomnav{
   position:fixed; bottom:0; left:0; right:0; margin:0 auto;
+  /* camada própria: no Android, a barra fixa tremia durante a rolagem */
+  transform:translateZ(0); backface-visibility:hidden;
   background:rgba(10,22,40,.92); backdrop-filter:blur(10px); border-top:1px solid var(--line);
   display:flex; padding:8px 10px calc(8px + env(safe-area-inset-bottom));
 }
@@ -906,6 +913,30 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
    ============================================================ */
 /* Tela de Equipes ocupa a largura total do dispositivo. */
 #app.efetivo-full{ max-width:100% !important; }
+/* -----------------------------------------------------------------
+   TELAS DE DADO EM TELA CHEIA
+   Lista, tabela, painel e dashboard não têm por que caber numa faixa:
+   quanto mais largo o monitor, mais linhas e colunas de uma vez. Já as
+   telas de formulário e a chamada continuam numa coluna legível — campo
+   de texto com 1900px de largura não ajuda ninguém.
+   ----------------------------------------------------------------- */
+#app.tela-larga{ max-width:100% !important; }
+@media (min-width:768px){
+  #app.tela-larga{ border-left:none !important; border-right:none !important; box-shadow:none !important; }
+  #app.tela-larga .bottomnav{ max-width:100% !important; }
+  #app.tela-larga .screen{ padding-left:26px; padding-right:26px; }
+}
+/* Em monitor largo, os blocos espalham em vez de esticar: cartões de
+   tamanho normal lado a lado leem melhor que um cartão de 1900px. */
+@media (min-width:1280px){
+  #app.tela-larga .dash-grid{ grid-template-columns:repeat(4,1fr); }
+  #app.tela-larga .list{ display:grid; grid-template-columns:repeat(auto-fill,minmax(330px,1fr));
+                         gap:12px; align-items:start; }
+}
+@media (min-width:1700px){
+  #app.tela-larga .dash-grid{ grid-template-columns:repeat(6,1fr); }
+  #app.tela-larga .painel-grid{ grid-template-columns:repeat(auto-fill,minmax(420px,1fr)); }
+}
 @media (min-width:768px){
   #app.efetivo-full{ max-width:100% !important; border-left:none !important; border-right:none !important; box-shadow:none !important; }
   #app.efetivo-full .bottomnav{ max-width:100% !important; }
@@ -941,6 +972,8 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
 #app.mapa-cheia .mf-acoes{ margin-bottom:8px; }
 #app.mapa-cheia .mf-resumo{ margin-bottom:8px; }
 #app.mapa-cheia .mf-wrap{ padding:10px; }
+#app.mapa-cheia .mf-legenda{ margin-top:8px; gap:5px; }
+#app.mapa-cheia .mf-legenda .lg{ min-height:28px; padding:3px 8px 3px 4px; }
 /* Os indicadores viram uma faixa de uma linha só: número e rótulo lado
    a lado, em vez de cinco cartões de duas linhas. */
 #app.mapa-cheia .mf-kpi{ display:flex; align-items:baseline; gap:7px; padding:6px 12px; flex:0 1 auto; }
@@ -1244,8 +1277,15 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
 .mf-cel.t{background:rgba(138,124,255,.18); color:#a99cff; box-shadow:inset 0 0 0 1px rgba(138,124,255,.4);}
 .mf-cel.a{background:rgba(240,192,64,.18); color:var(--gold); box-shadow:inset 0 0 0 1px rgba(240,192,64,.35);}
 .mf-cel.v{background:rgba(34,211,238,.16); color:var(--cyan); box-shadow:inset 0 0 0 1px rgba(34,211,238,.35);}
-.mf-cel.folga{background:var(--trilho); color:var(--text-2); opacity:.5;}
+/* FE = folga compensada pela escala. Ganha caixa própria, no mesmo formato da
+   de férias, porque é uma ausência prevista — não é lacuna nem falta. */
+.mf-cel.folga{background:rgba(126,156,196,.16); color:#9fb6d0; opacity:1;
+  box-shadow:inset 0 0 0 1px rgba(126,156,196,.34); font-size:10px; letter-spacing:.4px;}
 .mf-cel.vazio{background:var(--bg-2); color:var(--text-2); opacity:.45;}
+/* SN = dia de trabalho que já passou e o líder não lançou. Tem de dar para
+   ler sem gritar: a lacuna informa, não acusa. */
+.mf-cel.vazio.sn{opacity:1; font-size:9.5px; letter-spacing:.4px; color:var(--text-2);
+  background:var(--bg-2); box-shadow:inset 0 0 0 1px var(--line);}
 .mf-cel.futuro{background:transparent; box-shadow:inset 0 0 0 1px var(--line); color:transparent;}
 .mf-cel.hoje{outline:1.5px solid var(--cyan); outline-offset:-1.5px;}
 .mf-tot{display:flex; align-items:center; justify-content:center; border-radius:6px;
@@ -1253,12 +1293,35 @@ h1,h2,h3,.disp{font-family:'Barlow Condensed', sans-serif; font-weight:700; lett
   font-size:12.5px; color:var(--text-1); padding:0 6px; white-space:nowrap;}
 .mf-linha-total .mf-cel, .mf-linha-total .mf-tot{background:var(--bg-3); color:var(--text-1);
   box-shadow:none; opacity:1;}
-.mf-legenda{display:flex; flex-wrap:wrap; gap:6px 14px; margin-top:10px; font-size:11px; color:var(--text-2);}
-.mf-legenda span{display:flex; align-items:center; gap:5px;}
-.mf-legenda i{width:16px; height:16px; border-radius:4px; display:flex; align-items:center;
-  justify-content:center; font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:10.5px;}
+/* A legenda tambem e o filtro: cada item liga e desliga a marcacao no mapa.
+   Nenhum item marcado = sem filtro (mostra tudo), que e o estado inicial;
+   por isso o primeiro clique ISOLA a marcacao, que e o caminho curto para
+   "me mostre so os feristas" sem ter que desmarcar os outros sete. */
+.mf-legenda{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; font-size:11px;
+  color:var(--text-2); align-items:center;}
+.mf-legenda .lg{display:inline-flex; align-items:center; gap:6px; padding:4px 9px 4px 5px;
+  border:1px solid var(--line); border-radius:999px; background:var(--bg-2); color:var(--text-2);
+  font-family:inherit; font-size:11px; line-height:1.2; min-height:32px; cursor:pointer;
+  -webkit-tap-highlight-color:transparent; transition:opacity .12s, border-color .12s, background .12s;}
+.mf-legenda .lg:hover{border-color:var(--cyan); color:var(--text-1);}
+.mf-legenda .lg:focus-visible{outline:2px solid var(--cyan); outline-offset:2px;}
+.mf-legenda .lg.sel{border-color:var(--cyan); background:rgba(34,211,238,.12); color:var(--text-0);}
+.mf-legenda .lg.off{opacity:.34;}
+.mf-legenda .lg .qt{font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:11px;
+  color:var(--text-1); background:var(--bg-3); border-radius:999px; padding:0 6px;
+  min-width:20px; text-align:center;}
+.mf-legenda .lg.zerada .qt{opacity:.4;}
+.mf-legenda .lg-reset{border-style:dashed; border-color:var(--cyan); color:var(--cyan); padding:4px 12px;}
+.mf-legenda i{width:18px; height:18px; min-height:0; border-radius:5px; flex:0 0 auto;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:11px;}
+/* Dia que nao esta no filtro: continua no lugar (a linha nao se desmonta),
+   mas recua para o fundo para a marcacao procurada saltar aos olhos. */
+.mf-cel.apagado{opacity:.22;}
 .mf-vazio{padding:26px; text-align:center; color:var(--text-2); font-size:12.5px;}
 @media (max-width:600px){
+  .mf-legenda{gap:5px;}
+  .mf-legenda .lg{padding:3px 8px 3px 4px; min-height:30px; gap:5px;}
   .mf-pessoa{min-width:124px;}
   .mf-pessoa .pn{font-size:12.5px;}
   .mf-rolagem{max-height:62vh;}
@@ -2339,10 +2402,43 @@ details.ajuda .aj-corpo b{color:var(--text-1);}
       <div id="paneRhFerias" style="display:none;">
         <div class="remanejar-hint">
           Solicitações <b>aprovadas pelo gestor</b> ficam aguardando o <b>aceite do RH</b>. Só depois do aceite o período é aplicado no cadastro do colaborador. Você também pode lançar férias direto na aba <b>Lançamentos</b>.
+          <br><br>Na lista abaixo dá para filtrar por <b>mês</b> (entra quem tem pelo menos um dia de férias dentro dele), contrato, equipe, situação e nome — e exportar o recorte para Excel.
         </div>
         <div id="rhSolicitacoesFerias"></div>
         <div class="section-title" style="margin-top:16px;">Colaboradores em férias / agendadas</div>
-        <div class="search-row"><input type="text" id="rhFeriasSearch" placeholder="Filtrar por nome…" oninput="renderRhFerias()"></div>
+        <div class="mf-barra" style="margin-bottom:10px;">
+          <div class="field">
+            <label>Mês de referência</label>
+            <input type="month" id="rhFerMes" onchange="renderRhFerias()">
+          </div>
+          <div class="field">
+            <label>Contrato</label>
+            <select id="rhFerContrato" onchange="onFiltroFeriasContrato()"></select>
+          </div>
+          <div class="field">
+            <label>Equipe</label>
+            <select id="rhFerEquipe" onchange="renderRhFerias()"></select>
+          </div>
+          <div class="field">
+            <label>Situação</label>
+            <select id="rhFerSituacao" onchange="renderRhFerias()">
+              <option value="">Todas as situações</option>
+              <option value="ativa">Em férias hoje</option>
+              <option value="agendada">Agendadas (ainda não começaram)</option>
+              <option value="tramite">Aguardando aceite do RH</option>
+              <option value="encerrada">Já encerradas</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Pessoa (nome ou matrícula)</label>
+            <input type="text" id="rhFeriasSearch" placeholder="Todos…" oninput="renderRhFerias()">
+          </div>
+          <div class="mf-acoes">
+            <button class="btn btn-ghost btn-sm" style="flex:1 1 140px;" onclick="limparFiltrosFerias()">↺ Limpar filtros</button>
+            <button class="btn btn-primary btn-sm" style="flex:1 1 140px;" onclick="exportarFeriasExcel()">📊 Exportar Excel</button>
+          </div>
+        </div>
+        <div id="rhFeriasResumo" class="mf-resumo"></div>
         <div class="list" id="rhFeriasLista"></div>
       </div>
 
@@ -2394,6 +2490,19 @@ details.ajuda .aj-corpo b{color:var(--text-1);}
             <br><br>Os filtros se somam. Escolher o <b>líder</b> traz todas as equipes pelas quais
             ele responde de uma vez; deixar tudo em branco mostra o <b>geral</b>. Passe o dedo (ou
             o mouse) sobre uma célula para ver a <b>hora do lançamento</b> e quem lançou.
+            <br><br>A <b>legenda embaixo da tabela também filtra</b>: clique em <i>férias</i> e ficam
+            só os feristas, clique em <i>falta</i> e ficam só os ausentes — pode marcar mais de uma.
+            O número ao lado de cada marcação diz quantos colaboradores têm pelo menos um dia
+            daquele tipo no mês. Para voltar ao geral, clique em <b>mostrar todos</b>.
+            <br><br><b>SN</b> marca o dia de trabalho que já passou e <b>o líder não lançou</b> —
+            é a lacuna da chamada. <b>FE</b> é folga compensada da escala: ausência prevista,
+            não é lacuna nem falta. Dia que ainda não chegou fica em branco.
+            <br><br>Em <b>Imprimir / Exportar</b> você escolhe o período (de/até, não precisa
+            ser o mês inteiro) e decide se leva o recorte da tela ou o mapa completo. A impressão
+            sai em A4 deitado, com as cores e as letras; a planilha sai com as mesmas marcações.
+            Filtre por <i>sem lançamento</i> para ver só quem tem SN no mês.
+            <br><br>Mês já aberto uma vez não é lido de novo: trocar o mês para frente e para trás
+            é instantâneo. Para buscar lançamentos novos do mês, use <b>Recarregar</b>.
           </div>
         </details>
 
@@ -2421,7 +2530,7 @@ details.ajuda .aj-corpo b{color:var(--text-1);}
           <div class="mf-acoes">
           <button class="btn btn-ghost btn-sm" style="flex:1 1 140px;" onclick="limparFiltrosMapa()">↺ Limpar filtros</button>
           <button class="btn btn-ghost btn-sm" style="flex:1 1 140px;" onclick="carregarMapaFrequencia(true)">🔄 Recarregar</button>
-          <button class="btn btn-primary btn-sm" style="flex:1 1 140px;" onclick="exportarMapaFrequencia()">📊 Exportar Excel</button>
+          <button class="btn btn-primary btn-sm" style="flex:1 1 140px;" onclick="mfAbrirExportar()">🖨️ Imprimir / Exportar</button>
           </div>
         </div>
 
@@ -2850,6 +2959,28 @@ details.ajuda .aj-corpo b{color:var(--text-1);}
   </div>
 
   <!-- ================= MODAL: EDIÇÃO RÁPIDA DE EQUIPE (aba Árvore) ================= -->
+  <!-- Imprimir / exportar o mapa por período escolhido -->
+  <div class="modal-overlay" id="modalMfExportar">
+    <div class="modal-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Imprimir ou exportar o mapa</div>
+      <div class="sheet-sub">Escolha o período. A saída sai do jeito que está na tela — cores, letras e totais.</div>
+      <div class="form-grid" style="margin-top:12px;">
+        <div class="field"><label>De</label><input type="date" id="mfExpIni"></div>
+        <div class="field"><label>Até</label><input type="date" id="mfExpFim"></div>
+      </div>
+      <label class="rh-check" style="margin-top:10px;">
+        <input type="checkbox" id="mfExpCompleto">
+        <span>Ignorar os filtros e levar o <b>mapa completo</b> (todas as equipes e pessoas)</span>
+      </label>
+      <div class="actions-row" style="margin-top:14px;">
+        <button class="btn btn-cyan" id="mfBtImprimir" onclick="mfImprimirPeriodo()">🖨️ Imprimir (A4 deitado)</button>
+        <button class="btn btn-green" id="mfBtExcel" onclick="mfExportarPeriodoExcel()">📊 Exportar Excel</button>
+      </div>
+      <button class="btn btn-ghost" style="margin-top:8px;" onclick="mfFecharExportar()">Cancelar</button>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="modalEquipeRapida">
     <div class="modal-sheet">
       <div class="sheet-handle"></div>
@@ -4042,6 +4173,9 @@ function rerenderScreenAtiva(){
 }
 
 // ================= NAVEGAÇÃO =================
+// Telas de dado: lista, tabela, painel, dashboard. O resto continua centrado.
+const TELAS_LARGAS = new Set(['rh','admin-dashboard','admin-home','controle',
+                              'admin-aprovacoes','admin-equipes','lanche-painel']);
 function goScreenRaw(name){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-'+name).classList.add('active');
@@ -4050,6 +4184,9 @@ function goScreenRaw(name){
   // colunas não cabe na faixa de 1000px usada pelas telas de celular.
   if(appEl){
     appEl.classList.toggle('efetivo-full', name==='efetivo' || name==='planilha');
+    // Telas que mostram dado em volume ganham a janela inteira; as de
+    // formulário e a chamada ficam na faixa centrada, que é mais legível.
+    appEl.classList.toggle('tela-larga', TELAS_LARGAS.has(name));
     // A planilha ainda trava a rolagem da página: quem rola é a grade.
     appEl.classList.toggle('planilha-cheia', name==='planilha');
     // O mapa de frequência também, mas só enquanto a aba dele está aberta —
@@ -4078,6 +4215,12 @@ function goScreen(name){
       document.getElementById('painelLancheDataFim').value = hojeISO();
     }
     renderPainelLanche();
+  }
+  else if(name==='rh'){
+    // Reentrar no RH nao passa por mudarAbaRh(): se a aba aberta e a do mapa,
+    // a tela cheia precisa ser reacesa aqui, senao o mapa volta aos 1000px.
+    const appRh = document.getElementById('app');
+    if(appRh) appRh.classList.toggle('mapa-cheia', abaRhAtiva === 'mapa');
   }
   else if(name==='admin-home') renderAdminHome();
   else if(name==='efetivo'){ if(typeof window.bootEfetivoModule==='function'){ window.bootEfetivoModule(); } efetivoSyncFirebase(); }
@@ -5074,6 +5217,9 @@ async function salvarStatus(status){
       timestamp: serverTimestamp()
     }, {merge:true});
     
+    // O mapa daquele mês acabou de ficar velho: da próxima vez que for aberto,
+    // lê de novo em vez de mostrar o que estava guardado.
+    try{ if(typeof mfInvalidarMes === 'function') mfInvalidarMes(data); }catch(_e){}
     toast('Registro atualizado com sucesso.', 'ok');
     fecharModalStatus();
   } catch(e){ console.error(e); toast('Erro ao salvar registro.', 'err'); }
@@ -8004,7 +8150,7 @@ function mudarAbaRh(aba){
     if(pane) pane.style.display = a===aba ? '' : 'none';
   });
   if(aba==='lancar') renderRhLancar();
-  if(aba==='ferias') renderRhFerias();
+  if(aba==='ferias'){ popularFiltrosFerias(); renderRhFerias(); }
   if(aba==='relatorios'){
     // Mês de referência começa no mês corrente.
     const mesEl = document.getElementById('rhRelMes');
@@ -8076,6 +8222,118 @@ function renderRhLancar(){
 window.renderRhLancar = renderRhLancar;
 
 // ---- RH: aba Férias (vê férias e solicitações aprovadas pelo gestor) ----
+// Mês escolhido na aba Férias -> primeiro e último dia.
+function feriasLimitesMes(){
+  const mes = (document.getElementById('rhFerMes')||{}).value || '';
+  const lim = mes ? mfLimitesDoMes(mes) : null;
+  return lim ? { ini:lim.ini, fim:lim.fim, mes } : null;
+}
+
+// O período de férias da pessoa, seja o já aceito ou o que está no trâmite.
+function feriasPeriodoDe(c){
+  if(c.feriasInicio || c.feriasFim) return { ini:c.feriasInicio||'', fim:c.feriasFim||'', tramite:false };
+  if(c.feriasPendenteInicio) return { ini:c.feriasPendenteInicio, fim:c.feriasPendenteFim||'', tramite:true };
+  return { ini:'', fim:'', tramite:false };
+}
+
+function feriasSituacaoDe(c){
+  const p = feriasPeriodoDe(c);
+  const hoje = hojeISOLocal();
+  if(p.tramite) return 'tramite';
+  if(!p.ini) return '';
+  if(p.fim && hoje > p.fim) return 'encerrada';
+  if(hoje < p.ini) return 'agendada';
+  return 'ativa';
+}
+
+function popularFiltrosFerias(){
+  const selC = document.getElementById('rhFerContrato');
+  if(!selC) return;
+  const contratos = [...new Set((equipesCache||[]).map(e=>String(e.contrato||e.cc||'').trim()).filter(Boolean))]
+    .sort((a,b)=>a.localeCompare(b));
+  const antes = selC.value;
+  selC.innerHTML = `<option value="">Todos os contratos</option>` +
+    contratos.map(c=>`<option value="${escAttr(c)}">${escHtml(c)}</option>`).join('');
+  if(antes) selC.value = antes;
+  popularEquipesFerias();
+}
+window.popularFiltrosFerias = popularFiltrosFerias;
+
+function popularEquipesFerias(){
+  const selE = document.getElementById('rhFerEquipe');
+  if(!selE) return;
+  const contrato = (document.getElementById('rhFerContrato')||{}).value || '';
+  const nomes = (equipesCache||[])
+    .filter(e=>!contrato || String(e.contrato||e.cc||'').trim() === contrato)
+    .map(e=>e.nome).filter(Boolean).sort((a,b)=>a.localeCompare(b));
+  const antes = selE.value;
+  selE.innerHTML = `<option value="">Todas as equipes</option>` +
+    nomes.map(nm=>`<option value="${escAttr(nm)}">${escHtml(nm)}</option>`).join('');
+  if(antes && nomes.includes(antes)) selE.value = antes;
+}
+
+function onFiltroFeriasContrato(){ popularEquipesFerias(); renderRhFerias(); }
+window.onFiltroFeriasContrato = onFiltroFeriasContrato;
+
+function limparFiltrosFerias(){
+  ['rhFerMes','rhFerContrato','rhFerEquipe','rhFerSituacao','rhFeriasSearch'].forEach(id=>{
+    const e = document.getElementById(id); if(e) e.value = '';
+  });
+  popularEquipesFerias();
+  renderRhFerias();
+}
+window.limparFiltrosFerias = limparFiltrosFerias;
+
+// Quem entra na lista, já com todos os filtros aplicados.
+function feriasFiltradas(){
+  const busca = ((document.getElementById('rhFeriasSearch')||{}).value||'').toLowerCase().trim();
+  const contrato = (document.getElementById('rhFerContrato')||{}).value || '';
+  const equipe = (document.getElementById('rhFerEquipe')||{}).value || '';
+  const situacao = (document.getElementById('rhFerSituacao')||{}).value || '';
+  const limMes = feriasLimitesMes();
+  const eqAlvo = equipe ? normEquipe(equipe) : null;
+
+  return (colaboradoresCache||[]).filter(c=>{
+    const emFerias = normStatus(c.status)==='FERIAS' || (c.feriasInicio && c.feriasFim);
+    const emTramite = !!c.feriasPendenteInicio;
+    if(!emFerias && !emTramite) return false;
+    if(contrato && String(c.contrato||c.cc||'').trim() !== contrato) return false;
+    if(eqAlvo && normEquipe(c.equipe) !== eqAlvo) return false;
+    if(busca && !((c.nome||'').toLowerCase().includes(busca) || String(c.matricula||'').includes(busca))) return false;
+    if(situacao && feriasSituacaoDe(c) !== situacao) return false;
+    if(limMes){
+      // entra quem tem pelo menos um dia de férias dentro do mês escolhido
+      const p = feriasPeriodoDe(c);
+      if(!p.ini) return false;
+      const fim = p.fim || p.ini;
+      if(fim < limMes.ini || p.ini > limMes.fim) return false;
+    }
+    return true;
+  });
+}
+
+function exportarFeriasExcel(){
+  const lista = feriasFiltradas();
+  if(!lista.length){ toast('Nada para exportar com esses filtros.', 'err'); return; }
+  const rot = { ativa:'EM FERIAS', agendada:'AGENDADA', tramite:'AGUARDANDO RH', encerrada:'ENCERRADA' };
+  const linhas = lista.map(c=>{
+    const p = feriasPeriodoDe(c);
+    const ret = p.fim ? retornoAposFimFerias(p.fim) : '';
+    return [String(c.matricula||''), c.nome||'', c.equipe||'', c.contrato||c.cc||'',
+            p.ini ? fmtDataPtBr(p.ini) : '', p.fim ? fmtDataPtBr(p.fim) : '',
+            ret ? fmtDataPtBr(ret) : '', rot[feriasSituacaoDe(c)] || ''];
+  });
+  const cab = ['MATRICULA','NOME','EQUIPE','CONTRATO','INICIO','FIM','RETORNO PREVISTO','SITUACAO'];
+  const ws = XLSX.utils.aoa_to_sheet([cab, ...linhas]);
+  ws['!cols'] = [{wch:12},{wch:34},{wch:24},{wch:16},{wch:12},{wch:12},{wch:16},{wch:18}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Ferias');
+  const mes = (document.getElementById('rhFerMes')||{}).value || 'GERAL';
+  XLSX.writeFile(wb, `FERIAS_${String(mes).replace('-','_')}.xlsx`);
+  toast(`Planilha gerada com ${linhas.length} colaborador(es).`, 'ok');
+}
+window.exportarFeriasExcel = exportarFeriasExcel;
+
 async function renderRhFerias(){
   const boxSol = document.getElementById('rhSolicitacoesFerias');
   const boxLista = document.getElementById('rhFeriasLista');
@@ -8108,19 +8366,25 @@ async function renderRhFerias(){
   }
   // 2) Lista de quem está de férias / com férias agendadas
   if(boxLista){
-    const busca = (document.getElementById('rhFeriasSearch').value||'').toLowerCase().trim();
     const hoje = hojeISOLocal();
     // Entram também os períodos que ainda estão no trâmite: assim o RH enxerga
     // o que a liderança lançou, mesmo antes do aceite.
-    let lista = colaboradoresCache.filter(c=>{
-      const emFerias = normStatus(c.status)==='FERIAS' || (c.feriasInicio && c.feriasFim);
-      const emTramite = !!c.feriasPendenteInicio;
-      return emFerias || emTramite;
-    });
-    if(busca) lista = lista.filter(c=>(c.nome||'').toLowerCase().includes(busca) || String(c.matricula||'').includes(busca));
+    const lista = feriasFiltradas();
     const iniOrd = c => c.feriasInicio || c.feriasPendenteInicio || '';
     lista.sort((a,b)=> iniOrd(a).localeCompare(iniOrd(b)) || (a.nome||'').localeCompare(b.nome||''));
-    if(!lista.length){ boxLista.innerHTML = `<div class="rank-empty">Nenhum colaborador em férias no momento.</div>`; return; }
+    // Contadores do recorte, para o RH ter o número sem contar cartão a cartão.
+    const resumoEl = document.getElementById('rhFeriasResumo');
+    if(resumoEl){
+      const conta = k => lista.filter(c=>feriasSituacaoDe(c)===k).length;
+      const limMes = feriasLimitesMes();
+      resumoEl.innerHTML = `
+        <div class="mf-kpi"><div class="n">${lista.length}</div><div class="l">${limMes?'No mês escolhido':'Colaboradores'}</div></div>
+        <div class="mf-kpi"><div class="n" style="color:var(--cyan);">${conta('ativa')}</div><div class="l">Em férias hoje</div></div>
+        <div class="mf-kpi"><div class="n" style="color:var(--green);">${conta('agendada')}</div><div class="l">Agendadas</div></div>
+        <div class="mf-kpi"><div class="n" style="color:var(--gold);">${conta('tramite')}</div><div class="l">Aguardando RH</div></div>
+        <div class="mf-kpi"><div class="n" style="color:var(--text-2);">${conta('encerrada')}</div><div class="l">Encerradas</div></div>`;
+    }
+    if(!lista.length){ boxLista.innerHTML = `<div class="rank-empty">Nenhum colaborador de férias com esses filtros.<br>Use <b>Limpar filtros</b> para voltar a ver todos.</div>`; return; }
     boxLista.innerHTML = lista.map(c=>{
       const ativa = c.feriasInicio && c.feriasFim && hoje>=c.feriasInicio && hoje<=c.feriasFim;
       const futura = c.feriasInicio && hoje < c.feriasInicio;
@@ -8554,6 +8818,64 @@ window.renderRhRelatorio = renderRhRelatorio;
 // ===================================================================
 let mapaFreqRegistros = [];   // chamadas do mês carregado
 let mapaFreqMesCarregado = '';
+// Cada mês já lido fica guardado: voltar para ele é instantâneo, sem nova
+// leitura do Firestore. O mês corrente ainda recebe lançamentos, então vale
+// por poucos minutos; mês fechado vale pela sessão. O botão Recarregar
+// sempre força a releitura.
+const mfCacheMeses = new Map();   // 'AAAA-MM' -> {regs, idx, quando}
+const MF_CACHE_MAX = 10;
+const MF_VAL_MES_ATUAL = 3*60*1000;
+const MF_VAL_MES_FECHADO = 30*60*1000;
+let mapaFreqIndice = new Map();   // matrícula -> {data: registro}
+let mfPedidoSeq = 0;              // protege contra resposta atrasada de outro mês
+
+// matrícula -> registro do dia. Montado uma vez por mês lido, não a cada desenho.
+function mfIndexarRegistros(regs){
+  const idx = new Map();
+  (regs||[]).forEach(r=>{
+    const m = String(r.matricula||''); if(!m) return;
+    let o = idx.get(m); if(!o){ o = {}; idx.set(m, o); }
+    o[String(r.data||'').slice(0,10)] = r;
+  });
+  return idx;
+}
+
+// matrícula -> colaborador. Sem isto, cada célula fazia um find() na base
+// inteira para montar a dica: 600 pessoas x 31 dias viravam milhões de
+// comparações a cada desenho da tabela.
+let _mfIdxColab = null;
+function mfIndexarColaboradores(){
+  const m = new Map();
+  (typeof colaboradoresCache !== 'undefined' ? colaboradoresCache : []).forEach(c=>{
+    m.set(String(c.matricula), c);
+  });
+  _mfIdxColab = m;
+  return m;
+}
+
+function mfCacheValido(mes, e){
+  if(!e) return false;
+  const atual = hojeISOLocal().slice(0,7);
+  const prazo = (mes === atual) ? MF_VAL_MES_ATUAL : MF_VAL_MES_FECHADO;
+  return (Date.now() - e.quando) < prazo;
+}
+
+function mfGuardarMes(mes, regs, idx){
+  mfCacheMeses.set(mes, { regs, idx, quando: Date.now() });
+  // guarda os últimos meses e descarta o mais antigo, para a memória não crescer
+  while(mfCacheMeses.size > MF_CACHE_MAX){
+    const maisVelho = mfCacheMeses.keys().next().value;
+    mfCacheMeses.delete(maisVelho);
+  }
+}
+
+// Quem lança presença mexe no mês do lançamento: o mapa daquele mês
+// precisa ser lido de novo da próxima vez que for aberto.
+function mfInvalidarMes(data){
+  const mes = String(data||'').slice(0,7);
+  if(mes) mfCacheMeses.delete(mes);
+}
+window.mfInvalidarMes = mfInvalidarMes;
 
 const MF_COD = {
   presente:          { cls:'p', txt:'P', rotulo:'Presente' },
@@ -8563,6 +8885,65 @@ const MF_COD = {
   atestado:          { cls:'a', txt:'A', rotulo:'Atestado / afastado' }
 };
 const MF_DOW = ['D','S','T','Q','Q','S','S'];
+
+// ---- Filtro por marcacao -------------------------------------------------
+// A legenda do mapa e clicavel: cada item liga e desliga uma marcacao.
+// Conjunto VAZIO = sem filtro, que e o estado inicial e o de sempre ate
+// alguem clicar. Como o conjunto comeca vazio, o primeiro clique deixa so
+// aquela marcacao: um clique em "ferias" ja responde "quem esta de ferias".
+// Clicando em outra, ela se soma. Tirando todas, volta ao geral.
+const MF_LEGENDA = [
+  { k:'p',     txt:'P', rot:'presente' },
+  { k:'f',     txt:'F', rot:'falta' },
+  { k:'j',     txt:'J', rot:'falta justificada' },
+  { k:'t',     txt:'T', rot:'falta FTE' },
+  { k:'a',     txt:'A', rot:'atestado' },
+  { k:'v',     txt:'\u25cf', rot:'f\u00e9rias' },
+  { k:'folga', txt:'FE', rot:'folga compensada' },
+  { k:'vazio', txt:'SN', cls:'vazio sn', rot:'sem lan\u00e7amento' }
+];
+const mfCatsAtivas = new Set();
+
+function mfToggleCat(k){
+  if(!MF_LEGENDA.some(it=>it.k===k)) return;
+  if(mfCatsAtivas.has(k)) mfCatsAtivas.delete(k); else mfCatsAtivas.add(k);
+  // marcar todas e o mesmo que nao filtrar nada
+  if(mfCatsAtivas.size === MF_LEGENDA.length) mfCatsAtivas.clear();
+  renderMapaFrequencia();
+}
+window.mfToggleCat = mfToggleCat;
+
+function mfTodasCats(){ mfCatsAtivas.clear(); renderMapaFrequencia(); }
+window.mfTodasCats = mfTodasCats;
+
+// Uma linha entra no mapa se tiver pelo menos um dia de alguma marcacao marcada.
+function mfLinhaPassaNasCats(tem){
+  if(!mfCatsAtivas.size) return true;
+  for(const k of tem) if(mfCatsAtivas.has(k)) return true;
+  return false;
+}
+
+function mfLegendaHtml(contagem){
+  const filtrando = mfCatsAtivas.size > 0;
+  let h = '<div class="mf-legenda">';
+  MF_LEGENDA.forEach(it=>{
+    const sel = mfCatsAtivas.has(it.k);
+    const q = (contagem && contagem[it.k]) || 0;
+    const cls = ['lg', filtrando ? (sel?'sel':'off') : '', q?'':'zerada'].filter(Boolean).join(' ');
+    const dica = `${it.rot} \u2014 ${q} colaborador(es) com pelo menos um dia assim no m\u00eas. `
+               + (sel ? 'Clique para tirar do filtro.'
+                      : (filtrando ? 'Clique para somar ao filtro.' : 'Clique para ver s\u00f3 quem tem.'));
+    h += `<button type="button" class="${cls}" aria-pressed="${sel?'true':'false'}"`
+      +  ` onclick="mfToggleCat('${it.k}')" title="${escAttr(dica)}">`
+      +  `<i class="mf-cel ${it.cls||it.k}">${it.txt}</i><span>${it.rot}</span>`
+      +  `<span class="qt">${q}</span></button>`;
+  });
+  if(filtrando){
+    h += `<button type="button" class="lg lg-reset" onclick="mfTodasCats()"`
+      +  ` title="Tirar o filtro de marca\u00e7\u00e3o e voltar a ver todo mundo">mostrar todos</button>`;
+  }
+  return h + '</div>';
+}
 
 function mfLimitesDoMes(mes){
   const [a, m] = String(mes||'').split('-').map(Number);
@@ -8640,6 +9021,7 @@ window.onFiltroMapaLider = onFiltroMapaLider;
 function limparFiltrosMapa(){
   ['mfContrato','mfEquipe','mfLider'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   const p = document.getElementById('mfPessoa'); if(p) p.value='';
+  mfCatsAtivas.clear();
   popularEquipesMapa();
   renderMapaFrequencia();
 }
@@ -8650,8 +9032,17 @@ async function carregarMapaFrequencia(forcar){
   const lim = mfLimitesDoMes(mes);
   const area = document.getElementById('mfArea');
   if(!lim || !area) return;
-  if(!forcar && mapaFreqMesCarregado === mes){ renderMapaFrequencia(); return; }
+  // Mês que já passou por aqui não é lido de novo: desenha na hora.
+  const guardado = mfCacheMeses.get(mes);
+  if(!forcar && mfCacheValido(mes, guardado)){
+    mapaFreqRegistros = guardado.regs;
+    mapaFreqIndice    = guardado.idx;
+    mapaFreqMesCarregado = mes;
+    renderMapaFrequencia();
+    return;
+  }
 
+  const meuPedido = ++mfPedidoSeq;
   area.innerHTML = `<div class="mf-wrap"><div class="mf-vazio">Carregando os lançamentos de ${escHtml(mes)}…</div></div>`;
   try{
     const snap = await getDocs(query(
@@ -8659,11 +9050,19 @@ async function carregarMapaFrequencia(forcar){
       where('data','>=', lim.ini),
       where('data','<=', lim.fim)
     ));
-    mapaFreqRegistros = snap.docs.map(d=>d.data());
+    // Trocou de mês enquanto este ia e voltava: a resposta velha não manda
+    // mais na tela, mas o que ela trouxe fica guardado para depois.
+    const regs = snap.docs.map(d=>d.data());
+    const idx  = mfIndexarRegistros(regs);
+    mfGuardarMes(mes, regs, idx);
+    if(meuPedido !== mfPedidoSeq) return;
+    mapaFreqRegistros = regs;
+    mapaFreqIndice    = idx;
     mapaFreqMesCarregado = mes;
   }catch(e){
     console.error('Mapa de frequência:', e);
-    mapaFreqRegistros = []; mapaFreqMesCarregado = '';
+    if(meuPedido !== mfPedidoSeq) return;
+    mapaFreqRegistros = []; mapaFreqIndice = new Map(); mapaFreqMesCarregado = '';
     area.innerHTML = `<div class="mf-wrap"><div class="mf-vazio">Não consegui ler os lançamentos do mês.<br>${escHtml(mensagemErroFirestore(e,'chamadas'))}</div></div>`;
     return;
   }
@@ -8673,7 +9072,7 @@ async function carregarMapaFrequencia(forcar){
 window.carregarMapaFrequencia = carregarMapaFrequencia;
 
 // Quem entra no mapa, considerando os filtros.
-function mfPessoasFiltradas(lim){
+function mfPessoasFiltradas(lim, regsAlt){
   const contrato = (document.getElementById('mfContrato')||{}).value || '';
   const equipe   = (document.getElementById('mfEquipe')||{}).value || '';
   const lider    = (document.getElementById('mfLider')||{}).value || '';
@@ -8694,10 +9093,11 @@ function mfPessoasFiltradas(lim){
   colaboradoresCache.filter(passa).forEach(c => porMat.set(String(c.matricula), c));
 
   // Quem saiu no meio do mês tem de continuar aparecendo: o mês dele existiu.
-  mapaFreqRegistros.forEach(r => {
+  const idxColab = _mfIdxColab || mfIndexarColaboradores();
+  (regsAlt || mapaFreqRegistros).forEach(r => {
     const m = String(r.matricula||'');
     if(!m || porMat.has(m)) return;
-    const c = colaboradoresCache.find(x=>String(x.matricula)===m);
+    const c = idxColab.get(m);
     const sombra = c || { matricula:m, nome:r.nome||m, equipe:r.equipe||'', funcao:r.funcao||'', contrato:'', status:'DEMITIDO' };
     if(passa(sombra)) porMat.set(m, sombra);
   });
@@ -8720,17 +9120,34 @@ function renderMapaFrequencia(){
     return;
   }
 
-  // Índice dos lançamentos: matrícula -> data -> registro.
-  const porPessoa = new Map();
-  mapaFreqRegistros.forEach(r=>{
-    const m = String(r.matricula||'');
-    if(!m) return;
-    if(!porPessoa.has(m)) porPessoa.set(m, {});
-    porPessoa.get(m)[String(r.data||'').slice(0,10)] = r;
-  });
+  // Índice dos lançamentos: vem pronto do mês carregado; só é remontado se
+  // por algum motivo ainda não existir.
+  const porPessoa = (mapaFreqIndice && mapaFreqIndice.size)
+                    ? mapaFreqIndice
+                    : mfIndexarRegistros(mapaFreqRegistros);
+  mfIndexarColaboradores();
 
   const hoje = hojeISOLocal();
   const dias = lim.dias;
+  // A data de cada dia é formatada UMA vez, não uma vez por célula: eram
+  // 31 formatações por colaborador em cada desenho da tabela.
+  const isoDoDia = [], dataFmt = [];
+  for(let d=1; d<=dias; d++){
+    const iso = `${lim.ano}-${lim.mm}-${String(d).padStart(2,'0')}`;
+    isoDoDia.push(iso); dataFmt.push(fmtDataPtBr(iso));
+  }
+  // Se a equipe trabalha no dia depende só de (equipe, dia): a resposta é
+  // guardada, em vez de reler a escala para cada pessoa da equipe.
+  const memoFolga = new Map();
+  const trabalhaNoDia = (equipe, iso) => {
+    if(!equipe || typeof equipeTrabalhaNaData !== 'function') return true;
+    const ch = equipe + '|' + iso;
+    if(memoFolga.has(ch)) return memoFolga.get(ch);
+    let v = true;
+    try{ v = !!equipeTrabalhaNaData(equipe, iso); }catch(_e){ v = true; }
+    memoFolga.set(ch, v);
+    return v;
+  };
   const totaisDia = Array.from({length:dias}, ()=>({p:0,f:0,o:0}));
   let somaP = 0, somaF = 0, somaOutros = 0;
 
@@ -8744,43 +9161,58 @@ function renderMapaFrequencia(){
   }
   celulas += `<div class="mf-tot" style="position:sticky; top:0; z-index:2;">P / F</div>`;
 
-  // ---- uma linha por pessoa
+  // ---- uma linha por pessoa, em duas passadas
+  // Primeiro classifica cada dia; so depois a legenda decide quem aparece.
+  // Os totais sao contados SO sobre as linhas visiveis, senao o rodape e os
+  // indicadores diriam uma coisa e a tabela mostraria outra.
+  const filtrandoCat = mfCatsAtivas.size > 0;
+  const contagemCat = {};
+  const linhasMapa = [];
+
   pessoas.forEach(c=>{
     const mat = String(c.matricula);
     const regs = porPessoa.get(mat) || {};
-    celulas += `<div class="mf-pessoa">
-      <span class="pn" title="${escAttr(c.nome||'')}">${escHtml(c.nome||mat)}</span>
-      <span class="pe" title="${escAttr(c.equipe||'')}">${escHtml(c.matricula)} · ${escHtml(c.equipe||'sem equipe')}</span>
-    </div>`;
-
+    const cels = [];
+    const tem = new Set();
     let nP=0, nF=0;
     for(let d=1; d<=dias; d++){
-      const iso = `${lim.ano}-${lim.mm}-${String(d).padStart(2,'0')}`;
-      const r = regs[iso];
-      let cls, txt, tip;
-      if(r && MF_COD[r.status]){
-        const k = MF_COD[r.status];
-        cls = k.cls; txt = k.txt;
-        tip = `${fmtDataPtBr(iso)} · ${k.rotulo}`
-            + (r.hora ? ` · lançado às ${r.hora}` : '')
-            + (r.registradoPor ? ` por ${nomeDaMatricula(r.registradoPor)}` : '')
-            + (r.observacao ? ` · ${r.observacao}` : '');
-        if(r.status==='presente'){ nP++; totaisDia[d-1].p++; somaP++; }
-        else if(r.status==='falta'){ nF++; totaisDia[d-1].f++; somaF++; }
-        else { totaisDia[d-1].o++; somaOutros++; }
-      } else if(estaEmFeriasNaData(c, iso)){
-        cls='v'; txt='●'; tip = `${fmtDataPtBr(iso)} · férias`;
-      } else if(c.equipe && typeof equipeTrabalhaNaData==='function' && !equipeTrabalhaNaData(c.equipe, iso)){
-        cls='folga'; txt='–'; tip = `${fmtDataPtBr(iso)} · folga pela escala`;
-      } else if(iso > hoje){
-        cls='futuro'; txt='·'; tip = `${fmtDataPtBr(iso)} · ainda não chegou`;
-      } else {
-        cls='vazio'; txt='·'; tip = `${fmtDataPtBr(iso)} · sem lançamento`;
-      }
-      if(iso === hoje) cls += ' hoje';
-      celulas += `<div class="mf-cel ${cls}" title="${escAttr(tip)}">${txt}</div>`;
+      const iso = isoDoDia[d-1];
+      const dFmt = dataFmt[d-1];
+      const k = mfClassificarDia(c, regs[iso], iso, dFmt, hoje, trabalhaNoDia(c.equipe, iso));
+      if(k.status==='presente') nP++;
+      else if(k.status==='falta') nF++;
+      tem.add(k.cat);
+      cels.push({ cat:k.cat, txt:k.txt, tip:k.tip, dia:d, ehHoje:(iso===hoje) });
     }
-    celulas += `<div class="mf-tot"><span style="color:var(--green);">${nP}</span>&nbsp;/&nbsp;<span style="color:var(--red);">${nF}</span></div>`;
+    // a contagem da legenda olha TODO mundo que passou nos filtros de cima,
+    // senao o numero mudaria a cada clique e ninguem saberia o que comparar
+    tem.forEach(k=>{ contagemCat[k] = (contagemCat[k]||0) + 1; });
+    linhasMapa.push({ c, cels, nP, nF, tem });
+  });
+
+  const visiveis = linhasMapa.filter(l=>mfLinhaPassaNasCats(l.tem));
+
+  visiveis.forEach(l=>{
+    l.cels.forEach(cel=>{
+      if(cel.cat==='p'){ totaisDia[cel.dia-1].p++; somaP++; }
+      else if(cel.cat==='f'){ totaisDia[cel.dia-1].f++; somaF++; }
+      else if(cel.cat==='j' || cel.cat==='t' || cel.cat==='a'){ totaisDia[cel.dia-1].o++; somaOutros++; }
+    });
+  });
+
+  visiveis.forEach(l=>{
+    const c = l.c;
+    celulas += `<div class="mf-pessoa">
+      <span class="pn" title="${escAttr(c.nome||'')}">${escHtml(c.nome||String(c.matricula))}</span>
+      <span class="pe" title="${escAttr(c.equipe||'')}">${escHtml(c.matricula)} · ${escHtml(c.equipe||'sem equipe')}</span>
+    </div>`;
+    l.cels.forEach(cel=>{
+      const cls = ['mf-cel', cel.cat, cel.cat==='vazio' ? 'sn' : '',
+                   (filtrandoCat && !mfCatsAtivas.has(cel.cat)) ? 'apagado' : '',
+                   cel.ehHoje ? 'hoje' : ''].filter(Boolean).join(' ');
+      celulas += `<div class="${cls}" title="${escAttr(cel.tip)}">${cel.txt}</div>`;
+    });
+    celulas += `<div class="mf-tot"><span style="color:var(--green);">${l.nP}</span>&nbsp;/&nbsp;<span style="color:var(--red);">${l.nF}</span></div>`;
   });
 
   // ---- rodapé com o total do dia
@@ -8792,27 +9224,36 @@ function renderMapaFrequencia(){
   celulas += `<div class="mf-tot">${somaP} / ${somaF}</div>`;
 
   const largura = 150 + dias*26 + 64;
-  area.innerHTML = `<div class="mf-wrap">
-    <div class="mf-rolagem">
-      <div class="mf-grade" style="grid-template-columns:minmax(var(--mf-nome-min,150px),var(--mf-nome-max,210px)) repeat(${dias}, minmax(var(--mf-cel-min,24px),1fr)) minmax(56px,70px); min-width:${largura}px;">${celulas}</div>
-    </div>
-    <div class="mf-legenda">
-      <span><i class="mf-cel p">P</i> presente</span>
-      <span><i class="mf-cel f">F</i> falta</span>
-      <span><i class="mf-cel j">J</i> falta justificada</span>
-      <span><i class="mf-cel t">T</i> falta FTE</span>
-      <span><i class="mf-cel a">A</i> atestado</span>
-      <span><i class="mf-cel v">●</i> férias</span>
-      <span><i class="mf-cel folga">–</i> folga da escala</span>
-      <span><i class="mf-cel vazio">·</i> sem lançamento</span>
-    </div>
-  </div>`;
+  const legendaHtml = mfLegendaHtml(contagemCat);
+  // guarda onde a pessoa estava olhando: trocar um item da legenda nao pode
+  // jogar a tabela de volta para o dia 1
+  const rolAntes = area.querySelector('.mf-rolagem');
+  const sx = rolAntes ? rolAntes.scrollLeft : 0;
+  const sy = rolAntes ? rolAntes.scrollTop  : 0;
+
+  if(!visiveis.length){
+    // a legenda PRECISA continuar na tela, senao nao ha como desfazer o filtro
+    area.innerHTML = `<div class="mf-wrap">
+      <div class="mf-vazio">Ninguém tem as marcações escolhidas neste mês.<br>
+        Clique de novo na legenda abaixo (ou em <b>mostrar todos</b>) para voltar a ver todo mundo.</div>
+      ${legendaHtml}
+    </div>`;
+  } else {
+    area.innerHTML = `<div class="mf-wrap">
+      <div class="mf-rolagem">
+        <div class="mf-grade" style="grid-template-columns:minmax(var(--mf-nome-min,150px),var(--mf-nome-max,210px)) repeat(${dias}, minmax(var(--mf-cel-min,24px),1fr)) minmax(56px,70px); min-width:${largura}px;">${celulas}</div>
+      </div>
+      ${legendaHtml}
+    </div>`;
+    const rolDepois = area.querySelector('.mf-rolagem');
+    if(rolDepois){ rolDepois.scrollLeft = sx; rolDepois.scrollTop = sy; }
+  }
 
   if(resumoEl){
     const lancados = somaP + somaF + somaOutros;
     const pct = lancados ? Math.round((somaP/lancados)*100) : 0;
     resumoEl.innerHTML = `
-      <div class="mf-kpi"><div class="n">${pessoas.length}</div><div class="l">Colaboradores</div></div>
+      <div class="mf-kpi"><div class="n">${visiveis.length}</div><div class="l">${filtrandoCat?'Colaboradores no filtro':'Colaboradores'}</div></div>
       <div class="mf-kpi"><div class="n" style="color:var(--green);">${somaP}</div><div class="l">Presenças</div></div>
       <div class="mf-kpi"><div class="n" style="color:var(--red);">${somaF}</div><div class="l">Faltas</div></div>
       <div class="mf-kpi"><div class="n" style="color:var(--gold);">${somaOutros}</div><div class="l">Justificadas / atestados</div></div>
@@ -8821,11 +9262,326 @@ function renderMapaFrequencia(){
 }
 window.renderMapaFrequencia = renderMapaFrequencia;
 
+// O que mostrar num dia, para UMA pessoa. É a única regra do mapa: a tela,
+// o Excel e a impressão passam todos por aqui, então nunca divergem.
+//   r        = lançamento do dia (ou nada)
+//   trabalha = a escala da equipe prevê trabalho nesse dia
+function mfClassificarDia(c, r, iso, dFmt, hoje, trabalha){
+  if(r && MF_COD[r.status]){
+    const k = MF_COD[r.status];
+    return { cat:k.cls, txt:k.txt, status:r.status,
+      tip: `${dFmt} · ${k.rotulo}`
+         + (r.hora ? ` · lançado às ${r.hora}` : '')
+         + (r.registradoPor ? ` por ${nomeDaMatricula(r.registradoPor)}` : '')
+         + (r.observacao ? ` · ${r.observacao}` : '') };
+  }
+  if(estaEmFeriasNaData(c, iso)) return { cat:'v', txt:'●', tip:`${dFmt} · férias` };
+  if(!trabalha) return { cat:'folga', txt:'FE', tip:`${dFmt} · FE — folga compensada da escala` };
+  if(iso > hoje)  return { cat:'futuro', txt:'·', tip:`${dFmt} · ainda não chegou` };
+  return { cat:'vazio', txt:'SN',
+           tip:`${dFmt} · SEM LANÇAMENTO — o líder não registrou a presença neste dia` };
+}
+
+// Letra de cada marcação na planilha e na impressão.
+const MF_EXCEL = { p:'P', f:'F', j:'J', t:'T', a:'A', v:'FER', folga:'FE', vazio:'SN', futuro:'' };
+
 // Nome de quem lançou, para a dica da célula.
 function nomeDaMatricula(mat){
-  const c = colaboradoresCache.find(x=>String(x.matricula)===String(mat));
+  const idx = _mfIdxColab || mfIndexarColaboradores();
+  const c = idx.get(String(mat));
   return c ? (c.nome || String(mat)) : String(mat);
 }
+
+// ===================================================================
+// RELATÓRIO POR PERÍODO — a base comum da impressão e do Excel.
+// O usuário escolhe de quando até quando; os meses que faltarem são lidos e
+// guardados no mesmo cache do mapa, então pedir de novo não custa nada.
+// ===================================================================
+function mfDiasDoPeriodo(ini, fim){
+  const dias = [];
+  const [a1,m1,d1] = String(ini).split('-').map(Number);
+  const [a2,m2,d2] = String(fim).split('-').map(Number);
+  if(!a1 || !a2) return dias;
+  let cur = new Date(a1, m1-1, d1), ate = new Date(a2, m2-1, d2);
+  let guarda = 0;
+  while(cur <= ate && guarda++ < 400){
+    dias.push(`${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-${String(cur.getDate()).padStart(2,'0')}`);
+    cur = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate()+1);
+  }
+  return dias;
+}
+
+function mfMesesDoPeriodo(ini, fim){
+  const meses = [], vistos = new Set();
+  mfDiasDoPeriodo(ini, fim).forEach(iso=>{
+    const m = iso.slice(0,7);
+    if(!vistos.has(m)){ vistos.add(m); meses.push(m); }
+  });
+  return meses;
+}
+
+// Garante que todo mês do período está lido. Devolve os registros e o índice.
+async function mfGarantirPeriodo(ini, fim){
+  const regs = [];
+  for(const mes of mfMesesDoPeriodo(ini, fim)){
+    const guardado = mfCacheMeses.get(mes);
+    if(mfCacheValido(mes, guardado)){ regs.push(...guardado.regs); continue; }
+    const lim = mfLimitesDoMes(mes);
+    if(!lim) continue;
+    const snap = await getDocs(query(
+      collection(db,'chamadas'),
+      where('data','>=', lim.ini),
+      where('data','<=', lim.fim)
+    ));
+    const r = snap.docs.map(d=>d.data());
+    mfGuardarMes(mes, r, mfIndexarRegistros(r));
+    regs.push(...r);
+  }
+  return { regs, idx: mfIndexarRegistros(regs) };
+}
+
+// Todo mundo, sem os filtros da tela — para a opção "mapa completo".
+function mfTodasPessoas(regs){
+  const porMat = new Map();
+  mfIndexarColaboradores();
+  (colaboradoresCache||[]).forEach(c => porMat.set(String(c.matricula), c));
+  (regs||[]).forEach(r=>{
+    const m = String(r.matricula||''); if(!m || porMat.has(m)) return;
+    porMat.set(m, { matricula:m, nome:r.nome||m, equipe:r.equipe||'', funcao:r.funcao||'',
+                    contrato:'', status:'DEMITIDO' });
+  });
+  return [...porMat.values()].sort((a,b)=>String(a.nome||'').localeCompare(String(b.nome||'')));
+}
+
+// A matriz do período: uma linha por pessoa, uma coluna por dia.
+async function mfMontarPeriodo(ini, fim, usarFiltros){
+  const { regs, idx } = await mfGarantirPeriodo(ini, fim);
+  mfIndexarColaboradores();
+  const pessoas = usarFiltros ? mfPessoasFiltradas(null, regs) : mfTodasPessoas(regs);
+  const dias = mfDiasDoPeriodo(ini, fim);
+  const hoje = hojeISOLocal();
+  const dFmt = dias.map(iso=>fmtDataPtBr(iso));
+  const memo = new Map();
+  const trabalha = (equipe, iso) => {
+    if(!equipe || typeof equipeTrabalhaNaData !== 'function') return true;
+    const ch = equipe + '|' + iso;
+    if(memo.has(ch)) return memo.get(ch);
+    let v = true;
+    try{ v = !!equipeTrabalhaNaData(equipe, iso); }catch(_e){ v = true; }
+    memo.set(ch, v); return v;
+  };
+  const totaisDia = dias.map(()=>({p:0,f:0,o:0}));
+  const linhas = [];
+  pessoas.forEach(c=>{
+    const regsP = idx.get(String(c.matricula)) || {};
+    const cels = []; const tem = new Set();
+    let nP=0, nF=0;
+    dias.forEach((iso,i)=>{
+      const k = mfClassificarDia(c, regsP[iso], iso, dFmt[i], hoje, trabalha(c.equipe, iso));
+      if(k.status==='presente'){ nP++; totaisDia[i].p++; }
+      else if(k.status==='falta'){ nF++; totaisDia[i].f++; }
+      else if(k.cat==='j' || k.cat==='t' || k.cat==='a') totaisDia[i].o++;
+      tem.add(k.cat);
+      cels.push(k);
+    });
+    if(usarFiltros && !mfLinhaPassaNasCats(tem)) return;
+    linhas.push({ c, cels, nP, nF });
+  });
+  return { dias, dFmt, linhas, totaisDia };
+}
+
+// ---- a caixa que pergunta o período -------------------------------------
+function mfAbrirExportar(){
+  const mes = (document.getElementById('mfMes')||{}).value || hojeISOLocal().slice(0,7);
+  const lim = mfLimitesDoMes(mes);
+  const hoje = hojeISOLocal();
+  const ini = document.getElementById('mfExpIni');
+  const fim = document.getElementById('mfExpFim');
+  if(lim && ini && fim){
+    // começa no mês que está na tela, até hoje (ou até o fim do mês, se já passou)
+    ini.value = lim.ini;
+    fim.value = (hoje >= lim.ini && hoje <= lim.fim) ? hoje : lim.fim;
+  }
+  const ov = document.getElementById('modalMfExportar');
+  if(ov) ov.classList.add('active');
+}
+window.mfAbrirExportar = mfAbrirExportar;
+function mfFecharExportar(){
+  const ov = document.getElementById('modalMfExportar');
+  if(ov) ov.classList.remove('active');
+}
+window.mfFecharExportar = mfFecharExportar;
+
+function mfLerPeriodoEscolhido(){
+  const ini = (document.getElementById('mfExpIni')||{}).value || '';
+  const fim = (document.getElementById('mfExpFim')||{}).value || '';
+  if(!ini || !fim){ toast('Informe a data de início e a de fim.', 'err'); return null; }
+  if(fim < ini){ toast('A data final não pode ser antes da inicial.', 'err'); return null; }
+  const dias = mfDiasDoPeriodo(ini, fim).length;
+  if(dias > 186){ toast('Período muito longo. Escolha até 6 meses por vez.', 'err'); return null; }
+  const usarFiltros = !((document.getElementById('mfExpCompleto')||{}).checked);
+  return { ini, fim, usarFiltros };
+}
+
+// ---- resumo do recorte, para sair impresso no cabeçalho ------------------
+function mfDescricaoDoRecorte(usarFiltros){
+  if(!usarFiltros) return 'Mapa completo — todos os colaboradores, sem filtros';
+  const v = id => (document.getElementById(id)||{}).value || '';
+  const sel = id => { const e = document.getElementById(id);
+    return (e && e.selectedIndex >= 0 && e.value) ? e.options[e.selectedIndex].textContent.trim() : ''; };
+  const partes = [];
+  if(v('mfContrato')) partes.push('Contrato: ' + sel('mfContrato'));
+  if(v('mfEquipe'))   partes.push('Equipe: ' + sel('mfEquipe'));
+  if(v('mfLider'))    partes.push('Líder: ' + sel('mfLider'));
+  if(v('mfPessoa'))   partes.push('Busca: ' + v('mfPessoa'));
+  if(mfCatsAtivas.size) partes.push('Marcações: ' +
+    MF_LEGENDA.filter(it=>mfCatsAtivas.has(it.k)).map(it=>it.rot).join(', '));
+  return partes.length ? partes.join(' · ') : 'Todos os colaboradores dos filtros atuais';
+}
+
+async function mfImprimirPeriodo(){
+  const esc = mfLerPeriodoEscolhido(); if(!esc) return;
+  const bt = document.getElementById('mfBtImprimir');
+  if(bt){ bt.disabled = true; bt.textContent = 'Montando…'; }
+  try{
+    const { dias, linhas, totaisDia } = await mfMontarPeriodo(esc.ini, esc.fim, esc.usarFiltros);
+    if(!linhas.length){ toast('Nada para imprimir nesse período com esse recorte.', 'err'); return; }
+    mfAbrirJanelaImpressao(esc, dias, linhas, totaisDia);
+    mfFecharExportar();
+  }catch(e){
+    console.error('Imprimir mapa:', e);
+    toast('Não consegui montar a impressão: ' + (e && e.message ? e.message : e), 'err');
+  }finally{
+    if(bt){ bt.disabled = false; bt.textContent = '🖨️ Imprimir (A4 deitado)'; }
+  }
+}
+window.mfImprimirPeriodo = mfImprimirPeriodo;
+
+// A4 deitado cabe cerca de 31 colunas estreitas: períodos maiores saem em
+// blocos, sempre repetindo a coluna do nome e o cabeçalho dos dias.
+const MF_IMP_COLS = 31;
+function mfAbrirJanelaImpressao(esc, dias, linhas, totaisDia){
+  const DOW = ['D','S','T','Q','Q','S','S'];
+  const blocos = [];
+  for(let i=0; i<dias.length; i+=MF_IMP_COLS) blocos.push([i, Math.min(i+MF_IMP_COLS, dias.length)]);
+
+  const tabela = ([ini, fim]) => {
+    let h = '<table class="mapa"><thead><tr><th class="nome">Colaborador</th>';
+    for(let i=ini; i<fim; i++){
+      const [a,m,d] = dias[i].split('-').map(Number);
+      const dow = new Date(a, m-1, d).getDay();
+      h += `<th class="${dow===0?'dom':''}"><span class="dw">${DOW[dow]}</span><span class="dn">${d}</span></th>`;
+    }
+    h += '<th class="tot">P/F</th></tr></thead><tbody>';
+    linhas.forEach(l=>{
+      h += `<tr><td class="nome"><b>${escHtml(l.c.nome||String(l.c.matricula))}</b>`
+         + `<span class="sub">${escHtml(String(l.c.matricula))} · ${escHtml(l.c.equipe||'sem equipe')}</span></td>`;
+      for(let i=ini; i<fim; i++){
+        const cel = l.cels[i];
+        h += `<td class="c ${cel.cat}">${cel.txt === '·' ? '' : escHtml(cel.txt)}</td>`;
+      }
+      h += `<td class="tot">${l.nP}/${l.nF}</td></tr>`;
+    });
+    h += '<tr class="rodape"><td class="nome">TOTAL PRESENTES</td>';
+    for(let i=ini; i<fim; i++) h += `<td class="c">${totaisDia[i].p || ''}</td>`;
+    h += `<td class="tot">${linhas.reduce((x,l)=>x+l.nP,0)}/${linhas.reduce((x,l)=>x+l.nF,0)}</td></tr>`;
+    return h + '</tbody></table>';
+  };
+
+  const legenda = MF_LEGENDA.map(it=>
+    `<span class="lg"><i class="c ${it.cls||it.k}">${it.txt==='·'?'':it.txt}</i>${it.rot}</span>`).join('');
+
+  const conteudo = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8">
+  <title>Mapa de frequência — ${escHtml(fmtDataPtBr(esc.ini))} a ${escHtml(fmtDataPtBr(esc.fim))}</title>
+  <style>
+    @page{ size:A4 landscape; margin:8mm; }
+    *{box-sizing:border-box;}
+    body{font-family:Arial,Helvetica,sans-serif; margin:0; padding:10px; color:#111; background:#fff;
+      -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+    h1{font-size:15px; margin:0 0 2px;}
+    .sub0{font-size:10.5px; color:#444; margin-bottom:8px;}
+    table.mapa{width:100%; border-collapse:collapse; margin-bottom:10px; table-layout:fixed;}
+    table.mapa th, table.mapa td{border:1px solid #b9c2cc; padding:1px; font-size:8px; text-align:center;}
+    th.nome, td.nome{width:150px; text-align:left; padding:2px 4px; font-size:8.5px;}
+    td.nome .sub{display:block; font-size:7px; color:#555; font-weight:normal;}
+    th{background:#eef1f5; font-weight:bold;}
+    th .dw{display:block; font-size:6.5px; color:#667;}
+    th .dn{display:block; font-size:9px;}
+    th.dom{background:#fde8ea; color:#a01020;}
+    td.c{font-weight:bold; height:15px;}
+    td.p{background:#d9f7e8; color:#09633f;} td.f{background:#ffdde0; color:#a4001a;}
+    td.j{background:#fdeacd; color:#8a5200;} td.t{background:#e6e2ff; color:#3b2f9e;}
+    td.a{background:#fdf3cf; color:#7a5c00;} td.v{background:#d7f3fa; color:#065a73;}
+    td.folga{background:#eaeff5; color:#5d7084; font-size:7px;}
+    td.vazio{background:#f5f6f8; color:#7a8495; font-size:7px;}
+    .tot{width:40px; background:#f1f3f6; font-weight:bold;}
+    tr.rodape td{background:#e9edf2; font-weight:bold;}
+    tr{page-break-inside:avoid;}
+    .legenda{font-size:9px; margin:6px 0 12px; display:flex; flex-wrap:wrap; gap:4px 12px; align-items:center;}
+    .legenda .lg{display:inline-flex; align-items:center; gap:4px;}
+    .legenda i.c{display:inline-flex; width:17px; height:13px; align-items:center; justify-content:center;
+      border:1px solid #b9c2cc; font-style:normal; font-weight:bold; font-size:7.5px;}
+    .barra{position:sticky; top:0; background:#0a1628; padding:10px; text-align:center;
+      display:flex; gap:8px; justify-content:center; margin:-10px -10px 10px;}
+    .barra button{padding:10px 16px; font-size:14px; font-weight:bold; border:none; border-radius:8px; cursor:pointer;}
+    .b1{background:#00c4ff; color:#00131f;} .b2{background:#e6e9ef; color:#111;}
+    @media print{ .barra{display:none !important;} body{padding:0;} }
+  </style></head><body>
+  <div class="barra">
+    <button class="b1" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+    <button class="b2" onclick="window.close()">Fechar</button>
+  </div>
+  <h1>Mapa de frequência · ${escHtml(fmtDataPtBr(esc.ini))} a ${escHtml(fmtDataPtBr(esc.fim))}</h1>
+  <div class="sub0">${escHtml(mfDescricaoDoRecorte(esc.usarFiltros))} · ${linhas.length} colaborador(es)
+    · emitido em ${escHtml(fmtDataPtBr(hojeISOLocal()))}</div>
+  <div class="legenda">${legenda}</div>
+  ${blocos.map(tabela).join('')}
+  <script>setTimeout(function(){ try{ window.focus(); window.print(); }catch(e){} }, 700);<\/script>
+  </body></html>`;
+
+  const win = window.open('', '_blank');
+  if(win){ win.document.open(); win.document.write(conteudo); win.document.close(); }
+  else toast('Permita janelas pop-up para imprimir o mapa.', 'err');
+}
+
+async function mfExportarPeriodoExcel(){
+  const esc = mfLerPeriodoEscolhido(); if(!esc) return;
+  const bt = document.getElementById('mfBtExcel');
+  if(bt){ bt.disabled = true; bt.textContent = 'Montando…'; }
+  try{
+    const { dias, linhas, totaisDia } = await mfMontarPeriodo(esc.ini, esc.fim, esc.usarFiltros);
+    if(!linhas.length){ toast('Nada para exportar nesse período com esse recorte.', 'err'); return; }
+    const cab = ['MATRICULA','NOME','EQUIPE','CONTRATO'];
+    dias.forEach(iso=>cab.push(iso.slice(8) + '/' + iso.slice(5,7)));
+    cab.push('PRESENCAS','FALTAS');
+    const corpo = linhas.map(l=>{
+      const linha = [String(l.c.matricula), l.c.nome||'', l.c.equipe||'', l.c.contrato||l.c.cc||''];
+      l.cels.forEach(cel=>linha.push(MF_EXCEL[cel.cat] !== undefined ? MF_EXCEL[cel.cat] : ''));
+      linha.push(l.nP, l.nF);
+      return linha;
+    });
+    const rodape = ['', 'TOTAL PRESENTES NO DIA', '', ''];
+    totaisDia.forEach(t=>rodape.push(t.p));
+    rodape.push(linhas.reduce((x,l)=>x+l.nP,0), linhas.reduce((x,l)=>x+l.nF,0));
+    const topo = [['MAPA DE FREQUENCIA'], [`Periodo: ${fmtDataPtBr(esc.ini)} a ${fmtDataPtBr(esc.fim)}`],
+                  [mfDescricaoDoRecorte(esc.usarFiltros)], []];
+    const ws = XLSX.utils.aoa_to_sheet([...topo, cab, ...corpo, rodape]);
+    ws['!cols'] = [{wch:12},{wch:34},{wch:24},{wch:16},
+                   ...dias.map(()=>({wch:5})), {wch:11},{wch:9}];
+    ws['!freeze'] = { xSplit:2, ySplit:5 };
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Mapa');
+    XLSX.writeFile(wb, `MAPA_FREQUENCIA_${esc.ini.replace(/-/g,'')}_${esc.fim.replace(/-/g,'')}.xlsx`);
+    toast(`Planilha gerada: ${linhas.length} colaborador(es), ${dias.length} dia(s).`, 'ok');
+    mfFecharExportar();
+  }catch(e){
+    console.error('Excel do mapa:', e);
+    toast('Não consegui gerar a planilha: ' + (e && e.message ? e.message : e), 'err');
+  }finally{
+    if(bt){ bt.disabled = false; bt.textContent = '📊 Exportar Excel'; }
+  }
+}
+window.mfExportarPeriodoExcel = mfExportarPeriodoExcel;
 
 function exportarMapaFrequencia(){
   const mes = (document.getElementById('mfMes')||{}).value || hojeISOLocal().slice(0,7);
@@ -8845,23 +9601,29 @@ function exportarMapaFrequencia(){
   for(let d=1; d<=lim.dias; d++) cab.push(String(d));
   cab.push('PRESENCAS','FALTAS');
 
-  const linhas = pessoas.map(c=>{
+  // o Excel sai igual ao que esta na tela, inclusive o filtro da legenda
+  const hojeExp = hojeISOLocal();
+  const linhas = [];
+  pessoas.forEach(c=>{
     const regs = porPessoa.get(String(c.matricula)) || {};
     const l = [String(c.matricula), c.nome||'', c.equipe||'', c.contrato||c.cc||''];
     let nP=0, nF=0;
+    const tem = new Set();
     for(let d=1; d<=lim.dias; d++){
       const iso = `${lim.ano}-${lim.mm}-${String(d).padStart(2,'0')}`;
       const r = regs[iso];
       if(r && MF_COD[r.status]){
         l.push(MF_COD[r.status].txt);
+        tem.add(MF_COD[r.status].cls);
         if(r.status==='presente') nP++; else if(r.status==='falta') nF++;
-      } else if(estaEmFeriasNaData(c, iso)) l.push('FER');
-      else if(c.equipe && typeof equipeTrabalhaNaData==='function' && !equipeTrabalhaNaData(c.equipe, iso)) l.push('FOL');
-      else l.push('');
+      } else if(estaEmFeriasNaData(c, iso)){ l.push('FER'); tem.add('v'); }
+      else if(c.equipe && typeof equipeTrabalhaNaData==='function' && !equipeTrabalhaNaData(c.equipe, iso)){ l.push('FE'); tem.add('folga'); }
+      else { const futuro = iso > hojeExp; l.push(futuro ? '' : 'SN'); tem.add(futuro ? 'futuro' : 'vazio'); }
     }
     l.push(nP, nF);
-    return l;
+    if(mfLinhaPassaNasCats(tem)) linhas.push(l);
   });
+  if(!linhas.length){ toast('Nada para exportar com esse filtro de marcação.', 'err'); return; }
 
   try{
     const ws = XLSX.utils.aoa_to_sheet([cab, ...linhas]);

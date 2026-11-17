@@ -1,6 +1,6 @@
 /* ============================================================================
    Service Worker — REFRAMAX Central Operacional (PWA)
-   Versão do app: central_50 (RH/Férias · Escalas + calendário visual ·
+   Versão do app: central_51 (RH/Férias · Escalas + calendário visual ·
    Reset de senha aprovado · Falta justificada · Escopo de liderança)
 
    ONDE PUBLICAR
